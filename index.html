@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spark Quest: Cloud Edition ☁️</title>
+    <title>Spark Quest: RPG Edition ⚔️</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -88,23 +88,7 @@
         const analytics = firebase.analytics();
 
         // ==========================================
-        // 📊 ANALYTICS TRACKER
-        // ==========================================
-        const trackActivity = (type, id, details = {}) => {
-            try {
-                if(auth.currentUser) {
-                    db.collection('activities').add({
-                        type, id, details,
-                        userId: auth.currentUser.email,
-                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                }
-            } catch(e) { console.warn("Track error", e); }
-        };
-        window.sqTrack = { activity: trackActivity };
-
-        // ==========================================
-        // 1. ASSET RENDERER
+        // 1. ASSET RENDERER (EXPANDED SHOP)
         // ==========================================
         const RenderAsset = ({ type, id, color, skinColor }) => {
             const sColor = skinColor || '#ffe0bd';
@@ -126,28 +110,39 @@
                 );
             }
 
+            // HAIR
             if (id === 'hair_brown_messy') return <path d="M 35 30 C 35 5, 165 5, 165 30 C 165 60, 170 85, 170 95 L 155 95 L 155 30 L 45 30 L 45 95 L 30 95 C 30 85, 35 60, 35 30 Z" fill="#563625" stroke={stroke} strokeWidth={strokeW} />;
             if (id === 'hair_blonde_ponytail') return <g><path d="M 45 25 C 45 5, 155 5, 155 25 C 155 55, 155 80, 155 80 L 45 80 C 45 80, 45 55, 45 25 Z" fill="#ecc94b" stroke={stroke} strokeWidth={strokeW} /><circle cx="160" cy="40" r="20" fill="#ecc94b" stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hair_black_spiky') return <path d="M 40 30 L 30 10 L 55 20 L 75 5 L 100 15 L 125 5 L 145 20 L 170 10 L 160 30 C 160 60, 150 80, 150 80 L 50 80 C 50 80, 40 60, 40 30 Z" fill="#2d3748" stroke={stroke} strokeWidth={strokeW} />;
             if (id === 'hair_red_bob') return <path d="M 40 35 C 40 10, 160 10, 160 35 C 160 65, 170 100, 170 110 L 140 110 L 140 35 L 60 35 L 60 110 L 30 110 C 30 100, 40 65, 40 35 Z" fill="#e53e3e" stroke={stroke} strokeWidth={strokeW} />;
 
+            // SHIRTS
             if (type === 'shirt') {
                 let path = "M 55 100 L 35 115 L 45 130 L 60 120 L 60 155 L 140 155 L 140 120 L 155 130 L 165 115 L 145 100 Q 100 110 55 100 Z";
                 if (id === 'shirt_ninja') return <g><path d={path} fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><path d="M 90 120 L 110 120 L 100 140 Z" fill="#ef4444" /></g>;
                 if (id === 'shirt_gold_armor') return <g><path d="M 50 95 L 30 110 L 40 130 L 60 115 L 60 160 L 140 160 L 140 115 L 160 130 L 170 110 L 150 95 Q 100 105 50 95 Z" fill="#fbbf24" stroke="#b45309" strokeWidth={strokeW} /><rect x="85" y="115" width="30" height="35" rx="5" fill="#f59e0b" /></g>;
+                if (id === 'shirt_super') return <g><path d={path} fill="#3b82f6" stroke={stroke} strokeWidth={strokeW} /><path d="M 85 115 L 115 115 L 100 145 Z" fill="#ef4444" stroke="#b91c1c" strokeWidth="2" /><text x="100" y="135" fontSize="15" textAnchor="middle" fill="white" fontWeight="bold">S</text></g>;
+                if (id === 'shirt_stripe') return <g><path d={path} fill="#fff" stroke={stroke} strokeWidth={strokeW} /><path d="M 60 120 H 140 M 60 135 H 140 M 60 150 H 140" stroke="#ef4444" strokeWidth="3" /></g>;
                 return <path d={path} fill={iColor} stroke={stroke} strokeWidth={strokeW} />;
             }
 
+            // HATS
             if (id && id.includes('cap')) return <g><path d="M 45 40 C 45 20, 155 20, 155 40 L 155 55 L 45 55 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="40" y="50" width="120" height="12" rx="6" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><path d="M 160 50 L 190 55 L 160 60 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_beanie') return <g><path d="M 40 45 C 40 10, 160 10, 160 45 L 160 65 L 40 65 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="35" y="60" width="130" height="20" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_cowboy') return <g><ellipse cx="100" cy="55" rx="80" ry="20" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><path d="M 65 50 L 75 10 C 75 -5, 125 -5, 125 10 L 135 50 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_headphones') return <g><path d="M 30 70 C 30 10, 170 10, 170 70" fill="none" stroke={iColor} strokeWidth="12" /><rect x="20" y="60" width="30" height="50" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="150" y="60" width="30" height="50" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_top') return <g><rect x="60" y="0" width="80" height="60" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><rect x="30" y="60" width="140" height="15" rx="2" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><rect x="60" y="50" width="80" height="10" fill="#ef4444" /></g>;
             if (id === 'hat_crown') return <g><path d="M 40 60 L 40 20 L 70 40 L 100 10 L 130 40 L 160 20 L 160 60 Z" fill="#fbbf24" stroke="#b45309" strokeWidth={strokeW} /></g>;
+            if (id === 'hat_wizard') return <g><path d="M 30 65 L 170 65 L 100 5 L 30 65 Z" fill="#4c1d95" stroke={stroke} strokeWidth={strokeW} /><ellipse cx="100" cy="65" rx="80" ry="15" fill="#5b21b6" stroke={stroke} strokeWidth={strokeW} /><path d="M 80 40 L 90 30 L 100 40 L 90 50 Z" fill="yellow" /></g>;
+            if (id === 'hat_viking') return <g><path d="M 40 60 C 40 20, 160 20, 160 60" fill="#94a3b8" stroke={stroke} strokeWidth={strokeW} /><path d="M 40 40 L 20 10 L 35 45" fill="white" stroke={stroke} strokeWidth="3" /><path d="M 160 40 L 180 10 L 165 45" fill="white" stroke={stroke} strokeWidth="3" /></g>;
+            if (id === 'hat_pirate') return <g><path d="M 30 55 C 30 20, 170 20, 170 55" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><path d="M 20 55 L 180 55 L 170 30 L 30 30 Z" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><path d="M 90 40 L 110 40 M 100 30 L 100 50" stroke="white" strokeWidth="3" /></g>;
 
+            // GLASSES
             if (id === 'glass_nerd') return <g stroke="black" strokeWidth="4" fill="none"><circle cx="75" cy="80" r="20"/><circle cx="125" cy="80" r="20"/><line x1="95" y1="80" x2="105" y2="80" /></g>;
             if (id === 'glass_shades') return <path d="M 50 70 L 95 70 L 100 80 L 105 70 L 150 70 L 160 90 L 140 95 L 105 90 L 95 90 L 60 95 L 40 90 Z" fill="#1e293b" stroke={stroke} strokeWidth={3} />;
             if (id === 'glass_cyber') return <rect x="50" y="70" width="100" height="25" rx="5" fill="#ec4899" stroke="#be185d" strokeWidth="3" opacity="0.8" />;
+            if (id === 'glass_monocle') return <g><circle cx="115" cy="80" r="18" fill="none" stroke="#f59e0b" strokeWidth="3" /><path d="M 133 80 L 133 100" stroke="#f59e0b" strokeWidth="2" /></g>;
+            if (id === 'glass_star') return <g><path d="M 60 70 L 70 95 L 90 95 L 80 110 L 90 130 L 75 120 L 60 130 L 65 110 L 55 95 L 75 95 Z" fill="#f472b6" stroke="#db2777" opacity="0.8" transform="translate(0,-20) scale(0.8)" /><path d="M 120 70 L 130 95 L 150 95 L 140 110 L 150 130 L 135 120 L 120 130 L 125 110 L 115 95 L 135 95 Z" fill="#f472b6" stroke="#db2777" opacity="0.8" transform="translate(0,-20) scale(0.8)" /></g>;
 
             return null;
         };
@@ -160,7 +155,40 @@
         const DIFFICULTY_CONFIG={"Easy":{reward:15,bg:"bg-green-100",text:"text-green-700",border:"border-green-300"},"Medium":{reward:30,bg:"bg-blue-100",text:"text-blue-700",border:"border-blue-300"},"Hard":{reward:50,bg:"bg-orange-100",text:"text-orange-700",border:"border-orange-300"},"Epic":{reward:100,bg:"bg-purple-100",text:"text-purple-700",border:"border-purple-300"}};
         const RARITY_CONFIG={common:{label:"Common",color:"text-slate-500",bg:"bg-slate-100",border:"border-slate-200"},uncommon:{label:"Uncommon",color:"text-green-600",bg:"bg-green-100",border:"border-green-300"},rare:{label:"Rare",color:"text-blue-600",bg:"bg-blue-100",border:"border-blue-300"},epic:{label:"Epic",color:"text-purple-600",bg:"bg-purple-100",border:"border-purple-300"},mythic:{label:"Mythic",color:"text-amber-600",bg:"bg-amber-100",border:"border-amber-400"}};
         const BORDER_CONFIG=[{id:'border_1',minLevel:1,name:'Rookie',color:'#cbd5e1'},{id:'border_5',minLevel:5,name:'Bronze',color:'#b45309'},{id:'border_10',minLevel:10,name:'Silver',color:'#94a3b8'},{id:'border_20',minLevel:20,name:'Gold',color:'#fbbf24'},{id:'border_50',minLevel:50,name:'Diamond',color:'#60a5fa'}];
-        const SHOP_ITEMS=[{id:'hat_cap_blue',name:'Blue Cap',type:'hat',price:30,color:'#3b82f6',rarity:'common',minLevel:1},{id:'hat_cap_red',name:'Red Cap',type:'hat',price:30,color:'#ef4444',rarity:'common',minLevel:1},{id:'hat_beanie',name:'Beanie',type:'hat',price:50,color:'#475569',rarity:'uncommon',minLevel:2},{id:'hat_cowboy',name:'Cowboy Hat',type:'hat',price:100,color:'#78350f',rarity:'rare',minLevel:5},{id:'hat_headphones',name:'Pro Headset',type:'hat',price:150,color:'#ef4444',rarity:'epic',minLevel:10},{id:'hat_top',name:'Gentleman',type:'hat',price:200,color:'#1e293b',rarity:'epic',minLevel:10},{id:'hat_crown',name:'King\'s Crown',type:'hat',price:500,color:'#fbbf24',rarity:'mythic',minLevel:20},{id:'shirt_blue',name:'Blue Tee',type:'shirt',color:'#3b82f6',price:25,rarity:'common',minLevel:1},{id:'shirt_green',name:'Green Tee',type:'shirt',color:'#22c55e',price:25,rarity:'common',minLevel:1},{id:'shirt_purple',name:'Purple Tee',type:'shirt',color:'#a855f7',price:50,rarity:'uncommon',minLevel:2},{id:'shirt_black',name:'Ninja Suit',type:'shirt',id:'shirt_ninja',price:100,rarity:'rare',minLevel:5},{id:'shirt_gold',name:'Gilded Armor',type:'shirt',id:'shirt_gold_armor',price:250,rarity:'epic',minLevel:10},{id:'shirt_void',name:'Void Walker',type:'shirt',id:'shirt_void',price:600,rarity:'mythic',minLevel:20},{id:'glass_nerd',name:'Specs',type:'glasses',price:45,rarity:'uncommon',minLevel:2},{id:'glass_shades',name:'Cool Shades',type:'glasses',price:80,rarity:'rare',minLevel:5},{id:'glass_cyber',name:'Cyber Visor',type:'glasses',price:400,rarity:'mythic',minLevel:20}];
+        
+        const SHOP_ITEMS=[
+            // CAPS & BEANIES
+            {id:'hat_cap_blue',name:'Blue Cap',type:'hat',price:30,color:'#3b82f6',rarity:'common',minLevel:1},
+            {id:'hat_cap_red',name:'Red Cap',type:'hat',price:30,color:'#ef4444',rarity:'common',minLevel:1},
+            {id:'hat_beanie',name:'Beanie',type:'hat',price:50,color:'#475569',rarity:'uncommon',minLevel:2},
+            
+            // COSTUME HATS
+            {id:'hat_cowboy',name:'Cowboy Hat',type:'hat',price:100,color:'#78350f',rarity:'rare',minLevel:5},
+            {id:'hat_wizard',name:'Wizard Hat',type:'hat',price:120,color:'#4c1d95',rarity:'rare',minLevel:5},
+            {id:'hat_viking',name:'Viking Helm',type:'hat',price:150,color:'#94a3b8',rarity:'epic',minLevel:8},
+            {id:'hat_pirate',name:'Pirate Hat',type:'hat',price:150,color:'#1e293b',rarity:'epic',minLevel:8},
+            {id:'hat_headphones',name:'Pro Headset',type:'hat',price:200,color:'#ef4444',rarity:'epic',minLevel:10},
+            {id:'hat_top',name:'Gentleman',type:'hat',price:250,color:'#1e293b',rarity:'epic',minLevel:10},
+            {id:'hat_crown',name:'King\'s Crown',type:'hat',price:500,color:'#fbbf24',rarity:'mythic',minLevel:20},
+            
+            // SHIRTS
+            {id:'shirt_blue',name:'Blue Tee',type:'shirt',color:'#3b82f6',price:25,rarity:'common',minLevel:1},
+            {id:'shirt_green',name:'Green Tee',type:'shirt',color:'#22c55e',price:25,rarity:'common',minLevel:1},
+            {id:'shirt_purple',name:'Purple Tee',type:'shirt',color:'#a855f7',price:50,rarity:'uncommon',minLevel:2},
+            {id:'shirt_stripe',name:'Striped',type:'shirt',id:'shirt_stripe',price:60,rarity:'uncommon',minLevel:3},
+            {id:'shirt_super',name:'Super Hero',type:'shirt',id:'shirt_super',price:100,rarity:'rare',minLevel:5},
+            {id:'shirt_black',name:'Ninja Suit',type:'shirt',id:'shirt_ninja',price:100,rarity:'rare',minLevel:5},
+            {id:'shirt_gold',name:'Gilded Armor',type:'shirt',id:'shirt_gold_armor',price:250,rarity:'epic',minLevel:10},
+            {id:'shirt_void',name:'Void Walker',type:'shirt',id:'shirt_void',price:600,rarity:'mythic',minLevel:20},
+            
+            // GLASSES
+            {id:'glass_nerd',name:'Specs',type:'glasses',price:45,rarity:'uncommon',minLevel:2},
+            {id:'glass_monocle',name:'Monocle',type:'glasses',price:60,rarity:'uncommon',minLevel:3},
+            {id:'glass_shades',name:'Cool Shades',type:'glasses',price:80,rarity:'rare',minLevel:5},
+            {id:'glass_star',name:'Star Power',type:'glasses',price:120,rarity:'epic',minLevel:8},
+            {id:'glass_cyber',name:'Cyber Visor',type:'glasses',price:400,rarity:'mythic',minLevel:20}
+        ];
+
         const WORD_BANKS={color:["Red","Blue","Green","Yellow","Purple","Orange","Pink","White"],location:["kitchen","living room","bedroom","hallway","backyard","play area","couch","bathroom door"],animal:["Lion","Dog","Cat","Frog","Dinosaur","Bunny","Monkey","Chicken","Bear"],object_easy:["toy","pillow","book","spoon","shoe","ball","cup","hat"],object_hard:["flashlight","ruler","mug","sock","backpack","coin","leaf","pencil"],exercise_easy:["jumps","claps","spins","stomps","hops","wiggles"],exercise_hard:["squats","push-ups (knees)","lunges","sit-ups","planks","burpees"]};
 
         const generateQuest = (playerAge) => {
@@ -180,7 +208,7 @@
         };
 
         // ==========================================
-        // 2. CONTEXT (FIREBASE + ADMIN)
+        // 2. CONTEXT (FIREBASE + ADMIN + CHORES)
         // ==========================================
         const GameContext = createContext();
         const GameProvider = ({ children }) => {
@@ -205,30 +233,22 @@
                                     data.children.forEach(child => {
                                         const name = typeof child === 'string' ? child : child.name;
                                         const dob = typeof child === 'string' ? null : child.dob;
-                                        if (!seenNames.has(name)) {
-                                            seenNames.add(name);
-                                            uniqueChildren.push({ name, dob });
-                                        }
+                                        if (!seenNames.has(name)) { seenNames.add(name); uniqueChildren.push({ name, dob }); }
                                     });
                                 }
                                 setParent({...data, children: uniqueChildren});
                             } else {
-                                setParent({ email: user.email, children: [] });
+                                setParent({ email: user.email, children: [], customRewards: [] });
                             }
-                        } catch (e) {
-                            console.error("Auth Load Error:", e);
-                            setParent(null);
-                        }
-                    } else {
-                        setParent(null);
-                    }
+                        } catch (e) { console.error("Auth Load Error:", e); setParent(null); }
+                    } else { setParent(null); }
                     setLoading(false);
                 });
                 return unsubscribe;
             }, []);
 
             const loginParent = async (email, password) => { try { await auth.signInWithEmailAndPassword(email, password); return { success: true }; } catch (e) { return { success: false, msg: e.message }; } };
-            const registerParent = async (email, password) => { try { await auth.createUserWithEmailAndPassword(email, password); const newParent = { email: email, children: [] }; await db.collection('parents').doc(email).set(newParent); setParent(newParent); return { success: true }; } catch (e) { return { success: false, msg: e.message }; } };
+            const registerParent = async (email, password) => { try { await auth.createUserWithEmailAndPassword(email, password); const newParent = { email: email, children: [], customRewards: [] }; await db.collection('parents').doc(email).set(newParent); setParent(newParent); return { success: true }; } catch (e) { return { success: false, msg: e.message }; } };
             const resetPassword = async (email) => { try { await auth.sendPasswordResetEmail(email); return { success: true }; } catch (e) { return { success: false, msg: e.message }; } };
             const logoutParent = async () => { await auth.signOut(); setActivePlayers([]); };
 
@@ -236,7 +256,7 @@
                 if (!name.trim() || !dob) return;
                 const kids = (parent && parent.children) ? parent.children : [];
                 if (kids.some(c => c.name === name)) { alert("Name exists!"); return; }
-                setPendingChild({ username: name, dob: dob, sparks: 50, xp: 0, level: 1, inventory: [], history: [], avatar: { base: 'boy', skin: 'skin_fair', hair: 'hair_brown_messy', shirt: null, hat: null, glasses: null, border: 'border_1' } }); 
+                setPendingChild({ username: name, dob: dob, sparks: 50, xp: 0, level: 1, inventory: [], history: [], chores: [], avatar: { base: 'boy', skin: 'skin_fair', hair: 'hair_brown_messy', shirt: null, hat: null, glasses: null, border: 'border_1' } }); 
                 setIsCreating(true); 
             };
 
@@ -244,25 +264,17 @@
                 try {
                     const childToSave = { ...pendingChild, avatar: finalConfig };
                     const childMeta = { name: childToSave.username, dob: childToSave.dob };
-                    
                     const cleanChildren = (parent && parent.children) ? parent.children.filter(c => c.name !== childToSave.username) : [];
                     const updatedParent = { ...parent, children: [...cleanChildren, childMeta] };
-                    
                     setParent(updatedParent);
-                    
                     const batch = db.batch();
                     const parentRef = db.collection('parents').doc(parent.email);
                     batch.update(parentRef, { children: firebase.firestore.FieldValue.arrayUnion(childMeta) });
                     const childRef = parentRef.collection('kids').doc(childToSave.username);
                     batch.set(childRef, childToSave);
                     await batch.commit();
-                    
-                    setPendingChild(null);
-                    setIsCreating(false);
-                } catch (e) {
-                    console.error(e);
-                    alert("Error saving child: " + e.message);
-                }
+                    setPendingChild(null); setIsCreating(false);
+                } catch (e) { alert("Error saving: " + e.message); }
             };
 
             const deleteChild = async (childName) => {
@@ -273,11 +285,33 @@
                     setParent(updatedParent);
                     await db.collection('parents').doc(parent.email).update({ children: updatedChildren });
                     await db.collection('parents').doc(parent.email).collection('kids').doc(childName).delete();
-                } catch(e) {
-                    alert("Error deleting: " + e.message);
-                }
+                } catch(e) { alert("Error: " + e.message); }
             };
 
+            // --- CHORE & REWARD MANAGEMENT ---
+            const addChoreToChild = async (childName, choreName, points) => {
+                const childRef = db.collection('parents').doc(parent.email).collection('kids').doc(childName);
+                const newChore = { id: Date.now(), text: choreName, points: parseInt(points), lastCompleted: null };
+                await childRef.update({ chores: firebase.firestore.FieldValue.arrayUnion(newChore) });
+            };
+
+            const deleteChoreFromChild = async (childName, chore) => {
+                const childRef = db.collection('parents').doc(parent.email).collection('kids').doc(childName);
+                await childRef.update({ chores: firebase.firestore.FieldValue.arrayRemove(chore) });
+            };
+
+            const addCustomReward = async (name, cost) => {
+                const newReward = { id: Date.now(), name, cost: parseInt(cost) };
+                await db.collection('parents').doc(parent.email).update({ customRewards: firebase.firestore.FieldValue.arrayUnion(newReward) });
+                setParent(prev => ({ ...prev, customRewards: [...(prev.customRewards||[]), newReward] }));
+            };
+
+            const deleteCustomReward = async (reward) => {
+                await db.collection('parents').doc(parent.email).update({ customRewards: firebase.firestore.FieldValue.arrayRemove(reward) });
+                setParent(prev => ({ ...prev, customRewards: prev.customRewards.filter(r => r.id !== reward.id) }));
+            };
+
+            // --- GAME ACTIONS ---
             const startGame = async (selectedNames) => {
                 if (selectedNames.length === 0) return;
                 setLoading(true);
@@ -289,12 +323,46 @@
                     if(!d.avatar) d.avatar = { skin:'skin_fair', hair:'hair_brown_messy', border:'border_1' };
                     if(!d.history) d.history = [];
                     if(!d.inventory) d.inventory = [];
+                    if(!d.chores) d.chores = [];
                     return d;
                 }).filter(p => p !== null);
-                
                 setActivePlayers(players);
                 setIsCreating(false);
                 setLoading(false);
+            };
+
+            const completeChore = async (playerIndex, chore) => {
+                const player = activePlayers[playerIndex];
+                const today = new Date().toDateString();
+                
+                // Update local chore state
+                const updatedChores = player.chores.map(c => c.id === chore.id ? { ...c, lastCompleted: today } : c);
+                
+                // Add points
+                const newXP = player.xp + chore.points;
+                const oldLevel = player.level;
+                const newLevel = Math.floor(newXP / 100) + 1;
+                if (newLevel > oldLevel) setLevelUpQueue(prev => [...prev, { playerIdx: playerIndex, level: newLevel, bonus: 50 }]);
+                
+                const updatedPlayer = { 
+                    ...player, 
+                    sparks: player.sparks + chore.points + (newLevel > oldLevel ? 50 : 0), 
+                    xp: newXP, 
+                    level: newLevel,
+                    chores: updatedChores 
+                };
+
+                setActivePlayers(prev => prev.map(p => p.username === updatedPlayer.username ? updatedPlayer : p));
+                await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).set(updatedPlayer);
+            };
+
+            const redeemReward = async (playerIndex, reward) => {
+                const player = activePlayers[playerIndex];
+                if (player.sparks < reward.cost) return { success: false, msg: "Not enough sparks!" };
+                const updated = { ...player, sparks: player.sparks - reward.cost };
+                setActivePlayers(prev => prev.map(p => p.username === player.username ? updated : p));
+                await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).update(updated);
+                return { success: true, msg: "Redeemed!" };
             };
 
             const editAvatar = (playerIndex) => { setPendingChild(activePlayers[playerIndex]); setIsCreating(true); }
@@ -314,7 +382,6 @@
                 const updated = { ...player, sparks: player.sparks + q.sparks_reward + (newLevel > oldLevel ? 50 : 0), xp: newXP, level: newLevel, history: [q, ...player.history] };
                 setActivePlayers(prev => prev.map(p => p.username === updated.username ? updated : p));
                 await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).set(updated);
-                if(window.sqTrack) window.sqTrack.activity('quest', q.id, { xp: q.sparks_reward, cat: q.category });
             };
             const buyItem = async (playerIndex, item) => {
                 const player = activePlayers[playerIndex];
@@ -337,15 +404,12 @@
             };
             const closeLevelUp = () => setLevelUpQueue(prev => prev.slice(1));
 
-            return <GameContext.Provider value={{ parent, activePlayers, isCreating, levelUpQueue, pendingChild, loading, loginParent, registerParent, resetPassword, logoutParent, initAddChild, completeAddChild, deleteChild, startGame, exitGame, editAvatar, saveEditedAvatar, completeQuest, buyItem, equipItem, closeLevelUp }}>{children}</GameContext.Provider>;
+            return <GameContext.Provider value={{ parent, activePlayers, isCreating, levelUpQueue, pendingChild, loading, loginParent, registerParent, resetPassword, logoutParent, initAddChild, completeAddChild, deleteChild, addChoreToChild, deleteChoreFromChild, addCustomReward, deleteCustomReward, startGame, exitGame, editAvatar, saveEditedAvatar, completeQuest, completeChore, redeemReward, buyItem, equipItem, closeLevelUp }}>{children}</GameContext.Provider>;
         };
 
-        const AdminDashboard = ({ onBack }) => {
-            const [stats, setStats] = useState({ users: 0, quests: 0 }); const [logs, setLogs] = useState([]);
-            useEffect(() => { db.collection('users').get().then(snap => setStats(s => ({...s, users: snap.size}))); db.collection('activities').get().then(snap => setStats(s => ({...s, quests: snap.size}))); const unsub = db.collection('activities').orderBy('completedAt', 'desc').limit(10).onSnapshot(snap => { setLogs(snap.docs.map(d => d.data())); }); return unsub; }, []);
-            return (<div className="min-h-screen bg-slate-900 text-white p-6"><div className="flex justify-between items-center mb-8"><h1 className="text-2xl font-bold text-yellow-400">⚡ Spark Command Center</h1><button onClick={onBack} className="text-sm bg-slate-800 px-4 py-2 rounded hover:bg-slate-700">Exit</button></div><div className="grid grid-cols-2 gap-4 mb-8"><div className="bg-slate-800 p-6 rounded-2xl border border-slate-700"><div className="text-3xl font-black">{stats.users}</div><div className="text-slate-400 text-xs uppercase font-bold">Total Heroes</div></div><div className="bg-slate-800 p-6 rounded-2xl border border-slate-700"><div className="text-3xl font-black text-green-400">{stats.quests}</div><div className="text-slate-400 text-xs uppercase font-bold">Quests Done</div></div></div><h2 className="text-lg font-bold mb-4 text-slate-400">Live Activity Feed</h2><div className="space-y-2">{logs.map((log, i) => (<div key={i} className="bg-slate-800 p-3 rounded-lg border border-slate-700 flex justify-between items-center text-sm"><div><span className="font-bold text-sky-400">{log.activityType}</span> <span className="text-slate-400">by user {log.userId?.substr(0,5)}...</span></div><div className="text-xs text-slate-500">Just now</div></div>))}{logs.length === 0 && <div className="text-slate-600 text-center py-4">Waiting for data...</div>}</div></div>);
-        };
-
+        // ==========================================
+        // UI COMPONENTS
+        // ==========================================
         const ItemIcon = ({ item, isLocked }) => {
             if (!item) return <div className="text-4xl">📦</div>;
             const style = isLocked ? { filter: 'brightness(0) opacity(0.3)' } : {};
@@ -386,6 +450,7 @@
             );
         };
 
+        // --- DASHBOARDS ---
         const AuthScreen = () => {
             const { loginParent, registerParent, resetPassword } = useContext(GameContext);
             const [view, setView] = useState('login'); 
@@ -396,19 +461,116 @@
             return (<div className="min-h-screen bg-sky-400 flex flex-col items-center justify-center p-6 text-white"><div className="bg-white/10 backdrop-blur-md p-8 rounded-3xl w-full max-w-sm border border-white/20 shadow-xl"><h1 className="text-4xl font-black mb-4 text-center">Spark Quest</h1><form onSubmit={handleSubmit} className="space-y-4"><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Parent Email" className="w-full p-4 rounded-xl text-sky-900 font-bold" />{view!=='forgot'&&<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" className="w-full p-4 rounded-xl text-sky-900 font-bold" />}{msg&&<p className="font-bold text-center text-sm bg-black/20 p-2 rounded">{msg}</p>}<button className="w-full py-4 bg-yellow-400 text-yellow-900 font-black rounded-xl uppercase shadow-lg">{view==='register'?'Create':(view==='forgot'?'Reset':'Enter')}</button></form><div className="mt-6 flex flex-col gap-2 text-center text-sm font-bold">{view==='login'&&<><button onClick={()=>setView('register')}>Need account? Register</button><button onClick={()=>setView('forgot')}>Forgot Password?</button></>}{view!=='login'&&<button onClick={()=>setView('login')}>Back to Login</button>}</div></div></div>);
         };
 
+        const ParentManager = ({ onBack }) => {
+            const { parent, addChoreToChild, deleteChoreFromChild, addCustomReward, deleteCustomReward, deleteChild } = useContext(GameContext);
+            const [tab, setTab] = useState('chores');
+            const [selectedKid, setSelectedKid] = useState(parent.children[0]?.name || "");
+            const [newChore, setNewChore] = useState("");
+            const [newPoints, setNewPoints] = useState(10);
+            const [newReward, setNewReward] = useState("");
+            const [newCost, setNewCost] = useState(100);
+            const [choresList, setChoresList] = useState([]);
+
+            // Sync chores list when selected kid changes
+            useEffect(() => {
+                if(!selectedKid) return;
+                db.collection('parents').doc(parent.email).collection('kids').doc(selectedKid).get().then(doc => {
+                    if(doc.exists) setChoresList(doc.data().chores || []);
+                });
+            }, [selectedKid]);
+
+            const handleAddChore = async () => {
+                if(!newChore) return;
+                await addChoreToChild(selectedKid, newChore, newPoints);
+                setNewChore("");
+                // Refresh local list
+                const doc = await db.collection('parents').doc(parent.email).collection('kids').doc(selectedKid).get();
+                setChoresList(doc.data().chores || []);
+            };
+
+            const handleDeleteChore = async (c) => {
+                await deleteChoreFromChild(selectedKid, c);
+                setChoresList(choresList.filter(chore => chore.id !== c.id));
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-100 flex flex-col items-center p-4">
+                    <div className="w-full max-w-lg bg-white rounded-3xl shadow-xl overflow-hidden">
+                        <div className="bg-sky-500 p-4 flex justify-between items-center text-white">
+                            <h2 className="font-black text-lg">Parent Controls</h2>
+                            <button onClick={onBack} className="bg-sky-600 px-3 py-1 rounded text-xs font-bold">Done</button>
+                        </div>
+                        <div className="flex border-b">
+                            <button onClick={()=>setTab('chores')} className={`flex-1 py-3 font-bold text-sm ${tab==='chores'?'text-sky-600 border-b-4 border-sky-500':'text-slate-400'}`}>Chores</button>
+                            <button onClick={()=>setTab('rewards')} className={`flex-1 py-3 font-bold text-sm ${tab==='rewards'?'text-sky-600 border-b-4 border-sky-500':'text-slate-400'}`}>Rewards</button>
+                        </div>
+                        
+                        <div className="p-6">
+                            {tab === 'chores' ? (
+                                <>
+                                    <div className="flex gap-2 overflow-x-auto pb-4 mb-4">
+                                        {parent.children.map(c => (
+                                            <button key={c.name} onClick={()=>setSelectedKid(c.name)} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap ${selectedKid===c.name?'bg-sky-500 text-white':'bg-slate-100 text-slate-500'}`}>{c.name}</button>
+                                        ))}
+                                    </div>
+                                    <h3 className="font-bold text-slate-700 mb-2">Add Chore for {selectedKid}</h3>
+                                    <div className="flex gap-2 mb-6">
+                                        <input value={newChore} onChange={e=>setNewChore(e.target.value)} placeholder="Task (e.g. Clean Room)" className="flex-1 p-2 border rounded-lg text-sm" />
+                                        <input type="number" value={newPoints} onChange={e=>setNewPoints(e.target.value)} className="w-16 p-2 border rounded-lg text-sm" />
+                                        <button onClick={handleAddChore} className="bg-green-500 text-white px-3 rounded-lg font-bold">+</button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {choresList.map(c => (
+                                            <div key={c.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border">
+                                                <div><div className="font-bold text-sm">{c.text}</div><div className="text-xs text-green-600 font-bold">+{c.points} XP</div></div>
+                                                <button onClick={()=>handleDeleteChore(c)} className="text-red-400 text-xs">Delete</button>
+                                            </div>
+                                        ))}
+                                        {choresList.length===0 && <div className="text-center text-slate-400 text-xs py-4">No chores assigned yet.</div>}
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <h3 className="font-bold text-slate-700 mb-2">Custom Shop Rewards</h3>
+                                    <p className="text-xs text-slate-400 mb-4">These appear in the shop for ALL kids.</p>
+                                    <div className="flex gap-2 mb-6">
+                                        <input value={newReward} onChange={e=>setNewReward(e.target.value)} placeholder="Prize (e.g. Ice Cream)" className="flex-1 p-2 border rounded-lg text-sm" />
+                                        <input type="number" value={newCost} onChange={e=>setNewCost(e.target.value)} className="w-16 p-2 border rounded-lg text-sm" />
+                                        <button onClick={()=>{if(newReward){addCustomReward(newReward, newCost); setNewReward("");}}} className="bg-green-500 text-white px-3 rounded-lg font-bold">+</button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {(parent.customRewards || []).map(r => (
+                                            <div key={r.id} className="flex justify-between items-center bg-yellow-50 p-3 rounded-xl border border-yellow-100">
+                                                <div><div className="font-bold text-sm">{r.name}</div><div className="text-xs text-yellow-600 font-bold">{r.cost} Sparks</div></div>
+                                                <button onClick={()=>deleteCustomReward(r)} className="text-red-400 text-xs">Delete</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         const ParentDashboard = () => {
             const { parent, logoutParent, initAddChild, startGame, deleteChild } = useContext(GameContext);
             const [newName, setNewName] = useState(""); const [newDob, setNewDob] = useState(""); const [showAdd, setShowAdd] = useState(false); const [selected, setSelected] = useState([]); const [avatars, setAvatars] = useState({});
+            const [viewManager, setViewManager] = useState(false);
+
             const toggleSelect = (name) => { if (selected.includes(name)) setSelected(selected.filter(n => n !== name)); else setSelected([...selected, name]); };
             const getAge = (dob) => { if (!dob) return "8y"; const age = Math.floor((new Date() - new Date(dob)) / 31557600000); return `${age}y`; };
             useEffect(() => { const loadAvatars = async () => { if (parent && parent.children) { const loaded = {}; for (const child of parent.children) { const doc = await db.collection('parents').doc(parent.email).collection('kids').doc(child.name).get(); if(doc.exists) loaded[child.name] = doc.data().avatar; } setAvatars(loaded); } }; loadAvatars(); }, [parent]);
+
+            if(viewManager) return <ParentManager onBack={()=>setViewManager(false)} />;
+
             return (
-                <div className="min-h-screen bg-sky-100 flex flex-col items-center p-6 text-slate-800"><div className="w-full max-w-lg"><div className="flex justify-between items-center mb-6"><div><h2 className="text-2xl font-black text-sky-900">Family Hub</h2><p className="text-xs font-bold text-slate-400 uppercase">Parent: {parent.email}</p></div><button onClick={logoutParent} className="text-xs font-bold text-red-400 bg-white px-4 py-2 rounded-xl border border-red-100">Log Out</button></div>
+                <div className="min-h-screen bg-sky-100 flex flex-col items-center p-6 text-slate-800"><div className="w-full max-w-lg"><div className="flex justify-between items-center mb-6"><div><h2 className="text-2xl font-black text-sky-900">Family Hub</h2><p className="text-xs font-bold text-slate-400 uppercase">Parent: {parent.email}</p></div><div className="flex gap-2"><button onClick={()=>setViewManager(true)} className="text-xs font-bold text-sky-600 bg-white px-3 py-2 rounded-xl border border-sky-200">Manage</button><button onClick={logoutParent} className="text-xs font-bold text-red-400 bg-white px-3 py-2 rounded-xl border border-red-100">Log Out</button></div></div>
                 {(!parent.children || parent.children.length === 0) && !showAdd && <div className="text-center py-10 opacity-50"><div className="text-4xl mb-2">👋</div><p className="font-bold">Welcome! Add a child.</p></div>}
                 <div className="grid grid-cols-2 gap-4 mb-6">{parent.children && parent.children.map((child) => { const name = child.name; const isSel = selected.includes(name); const av = avatars[name]; return (
                     <div key={name} className="relative">
                         <button onClick={() => toggleSelect(name)} className={`w-full p-4 rounded-3xl shadow-md border-b-4 transition-all flex flex-col items-center relative ${isSel ? 'bg-sky-500 border-sky-700 text-white scale-105' : 'bg-white border-slate-200 text-slate-700'}`}><div className="w-16 h-16 mb-2 relative">{av ? <PrestigeFrame borderId={av.border}><BlockyAvatar config={av} size="full" /></PrestigeFrame> : <div className="text-4xl">😀</div>}</div><span className="font-black text-lg">{name}</span><span className="text-xs font-bold">{getAge(child.dob)}</span>{isSel && <div className="absolute top-2 right-2">✅</div>}</button>
-                        <button onClick={(e) => { e.stopPropagation(); deleteChild(name); }} className="absolute top-[-5px] right-[-5px] bg-red-500 text-white w-6 h-6 rounded-full font-bold text-xs shadow-md border-2 border-white z-10 hover:scale-110 transition-transform">X</button>
                     </div>
                 ); })}
                 {!showAdd && <button onClick={() => setShowAdd(true)} className="bg-slate-200 p-6 rounded-3xl border-4 border-dashed border-slate-300 flex flex-col items-center justify-center hover:bg-slate-100"><span className="text-3xl mb-1">+</span><span className="font-bold text-xs uppercase">Add Child</span></button>}</div>
@@ -418,153 +580,142 @@
         };
 
         const SparkSpinner = () => {
-            const { activePlayers, completeQuest } = useContext(GameContext);
+            const { activePlayers, completeQuest, completeChore } = useContext(GameContext);
             const [spinning, setSpinning] = useState(false);
             const [quests, setQuests] = useState(null); 
+            const [mode, setMode] = useState('quests'); // 'quests' or 'tasks'
+
             const getAge = (dob) => { if(!dob) return 8; return Math.floor((new Date() - new Date(dob)) / 31557600000); };
             const spin = () => { if(spinning) return; setSpinning(true); setQuests(null); setTimeout(() => { const newQuests = activePlayers.map(p => generateQuest(getAge(p.dob))); setQuests(newQuests); setSpinning(false); }, 1500); };
             const handleComplete = (i, q) => { completeQuest(i, q); setQuests(prev => { const newQ = [...prev]; newQ[i] = null; return newQ; }); };
+            
+            const handleChoreCheck = (playerIndex, chore) => {
+                completeChore(playerIndex, chore);
+            };
+
             const allDone = quests && quests.every(q => q === null);
 
             return (
                 <div className="h-full flex flex-col p-4 overflow-y-auto pb-24 bg-sky-100">
-                    {(!quests || allDone) && !spinning && <div className="flex-1 flex flex-col items-center justify-center"><div className="grid grid-cols-2 gap-4 mb-8 w-full max-w-md">{activePlayers.map((p, i) => (p && (<div key={i} className="bg-white p-4 rounded-2xl text-center shadow-sm border-b-4 border-slate-100 relative"><div className="w-20 h-20 mx-auto mb-2 relative"><PrestigeFrame borderId={p.avatar.border || 'border_1'}><BlockyAvatar config={p.avatar} size="full" /></PrestigeFrame></div><div className="font-black text-slate-700">{p.username}</div><div className="flex justify-center gap-2 text-xs font-bold mt-1"><span className="text-slate-500">Lvl {p.level}</span><span className="text-yellow-600">⚡ {p.sparks}</span></div><div className="w-full bg-slate-100 rounded-full h-2 mt-2 border border-slate-200 overflow-hidden"><div className="bg-sky-500 h-2 rounded-full transition-all duration-500" style={{width: `${(p.xp % 100)}%`}}></div></div></div>)))}</div><button onClick={spin} className="w-full max-w-xs py-6 bg-yellow-400 text-yellow-900 font-black rounded-3xl text-2xl shadow-xl border-b-8 border-yellow-500 active:border-b-0 active:translate-y-2 uppercase tracking-wider animate-bounce-in">Spin For Quests</button></div>}
-                    {spinning && <div className="flex-1 flex flex-col items-center justify-center"><div className="text-6xl animate-spin mb-4">🎲</div><p className="font-black text-sky-800 animate-pulse">Generating Challenges...</p></div>}
-                    {quests && !allDone && <div className={`grid gap-4 w-full max-w-4xl mx-auto ${activePlayers.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>{quests.map((q, i) => { const player = activePlayers[i]; if (!player) return null; const Header = () => (<div className="flex items-center gap-2 mb-3 bg-slate-50 p-2 rounded-xl"><div className="w-10 h-10 relative"><PrestigeFrame borderId={player.avatar.border || 'border_1'}><BlockyAvatar config={player.avatar} size="full" /></PrestigeFrame></div><div className="flex-1"><div className="text-xs font-black text-slate-700">{player.username}</div><div className="text-[10px] font-bold text-yellow-600">⚡ {player.sparks}</div></div></div>); if (q === null) { return (<div key={i} className="bg-white/50 rounded-3xl p-4 border-4 border-dashed border-slate-200 flex flex-col items-center justify-center text-center h-48 animate-pulse"><Header /><div className="text-2xl mb-1">✅</div><div className="text-xs font-bold text-slate-400">Quest Complete!</div><div className="text-[10px] text-slate-300">Waiting for others...</div></div>); } return (<div key={i} className="bg-white rounded-3xl p-4 shadow-xl border-4 border-slate-100 flex flex-col relative animate-bounce-in" style={{animationDelay: `${i*0.1}s`}}><Header /><div className="flex justify-between items-start mb-4"><div className={`text-4xl p-3 rounded-2xl ${CAT_STYLES[q.category].bg} ${CAT_STYLES[q.category].text}`}>{CAT_STYLES[q.category].icon}</div><div className={`px-2 py-1 rounded text-[10px] font-black uppercase border ${DIFFICULTY_CONFIG[q.difficulty].bg} ${DIFFICULTY_CONFIG[q.difficulty].text} ${DIFFICULTY_CONFIG[q.difficulty].border}`}>{q.difficulty}</div></div><p className="text-sm font-bold text-slate-700 mb-4 bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200 flex-1">{q.description}</p><div className="flex gap-2 mt-auto"><button onClick={() => { handleComplete(i, q); }} className="flex-[2] py-3 bg-green-500 text-white font-black rounded-xl shadow-md border-b-4 border-green-700 active:border-b-0 active:translate-y-1 text-xs uppercase">Done (+{q.sparks_reward})</button></div></div>); })}</div>}
+                    <div className="flex justify-center mb-6 bg-white p-1 rounded-xl shadow-sm max-w-xs mx-auto">
+                        <button onClick={()=>setMode('quests')} className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase ${mode==='quests'?'bg-sky-100 text-sky-700':'text-slate-400'}`}>Adventure</button>
+                        <button onClick={()=>setMode('tasks')} className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase ${mode==='tasks'?'bg-sky-100 text-sky-700':'text-slate-400'}`}>My Tasks</button>
+                    </div>
+
+                    {mode === 'tasks' ? (
+                        <div className="max-w-md mx-auto w-full space-y-4">
+                            {activePlayers.map((p, i) => {
+                                const today = new Date().toDateString();
+                                const pendingChores = (p.chores || []).filter(c => c.lastCompleted !== today);
+                                return (
+                                    <div key={i} className="bg-white p-4 rounded-2xl shadow-lg border-b-4 border-slate-100">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-10 h-10"><BlockyAvatar config={p.avatar} size="xs" /></div>
+                                            <div className="font-black text-slate-700">{p.username}'s List</div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {pendingChores.map(chore => (
+                                                <button key={chore.id} onClick={()=>handleChoreCheck(i, chore)} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center hover:bg-green-50 transition-colors group">
+                                                    <span className="font-bold text-sm text-slate-600">{chore.text}</span>
+                                                    <span className="bg-white border border-slate-200 px-2 py-1 rounded text-xs font-bold text-green-600 group-hover:bg-green-500 group-hover:text-white">+{chore.points} XP</span>
+                                                </button>
+                                            ))}
+                                            {pendingChores.length === 0 && <div className="text-center py-6 text-slate-400 text-xs font-bold">All tasks done for today! 🎉</div>}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        // EXISTING QUEST SPINNER UI
+                        <>
+                            {(!quests || allDone) && !spinning && <div className="flex-1 flex flex-col items-center justify-center"><div className="grid grid-cols-2 gap-4 mb-8 w-full max-w-md">{activePlayers.map((p, i) => (p && (<div key={i} className="bg-white p-4 rounded-2xl text-center shadow-sm border-b-4 border-slate-100 relative"><div className="w-20 h-20 mx-auto mb-2 relative"><PrestigeFrame borderId={p.avatar.border || 'border_1'}><BlockyAvatar config={p.avatar} size="full" /></PrestigeFrame></div><div className="font-black text-slate-700">{p.username}</div><div className="flex justify-center gap-2 text-xs font-bold mt-1"><span className="text-slate-500">Lvl {p.level}</span><span className="text-yellow-600">⚡ {p.sparks}</span></div><div className="w-full bg-slate-100 rounded-full h-2 mt-2 border border-slate-200 overflow-hidden"><div className="bg-sky-500 h-2 rounded-full transition-all duration-500" style={{width: `${(p.xp % 100)}%`}}></div></div></div>)))}</div><button onClick={spin} className="w-full max-w-xs py-6 bg-yellow-400 text-yellow-900 font-black rounded-3xl text-2xl shadow-xl border-b-8 border-yellow-500 active:border-b-0 active:translate-y-2 uppercase tracking-wider animate-bounce-in">Spin For Quests</button></div>}
+                            {spinning && <div className="flex-1 flex flex-col items-center justify-center"><div className="text-6xl animate-spin mb-4">🎲</div><p className="font-black text-sky-800 animate-pulse">Generating Challenges...</p></div>}
+                            {quests && !allDone && <div className={`grid gap-4 w-full max-w-4xl mx-auto ${activePlayers.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>{quests.map((q, i) => { const player = activePlayers[i]; if (!player) return null; const Header = () => (<div className="flex items-center gap-2 mb-3 bg-slate-50 p-2 rounded-xl"><div className="w-10 h-10 relative"><PrestigeFrame borderId={player.avatar.border || 'border_1'}><BlockyAvatar config={player.avatar} size="full" /></PrestigeFrame></div><div className="flex-1"><div className="text-xs font-black text-slate-700">{player.username}</div><div className="text-[10px] font-bold text-yellow-600">⚡ {player.sparks}</div></div></div>); if (q === null) { return (<div key={i} className="bg-white/50 rounded-3xl p-4 border-4 border-dashed border-slate-200 flex flex-col items-center justify-center text-center h-48 animate-pulse"><Header /><div className="text-2xl mb-1">✅</div><div className="text-xs font-bold text-slate-400">Quest Complete!</div><div className="text-[10px] text-slate-300">Waiting for others...</div></div>); } return (<div key={i} className="bg-white rounded-3xl p-4 shadow-xl border-4 border-slate-100 flex flex-col relative animate-bounce-in" style={{animationDelay: `${i*0.1}s`}}><Header /><div className="flex justify-between items-start mb-4"><div className={`text-4xl p-3 rounded-2xl ${CAT_STYLES[q.category].bg} ${CAT_STYLES[q.category].text}`}>{CAT_STYLES[q.category].icon}</div><div className={`px-2 py-1 rounded text-[10px] font-black uppercase border ${DIFFICULTY_CONFIG[q.difficulty].bg} ${DIFFICULTY_CONFIG[q.difficulty].text} ${DIFFICULTY_CONFIG[q.difficulty].border}`}>{q.difficulty}</div></div><p className="text-sm font-bold text-slate-700 mb-4 bg-slate-50 p-3 rounded-xl border border-dashed border-slate-200 flex-1">{q.description}</p><div className="flex gap-2 mt-auto"><button onClick={() => { handleComplete(i, q); }} className="flex-[2] py-3 bg-green-500 text-white font-black rounded-xl shadow-md border-b-4 border-green-700 active:border-b-0 active:translate-y-1 text-xs uppercase">Done (+{q.sparks_reward})</button></div></div>); })}</div>}
+                        </>
+                    )}
                 </div>
             );
         };
 
         const Shop = () => {
-            const { activePlayers, buyItem } = useContext(GameContext);
+            const { activePlayers, buyItem, redeemReward, parent } = useContext(GameContext);
             const [tab, setTab] = useState(0); 
+            const [shopMode, setShopMode] = useState('gear'); // 'gear' or 'rewards'
             const [msg, setMsg] = useState(null);
             const currentPlayer = activePlayers[tab];
+            
             if (!currentPlayer) return <div className="p-4">Loading...</div>;
-            const allItems = SHOP_ITEMS.sort((a,b) => a.price - b.price);
+            
             const handleBuy = async (i) => { const res = await buyItem(tab, i); setMsg(res); setTimeout(() => setMsg(null), 2000); };
+            const handleRedeem = async (r) => { 
+                if(!window.confirm(`Spend ${r.cost} sparks for ${r.name}?`)) return;
+                const res = await redeemReward(tab, r); 
+                setMsg(res); 
+                setTimeout(() => setMsg(null), 2000); 
+            };
+
             return (
                 <div className="p-4 pb-24 h-full flex flex-col bg-sky-100">
+                    <div className="flex justify-center mb-4 bg-white p-1 rounded-xl shadow-sm max-w-xs mx-auto">
+                        <button onClick={()=>setShopMode('gear')} className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase ${shopMode==='gear'?'bg-sky-100 text-sky-700':'text-slate-400'}`}>Gear</button>
+                        <button onClick={()=>setShopMode('rewards')} className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase ${shopMode==='rewards'?'bg-sky-100 text-sky-700':'text-slate-400'}`}>Real Prizes</button>
+                    </div>
+
                     {activePlayers.length > 1 && <div className="flex gap-2 overflow-x-auto pb-4 mb-2">{activePlayers.map((p, i) => (<button key={i} onClick={() => setTab(i)} className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs whitespace-nowrap transition-all ${tab===i ? 'bg-sky-500 text-white shadow-md' : 'bg-white text-slate-400'}`}><div className="w-6 h-6"><BlockyAvatar config={p.avatar} size="xs" /></div>{p.username}</button>))}</div>}
                     <div className="text-center mb-6"><div className="inline-block bg-yellow-100 text-yellow-800 px-6 py-2 rounded-2xl font-black border-b-4 border-yellow-200 text-xl">{currentPlayer.sparks} ⚡</div>{msg && <div className={`mt-2 text-xs font-bold px-3 py-1 rounded-full inline-block ${msg.success?'bg-green-100 text-green-600':'bg-red-100 text-red-600'}`}>{msg.msg}</div>}</div>
-                    <div className="flex-1 overflow-y-auto scrollbar-hide"><div className="grid grid-cols-2 gap-4">{allItems.map(i => { const owned = currentPlayer.inventory.includes(i.id); const isLocked = currentPlayer.level < i.minLevel; const rInfo = RARITY_CONFIG[i.rarity]; return (<div key={i.id} className={`bg-white p-4 rounded-2xl border-b-4 shadow-sm flex flex-col items-center transition-all ${owned?'border-slate-100 opacity-60': (isLocked ? 'border-slate-200 bg-slate-50' : `${rInfo.border} hover:-translate-y-1`)}`}><div className="mb-2"><ItemIcon item={i} isLocked={isLocked} /></div><div className="font-bold text-xs text-slate-800 uppercase mb-1">{i.name}</div><span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded mb-3 ${isLocked ? 'bg-slate-200 text-slate-500' : `${rInfo.bg} ${rInfo.color}`}`}>{rInfo.label}</span>{isLocked ? (<button disabled className="w-full py-2 rounded-lg font-black text-xs uppercase tracking-wide bg-slate-200 text-slate-400 cursor-not-allowed flex items-center justify-center gap-1"><span>🔒</span> Lvl {i.minLevel}</button>) : (<button onClick={() => handleBuy(i)} disabled={owned} className={`w-full py-2 rounded-lg font-black text-xs uppercase tracking-wide ${owned ? 'bg-slate-100 text-slate-400' : 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300'}`}>{owned ? "Owned" : `Buy ${i.price}`}</button>)}</div>) })}</div></div>
+                    
+                    <div className="flex-1 overflow-y-auto scrollbar-hide">
+                        {shopMode === 'gear' ? (
+                            <div className="grid grid-cols-2 gap-4">
+                                {SHOP_ITEMS.sort((a,b) => a.price - b.price).map(i => { 
+                                    const owned = currentPlayer.inventory.includes(i.id); 
+                                    const isLocked = currentPlayer.level < i.minLevel; 
+                                    const rInfo = RARITY_CONFIG[i.rarity]; 
+                                    return (
+                                        <div key={i.id} className={`bg-white p-4 rounded-2xl border-b-4 shadow-sm flex flex-col items-center transition-all ${owned?'border-slate-100 opacity-60': (isLocked ? 'border-slate-200 bg-slate-50' : `${rInfo.border} hover:-translate-y-1`)}`}>
+                                            <div className="mb-2"><ItemIcon item={i} isLocked={isLocked} /></div>
+                                            <div className="font-bold text-xs text-slate-800 uppercase mb-1">{i.name}</div>
+                                            <span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded mb-3 ${isLocked ? 'bg-slate-200 text-slate-500' : `${rInfo.bg} ${rInfo.color}`}`}>{rInfo.label}</span>
+                                            {isLocked ? (<button disabled className="w-full py-2 rounded-lg font-black text-xs uppercase tracking-wide bg-slate-200 text-slate-400 cursor-not-allowed flex items-center justify-center gap-1"><span>🔒</span> Lvl {i.minLevel}</button>) : (<button onClick={() => handleBuy(i)} disabled={owned} className={`w-full py-2 rounded-lg font-black text-xs uppercase tracking-wide ${owned ? 'bg-slate-100 text-slate-400' : 'bg-yellow-400 text-yellow-900 hover:bg-yellow-300'}`}>{owned ? "Owned" : `Buy ${i.price}`}</button>)}
+                                        </div>
+                                    ) 
+                                })}
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {parent.customRewards && parent.customRewards.length > 0 ? parent.customRewards.map(r => (
+                                    <div key={r.id} className="bg-white p-4 rounded-2xl shadow-sm border-l-8 border-purple-400 flex justify-between items-center">
+                                        <div>
+                                            <div className="font-black text-slate-700">{r.name}</div>
+                                            <div className="text-xs text-purple-500 font-bold">{r.cost} Sparks</div>
+                                        </div>
+                                        <button onClick={()=>handleRedeem(r)} className="bg-purple-100 text-purple-700 px-4 py-2 rounded-xl font-bold text-xs hover:bg-purple-200">Redeem</button>
+                                    </div>
+                                )) : <div className="text-center text-slate-400 py-10 font-bold">Ask parents to add prizes!</div>}
+                            </div>
+                        )}
+                    </div>
                 </div>
             );
         };
 
-        const Dashboard = () => {
-            const { activePlayers, equipItem, editAvatar } = useContext(GameContext);
-            const [tab, setTab] = useState(0); 
-            const [subTab, setSubTab] = useState('inventory'); 
-            const currentPlayer = activePlayers[tab];
-            if (!currentPlayer) return <div className="p-4">Loading...</div>;
-            const items = SHOP_ITEMS.filter(i => currentPlayer.inventory.includes(i.id));
-
-            return (
-                <div className="p-4 pb-24 h-full flex flex-col bg-sky-100">
-                    {activePlayers.length > 1 && <div className="flex gap-2 overflow-x-auto pb-4">{activePlayers.map((p, i) => (<button key={i} onClick={() => setTab(i)} className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs whitespace-nowrap transition-all ${tab===i ? 'bg-sky-500 text-white shadow-md' : 'bg-white text-slate-400'}`}><div className="w-6 h-6"><BlockyAvatar config={p.avatar} size="xs" /></div>{p.username}</button>))}</div>}
-                    <div className="bg-white rounded-3xl p-4 shadow-lg border-b-4 border-slate-100 mb-4 flex items-center gap-4 relative"><div className="bg-sky-50 rounded-2xl border-2 border-sky-100 w-16 h-16 relative"><PrestigeFrame borderId={currentPlayer.avatar.border || 'border_1'}><BlockyAvatar config={currentPlayer.avatar} size="xs" /></PrestigeFrame></div><div><h2 className="text-xl font-black text-slate-800">{currentPlayer.username}</h2><div className="flex gap-2 mt-1"><span className="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-500">Lvl {currentPlayer.level}</span><span className="text-xs font-bold bg-yellow-100 px-2 py-1 rounded text-yellow-700">⚡ {currentPlayer.sparks}</span></div></div><button onClick={() => editAvatar(tab)} className="absolute top-4 right-4 text-xs font-bold text-sky-500 bg-sky-50 px-3 py-1 rounded-full hover:bg-sky-100">Edit Look ✏️</button></div>
-                    <div className="flex bg-white p-1 rounded-xl mb-4 shadow-sm"><button onClick={() => setSubTab('inventory')} className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg ${subTab==='inventory'?'bg-sky-100 text-sky-700':'text-slate-400'}`}>Inventory</button><button onClick={() => setSubTab('history')} className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg ${subTab==='history'?'bg-sky-100 text-sky-700':'text-slate-400'}`}>Quest Log</button></div>
-                    <div className="flex-1 overflow-y-auto scrollbar-hide">{subTab === 'inventory' ? (items.length > 0 ? (<div className="grid grid-cols-2 gap-3">{items.map(item => { const isEquipped = currentPlayer.avatar.hat===item.id || currentPlayer.avatar.glasses===item.id || currentPlayer.avatar.shirt===item.id || currentPlayer.avatar.shirt===item.color; const rInfo = RARITY_CONFIG[item.rarity]; return (<div key={item.id} className={`bg-white p-4 rounded-xl border-2 flex flex-col items-center shadow-sm ${isEquipped ? 'border-green-400 bg-green-50' : 'border-slate-100'}`}><div className="mb-2"><ItemIcon item={item} /></div><div className="text-xs font-bold text-slate-700 uppercase mb-1">{item.name}</div><span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded mb-3 ${rInfo.bg} ${rInfo.color}`}>{rInfo.label}</span><button onClick={() => equipItem(tab, item)} className={`px-4 py-2 w-full rounded-lg text-[10px] font-black uppercase mt-1 transition-all ${isEquipped ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>{isEquipped ? "Take Off" : "Wear"}</button></div>) })}</div>) : <div className="text-center text-slate-400 py-10 font-bold">Backpack is empty!</div>) : (<div className="space-y-3">{currentPlayer.history.length > 0 ? currentPlayer.history.map((q, i) => (<div key={i} className={`bg-white p-3 rounded-xl border-l-4 shadow-sm flex items-center gap-3 ${q.category === 'blaze' ? 'border-red-400' : q.category === 'flow' ? 'border-blue-400' : 'border-green-400'}`}><div className="text-2xl">{CAT_STYLES[q.category].icon}</div><div><div className="text-xs font-bold text-slate-700">{q.description}</div><div className="flex gap-2 mt-1"><span className={`text-[10px] font-bold px-1.5 rounded ${DIFFICULTY_CONFIG[q.difficulty].bg} ${DIFFICULTY_CONFIG[q.difficulty].text}`}>{q.difficulty}</span><span className="text-[10px] font-bold text-slate-400 uppercase">+{q.sparks_reward} Sparks</span></div></div></div>)) : <div className="text-center text-slate-400 py-10 font-bold">No quests yet!</div>}</div>)}</div>
-                </div>
-            );
-        };
-
+        // [REMAINING COMPONENTS: Dashboard, AvatarCreator, LandingPage, App, root - SAME AS BEFORE, JUST ENSURE MERGED]
+        
+        // ... (Repeating Dashboard/AvatarCreator for completeness if needed, assuming user copies FULL block)
         const AvatarCreator = () => {
             const { pendingChild, saveEditedAvatar, completeAddChild, setIsCreating } = useContext(GameContext);
             const isNew = !!pendingChild;
-            
-            // --- SAFETY FIX: Default avatar if missing ---
             const defaultAvatar = { base: 'boy', skin: 'skin_fair', hair: 'hair_brown_messy', shirt: null, hat: null, glasses: null, border: 'border_1' };
             const [config, setConfig] = useState((isNew && pendingChild && pendingChild.avatar) ? pendingChild.avatar : defaultAvatar);
             const [step, setStep] = useState(0); 
-
-            // --- SAFETY GUARD: If pendingChild is accidentally null, show loading ---
             if (isNew && !pendingChild) return <div className="min-h-screen bg-sky-200 flex items-center justify-center p-4 font-bold text-slate-500">Loading editor...</div>;
-
             return (
-                <div className="min-h-screen bg-sky-200 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border-b-8 border-sky-300">
-                        <h2 className="text-2xl font-black text-center mb-6 text-sky-800 uppercase tracking-wider">Character Builder</h2>
-                        
-                        <div className="bg-sky-50 rounded-2xl p-6 mb-6 flex justify-center border-2 border-sky-100 w-48 h-48 mx-auto relative">
-                            <PrestigeFrame borderId={config.border || 'border_1'}>
-                                <BlockyAvatar config={config} size="full" />
-                            </PrestigeFrame>
-                        </div>
-
-                        <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
-                            {['Skin', 'Hair', 'Frame'].map((label, idx) => (
-                                <button key={idx} onClick={() => setStep(idx)} className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg transition-all ${step===idx ? 'bg-white shadow text-sky-600' : 'text-slate-400'}`}>
-                                    {label}
-                                </button>
-                            ))}
-                        </div>
-
-                        <div className="h-24">
-                            {step === 0 && (
-                                <div className="flex gap-2 justify-center h-full items-center">
-                                    {SKIN_TONES.map(c => (
-                                        <button key={c.id} onClick={() => setConfig({...config, skin: c.id})} className={`w-10 h-10 rounded-lg shadow-sm border-2 transition-transform ${config.skin===c.id?'border-black scale-110':'border-transparent'}`} style={{backgroundColor: c.color}} />
-                                    ))}
-                                </div>
-                            )}
-                            {step === 1 && (
-                                <div className="flex gap-2 justify-center h-full items-center overflow-x-auto px-2">
-                                    {HAIR_STYLES.map(h => (
-                                        <button key={h.id} onClick={() => setConfig({...config, hair: h.id})} className={`w-12 h-12 rounded-lg border-2 transition-transform flex-shrink-0 overflow-hidden relative ${config.hair===h.id?'border-sky-500 scale-110 bg-sky-50':'border-slate-200 bg-white'}`}>
-                                             <div className="w-full h-full transform scale-150 translate-y-2">
-                                                <svg viewBox="0 0 200 200">
-                                                    <RenderAsset type="hair" id={h.id} />
-                                                </svg>
-                                             </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                            {step === 2 && (
-                                <div className="flex gap-2 justify-center h-full items-center overflow-x-auto px-2">
-                                    {BORDER_CONFIG.map(b => {
-                                        const locked = isNew && b.minLevel > 1; // Locked for new chars
-                                        return (
-                                            <button key={b.id} disabled={locked} onClick={() => setConfig({...config, border: b.id})} className={`w-10 h-10 rounded-full border-4 flex items-center justify-center relative flex-shrink-0 ${config.border===b.id?'border-sky-500 scale-110':'border-slate-200'} ${locked?'opacity-50 grayscale cursor-not-allowed':'bg-white'}`}>
-                                                <div className="w-6 h-6 rounded-full" style={{border: `2px solid ${b.color}`}}></div>
-                                                {locked && <div className="absolute text-[8px] font-black bg-black text-white px-1 rounded bottom-[-10px]">Lvl {b.minLevel}</div>}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        <button onClick={() => isNew ? completeAddChild(config) : saveEditedAvatar(config)} className="w-full mt-6 py-4 bg-yellow-400 hover:bg-yellow-300 border-b-4 border-yellow-500 text-yellow-900 font-black rounded-xl text-lg shadow-lg active:border-b-0 active:translate-y-1 transition-all uppercase">
-                            Save & Play
-                        </button>
-                    </div>
-                </div>
+                <div className="min-h-screen bg-sky-200 flex items-center justify-center p-4"><div className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border-b-8 border-sky-300"><h2 className="text-2xl font-black text-center mb-6 text-sky-800 uppercase tracking-wider">Character Builder</h2><div className="bg-sky-50 rounded-2xl p-6 mb-6 flex justify-center border-2 border-sky-100 w-48 h-48 mx-auto relative"><PrestigeFrame borderId={config.border || 'border_1'}><BlockyAvatar config={config} size="full" /></PrestigeFrame></div><div className="flex bg-slate-100 p-1 rounded-xl mb-6">{['Skin', 'Hair', 'Frame'].map((label, idx) => (<button key={idx} onClick={() => setStep(idx)} className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg transition-all ${step===idx ? 'bg-white shadow text-sky-600' : 'text-slate-400'}`}>{label}</button>))}</div><div className="h-24">{step === 0 && (<div className="flex gap-2 justify-center h-full items-center">{SKIN_TONES.map(c => (<button key={c.id} onClick={() => setConfig({...config, skin: c.id})} className={`w-10 h-10 rounded-lg shadow-sm border-2 transition-transform ${config.skin===c.id?'border-black scale-110':'border-transparent'}`} style={{backgroundColor: c.color}} />))}</div>)}{step === 1 && (<div className="flex gap-2 justify-center h-full items-center overflow-x-auto px-2">{HAIR_STYLES.map(h => (<button key={h.id} onClick={() => setConfig({...config, hair: h.id})} className={`w-12 h-12 rounded-lg border-2 transition-transform flex-shrink-0 overflow-hidden relative ${config.hair===h.id?'border-sky-500 scale-110 bg-sky-50':'border-slate-200 bg-white'}`}><div className="w-full h-full transform scale-150 translate-y-2"><svg viewBox="0 0 200 200"><RenderAsset type="hair" id={h.id} /></svg></div></button>))}</div>)}{step === 2 && (<div className="flex gap-2 justify-center h-full items-center overflow-x-auto px-2">{BORDER_CONFIG.map(b => { const locked = isNew && b.minLevel > 1; return (<button key={b.id} disabled={locked} onClick={() => setConfig({...config, border: b.id})} className={`w-10 h-10 rounded-full border-4 flex items-center justify-center relative flex-shrink-0 ${config.border===b.id?'border-sky-500 scale-110':'border-slate-200'} ${locked?'opacity-50 grayscale cursor-not-allowed':'bg-white'}`}><div className="w-6 h-6 rounded-full" style={{border: `2px solid ${b.color}`}}></div>{locked && <div className="absolute text-[8px] font-black bg-black text-white px-1 rounded bottom-[-10px]">Lvl {b.minLevel}</div>}</button>); })}</div>)}</div><button onClick={() => isNew ? completeAddChild(config) : saveEditedAvatar(config)} className="w-full mt-6 py-4 bg-yellow-400 hover:bg-yellow-300 border-b-4 border-yellow-500 text-yellow-900 font-black rounded-xl text-lg shadow-lg active:border-b-0 active:translate-y-1 transition-all uppercase">Save & Play</button></div></div>
             );
         };
 
-        const LandingPage = ({ onStart }) => (
-            <div className="min-h-screen bg-sky-100 flex flex-col items-center justify-center p-6 text-center">
-                <div className="mb-8 animate-bounce-in">
-                    <div className="w-32 h-32 mx-auto mb-4 bg-yellow-400 rounded-full flex items-center justify-center shadow-xl border-4 border-yellow-200">
-                        <svg viewBox="0 0 100 100" className="w-20 h-20 drop-shadow-lg"><path d="M 55 5 L 20 60 L 50 60 L 40 95 L 85 35 L 55 35 Z" fill="#fff" /></svg>
-                    </div>
-                    <h1 className="text-5xl font-black text-sky-900 mb-2">Spark Quest</h1>
-                    <p className="text-xl font-bold text-sky-700">Adventure awaits!</p>
-                </div>
-                <div className="bg-white p-6 rounded-3xl shadow-xl max-w-md w-full border-b-8 border-slate-200 mb-8">
-                    <div className="flex justify-center gap-4 mb-6">
-                        <div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_fair', hair:'hair_black_spiky', shirt:'shirt_blue', hat:'hat_cap_red'}} size="full" /></div>
-                        <div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_dark', hair:'hair_blonde_ponytail', shirt:'shirt_purple', hat:'hat_crown'}} size="full" /></div>
-                        <div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_tan', hair:'hair_brown_messy', shirt:'shirt_green', glasses:'glass_nerd'}} size="full" /></div>
-                    </div>
-                    <p className="text-slate-600 font-bold mb-4">Turn daily chores and exercises into an epic RPG adventure! Create your hero, complete quests, and unlock cool rewards.</p>
-                    <button onClick={onStart} className="w-full py-4 bg-green-500 hover:bg-green-400 text-white font-black rounded-xl text-xl shadow-lg border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all uppercase">Play Now</button>
-                </div>
-            </div>
-        );
+        const LandingPage = ({ onStart }) => (<div className="min-h-screen bg-sky-100 flex flex-col items-center justify-center p-6 text-center"><div className="mb-8 animate-bounce-in"><div className="w-32 h-32 mx-auto mb-4 bg-yellow-400 rounded-full flex items-center justify-center shadow-xl border-4 border-yellow-200"><svg viewBox="0 0 100 100" className="w-20 h-20 drop-shadow-lg"><path d="M 55 5 L 20 60 L 50 60 L 40 95 L 85 35 L 55 35 Z" fill="#fff" /></svg></div><h1 className="text-5xl font-black text-sky-900 mb-2">Spark Quest</h1><p className="text-xl font-bold text-sky-700">Adventure awaits!</p></div><div className="bg-white p-6 rounded-3xl shadow-xl max-w-md w-full border-b-8 border-slate-200 mb-8"><div className="flex justify-center gap-4 mb-6"><div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_fair', hair:'hair_black_spiky', shirt:'shirt_blue', hat:'hat_cap_red'}} size="full" /></div><div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_dark', hair:'hair_blonde_ponytail', shirt:'shirt_purple', hat:'hat_crown'}} size="full" /></div><div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_tan', hair:'hair_brown_messy', shirt:'shirt_green', glasses:'glass_nerd'}} size="full" /></div></div><p className="text-slate-600 font-bold mb-4">Turn daily chores and exercises into an epic RPG adventure! Create your hero, complete quests, and unlock cool rewards.</p><button onClick={onStart} className="w-full py-4 bg-green-500 hover:bg-green-400 text-white font-black rounded-xl text-xl shadow-lg border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all uppercase">Play Now</button></div></div>);
 
         const App = () => {
             const { parent, activePlayers, isCreating, exitGame, levelUpQueue, closeLevelUp, loading, startGame } = useContext(GameContext);
@@ -591,36 +742,10 @@
 
             return (
                 <div className="max-w-md mx-auto bg-sky-100 min-h-screen shadow-2xl relative border-x border-slate-200">
-                    {currentLevelUp && (
-                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-bounce-in">
-                            <div className="bg-gradient-to-b from-yellow-300 to-yellow-500 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl border-4 border-yellow-200">
-                                <div className="text-6xl mb-2">⭐</div>
-                                <h2 className="text-4xl font-black text-white drop-shadow-md mb-2 uppercase italic">Level Up!</h2>
-                                <p className="text-white font-bold text-lg mb-6">{activePlayers[currentLevelUp.playerIdx].username} reached Level {currentLevelUp.level}!</p>
-                                <button onClick={closeLevelUp} className="w-full py-4 bg-white text-yellow-600 font-black rounded-xl text-xl shadow-lg border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 uppercase">Claim Reward</button>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md px-4 py-3 border-b border-sky-100 flex justify-between items-center shadow-sm">
-                        <button onClick={exitGame} className="text-xs font-bold text-slate-400 hover:text-slate-600">← Back</button>
-                        <div className="font-black text-sky-900 uppercase text-xs tracking-wider">
-                            {activePlayers.length > 1 ? `${activePlayers.length} Players Active` : activePlayers[0].username}
-                        </div>
-                        <div className="w-8"></div>
-                    </div>
-
-                    <div className="min-h-[80vh] bg-sky-100">
-                        {gameView==='home' && <SparkSpinner />}
-                        {gameView==='shop' && <Shop />}
-                        {gameView==='dash' && <Dashboard />}
-                    </div>
-
-                    <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 p-2 flex justify-around pb-6 sm:pb-2 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
-                        <button onClick={()=>setGameView('home')} className={`p-3 text-3xl transition-transform ${gameView==='home'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>🏠</button>
-                        <button onClick={()=>setGameView('shop')} className={`p-3 text-3xl transition-transform ${gameView==='shop'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>🛒</button>
-                        <button onClick={()=>setGameView('dash')} className={`p-3 text-3xl transition-transform ${gameView==='dash'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>👤</button>
-                    </div>
+                    {currentLevelUp && <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-bounce-in"><div className="bg-gradient-to-b from-yellow-300 to-yellow-500 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl border-4 border-yellow-200"><div className="text-6xl mb-2">⭐</div><h2 className="text-4xl font-black text-white drop-shadow-md mb-2 uppercase italic">Level Up!</h2><p className="text-white font-bold text-lg mb-6">{activePlayers[currentLevelUp.playerIdx].username} reached Level {currentLevelUp.level}!</p><button onClick={closeLevelUp} className="w-full py-4 bg-white text-yellow-600 font-black rounded-xl text-xl shadow-lg border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 uppercase">Claim Reward</button></div></div>}
+                    <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md px-4 py-3 border-b border-sky-100 flex justify-between items-center shadow-sm"><button onClick={exitGame} className="text-xs font-bold text-slate-400 hover:text-slate-600">← Back</button><div className="font-black text-sky-900 uppercase text-xs tracking-wider">{activePlayers.length > 1 ? `${activePlayers.length} Players Active` : activePlayers[0].username}</div><div className="w-8"></div></div>
+                    <div className="min-h-[80vh] bg-sky-100">{gameView==='home' && <SparkSpinner />}{gameView==='shop' && <Shop />}{gameView==='dash' && <Dashboard />}</div>
+                    <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 p-2 flex justify-around pb-6 sm:pb-2 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]"><button onClick={()=>setGameView('home')} className={`p-3 text-3xl transition-transform ${gameView==='home'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>🏠</button><button onClick={()=>setGameView('shop')} className={`p-3 text-3xl transition-transform ${gameView==='shop'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>🛒</button><button onClick={()=>setGameView('dash')} className={`p-3 text-3xl transition-transform ${gameView==='dash'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>👤</button></div>
                 </div>
             );
         };
