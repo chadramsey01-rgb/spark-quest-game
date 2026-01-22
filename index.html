@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spark Quest: RPG Edition ⚔️</title>
+    <title>Spark Quest: Cloud Edition ☁️</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -88,7 +88,23 @@
         const analytics = firebase.analytics();
 
         // ==========================================
-        // 1. ASSET RENDERER (EXPANDED SHOP)
+        // 📊 ANALYTICS TRACKER
+        // ==========================================
+        const trackActivity = (type, id, details = {}) => {
+            try {
+                if(auth.currentUser) {
+                    db.collection('activities').add({
+                        type, id, details,
+                        userId: auth.currentUser.email,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            } catch(e) { console.warn("Track error", e); }
+        };
+        window.sqTrack = { activity: trackActivity };
+
+        // ==========================================
+        // 1. ASSET RENDERER
         // ==========================================
         const RenderAsset = ({ type, id, color, skinColor }) => {
             const sColor = skinColor || '#ffe0bd';
@@ -116,7 +132,6 @@
             if (id === 'hair_black_spiky') return <path d="M 40 30 L 30 10 L 55 20 L 75 5 L 100 15 L 125 5 L 145 20 L 170 10 L 160 30 C 160 60, 150 80, 150 80 L 50 80 C 50 80, 40 60, 40 30 Z" fill="#2d3748" stroke={stroke} strokeWidth={strokeW} />;
             if (id === 'hair_red_bob') return <path d="M 40 35 C 40 10, 160 10, 160 35 C 160 65, 170 100, 170 110 L 140 110 L 140 35 L 60 35 L 60 110 L 30 110 C 30 100, 40 65, 40 35 Z" fill="#e53e3e" stroke={stroke} strokeWidth={strokeW} />;
 
-            // SHIRTS
             if (type === 'shirt') {
                 let path = "M 55 100 L 35 115 L 45 130 L 60 120 L 60 155 L 140 155 L 140 120 L 155 130 L 165 115 L 145 100 Q 100 110 55 100 Z";
                 if (id === 'shirt_ninja') return <g><path d={path} fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><path d="M 90 120 L 110 120 L 100 140 Z" fill="#ef4444" /></g>;
@@ -126,7 +141,6 @@
                 return <path d={path} fill={iColor} stroke={stroke} strokeWidth={strokeW} />;
             }
 
-            // HATS
             if (id && id.includes('cap')) return <g><path d="M 45 40 C 45 20, 155 20, 155 40 L 155 55 L 45 55 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="40" y="50" width="120" height="12" rx="6" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><path d="M 160 50 L 190 55 L 160 60 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_beanie') return <g><path d="M 40 45 C 40 10, 160 10, 160 45 L 160 65 L 40 65 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="35" y="60" width="130" height="20" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_cowboy') return <g><ellipse cx="100" cy="55" rx="80" ry="20" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><path d="M 65 50 L 75 10 C 75 -5, 125 -5, 125 10 L 135 50 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
@@ -137,7 +151,6 @@
             if (id === 'hat_viking') return <g><path d="M 40 60 C 40 20, 160 20, 160 60" fill="#94a3b8" stroke={stroke} strokeWidth={strokeW} /><path d="M 40 40 L 20 10 L 35 45" fill="white" stroke={stroke} strokeWidth="3" /><path d="M 160 40 L 180 10 L 165 45" fill="white" stroke={stroke} strokeWidth="3" /></g>;
             if (id === 'hat_pirate') return <g><path d="M 30 55 C 30 20, 170 20, 170 55" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><path d="M 20 55 L 180 55 L 170 30 L 30 30 Z" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><path d="M 90 40 L 110 40 M 100 30 L 100 50" stroke="white" strokeWidth="3" /></g>;
 
-            // GLASSES
             if (id === 'glass_nerd') return <g stroke="black" strokeWidth="4" fill="none"><circle cx="75" cy="80" r="20"/><circle cx="125" cy="80" r="20"/><line x1="95" y1="80" x2="105" y2="80" /></g>;
             if (id === 'glass_shades') return <path d="M 50 70 L 95 70 L 100 80 L 105 70 L 150 70 L 160 90 L 140 95 L 105 90 L 95 90 L 60 95 L 40 90 Z" fill="#1e293b" stroke={stroke} strokeWidth={3} />;
             if (id === 'glass_cyber') return <rect x="50" y="70" width="100" height="25" rx="5" fill="#ec4899" stroke="#be185d" strokeWidth="3" opacity="0.8" />;
@@ -566,7 +579,7 @@
             if(viewManager) return <ParentManager onBack={()=>setViewManager(false)} />;
 
             return (
-                <div className="min-h-screen bg-sky-100 flex flex-col items-center p-6 text-slate-800"><div className="w-full max-w-lg"><div className="flex justify-between items-center mb-6"><div><h2 className="text-2xl font-black text-sky-900">Family Hub</h2><p className="text-xs font-bold text-slate-400 uppercase">Parent: {parent.email}</p></div><div className="flex gap-2"><button onClick={()=>setViewManager(true)} className="text-xs font-bold text-sky-600 bg-white px-3 py-2 rounded-xl border border-sky-200">Manage</button><button onClick={logoutParent} className="text-xs font-bold text-red-400 bg-white px-3 py-2 rounded-xl border border-red-100">Log Out</button></div></div>
+                <div className="min-h-screen bg-sky-100 flex flex-col items-center p-6 text-slate-800"><div className="w-full max-w-lg"><div className="flex justify-between items-center mb-6"><div><h2 className="text-2xl font-black text-sky-900">Family Hub</h2><p className="text-xs font-bold text-slate-400 uppercase">Parent: {parent.email}</p></div><div className="flex gap-2"><button onClick={()=>setViewManager(true)} className="text-xs font-bold text-sky-600 bg-white px-3 py-2 rounded-xl border border-sky-200">Manage Chores & Rewards</button><button onClick={logoutParent} className="text-xs font-bold text-red-400 bg-white px-3 py-2 rounded-xl border border-red-100">Log Out</button></div></div>
                 {(!parent.children || parent.children.length === 0) && !showAdd && <div className="text-center py-10 opacity-50"><div className="text-4xl mb-2">👋</div><p className="font-bold">Welcome! Add a child.</p></div>}
                 <div className="grid grid-cols-2 gap-4 mb-6">{parent.children && parent.children.map((child) => { const name = child.name; const isSel = selected.includes(name); const av = avatars[name]; return (
                     <div key={name} className="relative">
@@ -597,9 +610,9 @@
 
             return (
                 <div className="h-full flex flex-col p-4 overflow-y-auto pb-24 bg-sky-100">
-                    <div className="flex justify-center mb-6 bg-white p-1 rounded-xl shadow-sm max-w-xs mx-auto">
-                        <button onClick={()=>setMode('quests')} className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase ${mode==='quests'?'bg-sky-100 text-sky-700':'text-slate-400'}`}>Adventure</button>
-                        <button onClick={()=>setMode('tasks')} className={`flex-1 py-2 rounded-lg font-bold text-xs uppercase ${mode==='tasks'?'bg-sky-100 text-sky-700':'text-slate-400'}`}>My Tasks</button>
+                    <div className="flex justify-center gap-4 mb-6 max-w-sm mx-auto">
+                        <button onClick={()=>setMode('quests')} className={`flex-1 py-3 rounded-xl font-bold text-sm uppercase shadow-md transition-all ${mode==='quests'?'bg-sky-500 text-white ring-2 ring-sky-300':'bg-white text-slate-400 hover:bg-slate-50'}`}>Adventure</button>
+                        <button onClick={()=>setMode('tasks')} className={`flex-1 py-3 rounded-xl font-bold text-sm uppercase shadow-md transition-all ${mode==='tasks'?'bg-sky-500 text-white ring-2 ring-sky-300':'bg-white text-slate-400 hover:bg-slate-50'}`}>My Chores</button>
                     </div>
 
                     {mode === 'tasks' ? (
@@ -700,9 +713,24 @@
             );
         };
 
-        // [REMAINING COMPONENTS: Dashboard, AvatarCreator, LandingPage, App, root - SAME AS BEFORE, JUST ENSURE MERGED]
-        
-        // ... (Repeating Dashboard/AvatarCreator for completeness if needed, assuming user copies FULL block)
+        const Dashboard = () => {
+            const { activePlayers, equipItem, editAvatar } = useContext(GameContext);
+            const [tab, setTab] = useState(0); 
+            const [subTab, setSubTab] = useState('inventory'); 
+            const currentPlayer = activePlayers[tab];
+            if (!currentPlayer) return <div className="p-4">Loading...</div>;
+            const items = SHOP_ITEMS.filter(i => currentPlayer.inventory.includes(i.id));
+
+            return (
+                <div className="p-4 pb-24 h-full flex flex-col bg-sky-100">
+                    {activePlayers.length > 1 && <div className="flex gap-2 overflow-x-auto pb-4">{activePlayers.map((p, i) => (<button key={i} onClick={() => setTab(i)} className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs whitespace-nowrap transition-all ${tab===i ? 'bg-sky-500 text-white shadow-md' : 'bg-white text-slate-400'}`}><div className="w-6 h-6"><BlockyAvatar config={p.avatar} size="xs" /></div>{p.username}</button>))}</div>}
+                    <div className="bg-white rounded-3xl p-4 shadow-lg border-b-4 border-slate-100 mb-4 flex items-center gap-4 relative"><div className="bg-sky-50 rounded-2xl border-2 border-sky-100 w-16 h-16 relative"><PrestigeFrame borderId={currentPlayer.avatar.border || 'border_1'}><BlockyAvatar config={currentPlayer.avatar} size="xs" /></PrestigeFrame></div><div><h2 className="text-xl font-black text-slate-800">{currentPlayer.username}</h2><div className="flex gap-2 mt-1"><span className="text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-500">Lvl {currentPlayer.level}</span><span className="text-xs font-bold bg-yellow-100 px-2 py-1 rounded text-yellow-700">⚡ {currentPlayer.sparks}</span></div></div><button onClick={() => editAvatar(tab)} className="absolute top-4 right-4 text-xs font-bold text-sky-500 bg-sky-50 px-3 py-1 rounded-full hover:bg-sky-100">Edit Look ✏️</button></div>
+                    <div className="flex bg-white p-1 rounded-xl mb-4 shadow-sm"><button onClick={() => setSubTab('inventory')} className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg ${subTab==='inventory'?'bg-sky-100 text-sky-700':'text-slate-400'}`}>Inventory</button><button onClick={() => setSubTab('history')} className={`flex-1 py-2 text-xs font-bold uppercase rounded-lg ${subTab==='history'?'bg-sky-100 text-sky-700':'text-slate-400'}`}>Quest Log</button></div>
+                    <div className="flex-1 overflow-y-auto scrollbar-hide">{subTab === 'inventory' ? (items.length > 0 ? (<div className="grid grid-cols-2 gap-3">{items.map(item => { const isEquipped = currentPlayer.avatar.hat===item.id || currentPlayer.avatar.glasses===item.id || currentPlayer.avatar.shirt===item.id || currentPlayer.avatar.shirt===item.color; const rInfo = RARITY_CONFIG[item.rarity]; return (<div key={item.id} className={`bg-white p-4 rounded-xl border-2 flex flex-col items-center shadow-sm ${isEquipped ? 'border-green-400 bg-green-50' : 'border-slate-100'}`}><div className="mb-2"><ItemIcon item={item} /></div><div className="text-xs font-bold text-slate-700 uppercase mb-1">{item.name}</div><span className={`text-[9px] uppercase font-black px-2 py-0.5 rounded mb-3 ${rInfo.bg} ${rInfo.color}`}>{rInfo.label}</span><button onClick={() => equipItem(tab, item)} className={`px-4 py-2 w-full rounded-lg text-[10px] font-black uppercase mt-1 transition-all ${isEquipped ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>{isEquipped ? "Take Off" : "Wear"}</button></div>) })}</div>) : <div className="text-center text-slate-400 py-10 font-bold">Backpack is empty!</div>) : (<div className="space-y-3">{currentPlayer.history.length > 0 ? currentPlayer.history.map((q, i) => (<div key={i} className={`bg-white p-3 rounded-xl border-l-4 shadow-sm flex items-center gap-3 ${q.category === 'blaze' ? 'border-red-400' : q.category === 'flow' ? 'border-blue-400' : 'border-green-400'}`}><div className="text-2xl">{CAT_STYLES[q.category].icon}</div><div><div className="text-xs font-bold text-slate-700">{q.description}</div><div className="flex gap-2 mt-1"><span className={`text-[10px] font-bold px-1.5 rounded ${DIFFICULTY_CONFIG[q.difficulty].bg} ${DIFFICULTY_CONFIG[q.difficulty].text}`}>{q.difficulty}</span><span className="text-[10px] font-bold text-slate-400 uppercase">+{q.sparks_reward} Sparks</span></div></div></div>)) : <div className="text-center text-slate-400 py-10 font-bold">No quests yet!</div>}</div>)}</div>
+                </div>
+            );
+        };
+
         const AvatarCreator = () => {
             const { pendingChild, saveEditedAvatar, completeAddChild, setIsCreating } = useContext(GameContext);
             const isNew = !!pendingChild;
@@ -715,7 +743,26 @@
             );
         };
 
-        const LandingPage = ({ onStart }) => (<div className="min-h-screen bg-sky-100 flex flex-col items-center justify-center p-6 text-center"><div className="mb-8 animate-bounce-in"><div className="w-32 h-32 mx-auto mb-4 bg-yellow-400 rounded-full flex items-center justify-center shadow-xl border-4 border-yellow-200"><svg viewBox="0 0 100 100" className="w-20 h-20 drop-shadow-lg"><path d="M 55 5 L 20 60 L 50 60 L 40 95 L 85 35 L 55 35 Z" fill="#fff" /></svg></div><h1 className="text-5xl font-black text-sky-900 mb-2">Spark Quest</h1><p className="text-xl font-bold text-sky-700">Adventure awaits!</p></div><div className="bg-white p-6 rounded-3xl shadow-xl max-w-md w-full border-b-8 border-slate-200 mb-8"><div className="flex justify-center gap-4 mb-6"><div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_fair', hair:'hair_black_spiky', shirt:'shirt_blue', hat:'hat_cap_red'}} size="full" /></div><div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_dark', hair:'hair_blonde_ponytail', shirt:'shirt_purple', hat:'hat_crown'}} size="full" /></div><div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_tan', hair:'hair_brown_messy', shirt:'shirt_green', glasses:'glass_nerd'}} size="full" /></div></div><p className="text-slate-600 font-bold mb-4">Turn daily chores and exercises into an epic RPG adventure! Create your hero, complete quests, and unlock cool rewards.</p><button onClick={onStart} className="w-full py-4 bg-green-500 hover:bg-green-400 text-white font-black rounded-xl text-xl shadow-lg border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all uppercase">Play Now</button></div></div>);
+        const LandingPage = ({ onStart }) => (
+            <div className="min-h-screen bg-sky-100 flex flex-col items-center justify-center p-6 text-center">
+                <div className="mb-8 animate-bounce-in">
+                    <div className="w-32 h-32 mx-auto mb-4 bg-yellow-400 rounded-full flex items-center justify-center shadow-xl border-4 border-yellow-200">
+                        <svg viewBox="0 0 100 100" className="w-20 h-20 drop-shadow-lg"><path d="M 55 5 L 20 60 L 50 60 L 40 95 L 85 35 L 55 35 Z" fill="#fff" /></svg>
+                    </div>
+                    <h1 className="text-5xl font-black text-sky-900 mb-2">Spark Quest</h1>
+                    <p className="text-xl font-bold text-sky-700">Adventure awaits!</p>
+                </div>
+                <div className="bg-white p-6 rounded-3xl shadow-xl max-w-md w-full border-b-8 border-slate-200 mb-8">
+                    <div className="flex justify-center gap-4 mb-6">
+                        <div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_fair', hair:'hair_black_spiky', shirt:'shirt_blue', hat:'hat_cap_red'}} size="full" /></div>
+                        <div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_dark', hair:'hair_blonde_ponytail', shirt:'shirt_purple', hat:'hat_crown'}} size="full" /></div>
+                        <div className="w-20 h-20"><BlockyAvatar config={{skin:'skin_tan', hair:'hair_brown_messy', shirt:'shirt_green', glasses:'glass_nerd'}} size="full" /></div>
+                    </div>
+                    <p className="text-slate-600 font-bold mb-4">Turn daily chores and exercises into an epic RPG adventure! Create your hero, complete quests, and unlock cool rewards.</p>
+                    <button onClick={onStart} className="w-full py-4 bg-green-500 hover:bg-green-400 text-white font-black rounded-xl text-xl shadow-lg border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all uppercase">Play Now</button>
+                </div>
+            </div>
+        );
 
         const App = () => {
             const { parent, activePlayers, isCreating, exitGame, levelUpQueue, closeLevelUp, loading, startGame } = useContext(GameContext);
@@ -742,10 +789,36 @@
 
             return (
                 <div className="max-w-md mx-auto bg-sky-100 min-h-screen shadow-2xl relative border-x border-slate-200">
-                    {currentLevelUp && <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-bounce-in"><div className="bg-gradient-to-b from-yellow-300 to-yellow-500 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl border-4 border-yellow-200"><div className="text-6xl mb-2">⭐</div><h2 className="text-4xl font-black text-white drop-shadow-md mb-2 uppercase italic">Level Up!</h2><p className="text-white font-bold text-lg mb-6">{activePlayers[currentLevelUp.playerIdx].username} reached Level {currentLevelUp.level}!</p><button onClick={closeLevelUp} className="w-full py-4 bg-white text-yellow-600 font-black rounded-xl text-xl shadow-lg border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 uppercase">Claim Reward</button></div></div>}
-                    <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md px-4 py-3 border-b border-sky-100 flex justify-between items-center shadow-sm"><button onClick={exitGame} className="text-xs font-bold text-slate-400 hover:text-slate-600">← Back</button><div className="font-black text-sky-900 uppercase text-xs tracking-wider">{activePlayers.length > 1 ? `${activePlayers.length} Players Active` : activePlayers[0].username}</div><div className="w-8"></div></div>
-                    <div className="min-h-[80vh] bg-sky-100">{gameView==='home' && <SparkSpinner />}{gameView==='shop' && <Shop />}{gameView==='dash' && <Dashboard />}</div>
-                    <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 p-2 flex justify-around pb-6 sm:pb-2 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]"><button onClick={()=>setGameView('home')} className={`p-3 text-3xl transition-transform ${gameView==='home'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>🏠</button><button onClick={()=>setGameView('shop')} className={`p-3 text-3xl transition-transform ${gameView==='shop'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>🛒</button><button onClick={()=>setGameView('dash')} className={`p-3 text-3xl transition-transform ${gameView==='dash'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>👤</button></div>
+                    {currentLevelUp && (
+                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-bounce-in">
+                            <div className="bg-gradient-to-b from-yellow-300 to-yellow-500 rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl border-4 border-yellow-200">
+                                <div className="text-6xl mb-2">⭐</div>
+                                <h2 className="text-4xl font-black text-white drop-shadow-md mb-2 uppercase italic">Level Up!</h2>
+                                <p className="text-white font-bold text-lg mb-6">{activePlayers[currentLevelUp.playerIdx].username} reached Level {currentLevelUp.level}!</p>
+                                <button onClick={closeLevelUp} className="w-full py-4 bg-white text-yellow-600 font-black rounded-xl text-xl shadow-lg border-b-4 border-yellow-700 active:border-b-0 active:translate-y-1 uppercase">Claim Reward</button>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="sticky top-0 z-40 bg-white/90 backdrop-blur-md px-4 py-3 border-b border-sky-100 flex justify-between items-center shadow-sm">
+                        <button onClick={exitGame} className="text-xs font-bold text-slate-400 hover:text-slate-600">← Back</button>
+                        <div className="font-black text-sky-900 uppercase text-xs tracking-wider">
+                            {activePlayers.length > 1 ? `${activePlayers.length} Players Active` : activePlayers[0].username}
+                        </div>
+                        <div className="w-8"></div>
+                    </div>
+
+                    <div className="min-h-[80vh] bg-sky-100">
+                        {gameView==='home' && <SparkSpinner />}
+                        {gameView==='shop' && <Shop />}
+                        {gameView==='dash' && <Dashboard />}
+                    </div>
+
+                    <div className="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 p-2 flex justify-around pb-6 sm:pb-2 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+                        <button onClick={()=>setGameView('home')} className={`p-3 text-3xl transition-transform ${gameView==='home'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>🏠</button>
+                        <button onClick={()=>setGameView('shop')} className={`p-3 text-3xl transition-transform ${gameView==='shop'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>🛒</button>
+                        <button onClick={()=>setGameView('dash')} className={`p-3 text-3xl transition-transform ${gameView==='dash'?'grayscale-0 -translate-y-2 scale-110':'grayscale opacity-50'}`}>👤</button>
+                    </div>
                 </div>
             );
         };
