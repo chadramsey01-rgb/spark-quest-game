@@ -7,6 +7,8 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     
@@ -17,20 +19,81 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
 
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Fredoka:wght@400;700&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap');
+        /* Base Game Font */
         body { font-family: 'Fredoka', sans-serif; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         
+        /* Game Animations */
         @keyframes bounce-in { 0% { transform: scale(0.5); opacity: 0; } 80% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }
         .animate-bounce-in { animation: bounce-in 0.5s ease-out forwards; }
-        
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-        
         .animate-glow { animation: pulse-glow 2s infinite; }
         @keyframes pulse-glow { 0%, 100% { filter: drop-shadow(0 0 2px #60a5fa); } 50% { filter: drop-shadow(0 0 8px #3b82f6); } }
+
+        /* =========================================
+           DASHBOARD SPECIFIC STYLES (Cyberpunk)
+           ========================================= */
+        .dashboard-container {
+            --bg-deep: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-card-hover: #1a1a25;
+            --border: #2a2a3a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --text-muted: #55556a;
+            --accent-spark: #ff6b35;
+            --accent-quest: #7c3aed;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-info: #3b82f6;
+            --gradient-spark: linear-gradient(135deg, #ff6b35 0%, #ff8f65 100%);
+            --gradient-quest: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(124, 58, 237, 0.15) 0%, transparent 60%);
+            
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .dashboard-container::before {
+            content: ''; position: fixed; top: 0; left: 0; right: 0; height: 600px;
+            background: var(--gradient-glow); pointer-events: none; z-index: 0;
+        }
+
+        .dash-content { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+        
+        /* KPI Cards */
+        .kpi-card {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px;
+            position: relative; overflow: hidden; transition: all 0.3s ease;
+        }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+        .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--card-accent, var(--gradient-quest)); }
+        .kpi-card[data-accent="spark"] { --card-accent: var(--accent-spark); }
+        .kpi-card[data-accent="success"] { --card-accent: var(--accent-success); }
+        .kpi-card[data-accent="info"] { --card-accent: var(--accent-info); }
+        
+        .kpi-value { font-family: 'Space Mono', monospace; font-size: 36px; font-weight: 700; letter-spacing: -1px; margin-bottom: 8px; }
+        .kpi-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; text-transform: uppercase; }
+        
+        /* Charts */
+        .chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+        .chart-container { position: relative; height: 280px; width: 100%; }
+
+        /* Activity Feed */
+        .activity-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .activity-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .activity-text { font-size: 14px; color: var(--text-primary); }
+        .activity-time { font-size: 12px; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+        
+        /* Dashboard specific utilities */
+        .font-mono { font-family: 'Space Mono', monospace; }
     </style>
 </head>
 <body class="bg-sky-100 text-slate-800 select-none">
@@ -38,7 +101,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useContext, createContext, Component } = React;
+        const { useState, useEffect, useContext, createContext, Component, useRef } = React;
 
         const SUPPORT_EMAIL = "chadramsey01@gmail.com"; 
 
@@ -132,6 +195,7 @@
             if (id === 'hair_black_spiky') return <path d="M 40 30 L 30 10 L 55 20 L 75 5 L 100 15 L 125 5 L 145 20 L 170 10 L 160 30 C 160 60, 150 80, 150 80 L 50 80 C 50 80, 40 60, 40 30 Z" fill="#2d3748" stroke={stroke} strokeWidth={strokeW} />;
             if (id === 'hair_red_bob') return <path d="M 40 35 C 40 10, 160 10, 160 35 C 160 65, 170 100, 170 110 L 140 110 L 140 35 L 60 35 L 60 110 L 30 110 C 30 100, 40 65, 40 35 Z" fill="#e53e3e" stroke={stroke} strokeWidth={strokeW} />;
 
+            // SHIRTS
             if (type === 'shirt') {
                 let path = "M 55 100 L 35 115 L 45 130 L 60 120 L 60 155 L 140 155 L 140 120 L 155 130 L 165 115 L 145 100 Q 100 110 55 100 Z";
                 if (id === 'shirt_ninja') return <g><path d={path} fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><path d="M 90 120 L 110 120 L 100 140 Z" fill="#ef4444" /></g>;
@@ -141,6 +205,7 @@
                 return <path d={path} fill={iColor} stroke={stroke} strokeWidth={strokeW} />;
             }
 
+            // HATS
             if (id && id.includes('cap')) return <g><path d="M 45 40 C 45 20, 155 20, 155 40 L 155 55 L 45 55 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="40" y="50" width="120" height="12" rx="6" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><path d="M 160 50 L 190 55 L 160 60 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_beanie') return <g><path d="M 40 45 C 40 10, 160 10, 160 45 L 160 65 L 40 65 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="35" y="60" width="130" height="20" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_cowboy') return <g><ellipse cx="100" cy="55" rx="80" ry="20" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><path d="M 65 50 L 75 10 C 75 -5, 125 -5, 125 10 L 135 50 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
@@ -188,7 +253,7 @@
         };
 
         // ==========================================
-        // 2. CONTEXT (FIREBASE + ADMIN + CHORES)
+        // 2. CONTEXT
         // ==========================================
         const GameContext = createContext();
         const GameProvider = ({ children }) => {
@@ -385,7 +450,7 @@
         };
 
         // ==========================================
-        // UI COMPONENTS
+        // UI COMPONENTS (ICONS/AVATARS)
         // ==========================================
         const ItemIcon = ({ item, isLocked }) => {
             if (!item) return <div className="text-4xl">📦</div>;
@@ -427,20 +492,14 @@
             );
         };
 
-        // --- DASHBOARDS ---
-        const AuthScreen = () => {
-            const { loginParent, registerParent, resetPassword } = useContext(GameContext);
-            const [view, setView] = useState('login'); 
-            const [email, setEmail] = useState("");
-            const [password, setPassword] = useState("");
-            const [msg, setMsg] = useState("");
-            const handleSubmit = async (e) => { e.preventDefault(); setMsg("Loading..."); if(view==='forgot'){ if(!email) return setMsg("Enter Email"); const res = await resetPassword(email); if(res.success){ setMsg("Check email."); setTimeout(()=>setView('login'),3000); }else setMsg(res.msg); return; } if(!email||!password) return setMsg("Fill all fields"); const res = view==='register'? await registerParent(email,password) : await loginParent(email,password); if(!res.success) setMsg(res.msg); };
-            return (<div className="min-h-screen bg-sky-400 flex flex-col items-center justify-center p-6 text-white"><div className="bg-white/10 backdrop-blur-md p-8 rounded-3xl w-full max-w-sm border border-white/20 shadow-xl"><h1 className="text-4xl font-black mb-4 text-center">Spark Quest</h1><form onSubmit={handleSubmit} className="space-y-4"><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Parent Email" className="w-full p-4 rounded-xl text-sky-900 font-bold" />{view!=='forgot'&&<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" className="w-full p-4 rounded-xl text-sky-900 font-bold" />}{msg&&<p className="font-bold text-center text-sm bg-black/20 p-2 rounded">{msg}</p>}<button className="w-full py-4 bg-yellow-400 text-yellow-900 font-black rounded-xl uppercase shadow-lg">{view==='register'?'Create':(view==='forgot'?'Reset':'Enter')}</button></form><div className="mt-6 flex flex-col gap-2 text-center text-sm font-bold">{view==='login'&&<><button onClick={()=>setView('register')}>Need account? Register</button><button onClick={()=>setView('forgot')}>Forgot Password?</button></>}{view!=='login'&&<button onClick={()=>setView('login')}>Back to Login</button>}</div></div></div>);
-        };
-
+        // ==========================================
+        // 🚀 NEW DASHBOARD COMPONENTS (Cyberpunk)
+        // ==========================================
         const AdminDashboard = ({ onBack }) => {
             const [stats, setStats] = useState({ users: 0, quests: 0, active7: 0 }); 
             const [logs, setLogs] = useState([]);
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
 
             useEffect(() => {
                 // Get counts
@@ -463,47 +522,140 @@
                 return unsub;
             }, []);
 
-            return (
-                <div className="min-h-screen bg-slate-900 text-white p-6">
-                    <div className="flex justify-between items-center mb-8">
-                        <h1 className="text-2xl font-bold text-yellow-400">⚡ Spark Command Center</h1>
-                        <button onClick={onBack} className="text-sm bg-slate-800 px-4 py-2 rounded hover:bg-slate-700">Exit</button>
-                    </div>
+            // Render Chart
+            useEffect(() => {
+                if (chartRef.current) {
+                    if (chartInstance.current) chartInstance.current.destroy();
+                    const ctx = chartRef.current.getContext('2d');
                     
-                    <div className="grid grid-cols-3 gap-4 mb-8">
-                        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                            <div className="text-3xl font-black">{stats.users}</div>
-                            <div className="text-slate-400 text-[10px] uppercase font-bold">Total Heroes</div>
-                        </div>
-                        <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                            <div className="text-3xl font-black text-green-400">{stats.quests}</div>
-                            <div className="text-slate-400 text-[10px] uppercase font-bold">Activities</div>
-                        </div>
-                        <div className="bg-slate-800 p-6 rounded-2xl border border-purple-500 bg-gradient-to-br from-slate-800 to-purple-900">
-                            <div className="text-3xl font-black text-white">{stats.active7}</div>
-                            <div className="text-purple-200 text-[10px] uppercase font-bold">7-Day Active</div>
-                        </div>
-                    </div>
+                    // Simple mock data for visual (replace with real aggregate data later if needed)
+                    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    const dataPoints = [12, 19, 3, 5, 2, 3, 15]; // Example
 
-                    <h2 className="text-lg font-bold mb-4 text-slate-400">Live Activity Feed</h2>
-                    <div className="space-y-2">
-                        {logs.map((log, i) => (
-                            <div key={i} className="bg-slate-800 p-3 rounded-lg border border-slate-700 flex justify-between items-center text-sm">
-                                <div>
-                                    <span className={`font-bold uppercase text-xs px-2 py-1 rounded mr-2 ${log.type==='login'?'bg-slate-700 text-white':(log.type==='chore'?'bg-blue-900 text-blue-200':'bg-green-900 text-green-200')}`}>{log.type}</span> 
-                                    <span className="text-slate-300">{log.userId?.split('@')[0]}</span>
+                    chartInstance.current = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Weekly Activity',
+                                data: dataPoints,
+                                borderColor: '#7c3aed',
+                                backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8888a0' } },
+                                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8888a0' } }
+                            }
+                        }
+                    });
+                }
+            }, []);
+
+            return (
+                <div className="dashboard-container">
+                    <div className="dash-content">
+                        {/* Header */}
+                        <header className="flex justify-between items-center mb-8 pb-6 border-b border-[#2a2a3a]">
+                            <div className="flex items-center gap-3">
+                                <div className="w-11 h-11 bg-gradient-to-br from-[#ff6b35] to-[#ff8f65] rounded-xl flex items-center justify-center text-2xl shadow-[0_4px_20px_rgba(255,107,53,0.3)]">⚡</div>
+                                <div className="text-2xl font-bold tracking-tight">Spark<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7c3aed] to-[#a855f7]">Quest</span> Analytics</div>
+                            </div>
+                            <button onClick={onBack} className="bg-[#1a1a25] border border-[#2a2a3a] text-[#8888a0] px-4 py-2 rounded-lg text-xs uppercase font-bold tracking-wider hover:bg-[#2a2a3a] transition-colors">Exit Dashboard</button>
+                        </header>
+
+                        {/* KPI Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+                            <div className="kpi-card" data-accent="spark">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="kpi-label">Total Parents</span>
+                                    <div className="w-9 h-9 bg-white/5 rounded-lg flex items-center justify-center text-lg">👥</div>
                                 </div>
-                                <div className="text-xs text-slate-500">
-                                    {log.timestamp ? new Date(log.timestamp.seconds * 1000).toLocaleTimeString() : 'Just now'}
+                                <div className="kpi-value">{stats.users}</div>
+                                <div className="text-xs text-[#10b981] flex items-center gap-1">▲ Active Base</div>
+                            </div>
+
+                            <div className="kpi-card" data-accent="success">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="kpi-label">Total Activities</span>
+                                    <div className="w-9 h-9 bg-white/5 rounded-lg flex items-center justify-center text-lg">✓</div>
+                                </div>
+                                <div className="kpi-value">{stats.quests}</div>
+                                <div className="text-xs text-[#10b981] flex items-center gap-1">▲ All Time</div>
+                            </div>
+
+                            <div className="kpi-card" data-accent="info">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="kpi-label">7-Day Active</span>
+                                    <div className="w-9 h-9 bg-white/5 rounded-lg flex items-center justify-center text-lg">📅</div>
+                                </div>
+                                <div className="kpi-value">{stats.active7}</div>
+                                <div className="text-xs text-[#3b82f6] flex items-center gap-1">● Unique Users</div>
+                            </div>
+
+                            <div className="kpi-card" data-accent="warning">
+                                <div className="flex justify-between items-start mb-4">
+                                    <span className="kpi-label">Engagement</span>
+                                    <div className="w-9 h-9 bg-white/5 rounded-lg flex items-center justify-center text-lg">📈</div>
+                                </div>
+                                <div className="kpi-value">High</div>
+                                <div className="text-xs text-[#f59e0b] flex items-center gap-1">● Estimated</div>
+                            </div>
+                        </div>
+
+                        {/* Main Content Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                            
+                            {/* Chart Section */}
+                            <div className="chart-card lg:col-span-2">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-lg font-semibold">Activity Overview</h3>
+                                    <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
+                                        <button className="px-3 py-1 text-xs text-white bg-[#7c3aed] rounded-md">7D</button>
+                                        <button className="px-3 py-1 text-xs text-[#8888a0] hover:text-white transition-colors">30D</button>
+                                    </div>
+                                </div>
+                                <div className="chart-container">
+                                    <canvas ref={chartRef}></canvas>
                                 </div>
                             </div>
-                        ))}
-                        {logs.length === 0 && <div className="text-slate-600 text-center py-4">Waiting for data...</div>}
+
+                            {/* Feed Section */}
+                            <div className="chart-card">
+                                <h3 className="text-lg font-semibold mb-5 flex items-center gap-2">🔥 Live Feed</h3>
+                                <div className="space-y-0">
+                                    {logs.map((log, i) => (
+                                        <div key={i} className="activity-item">
+                                            <div className={`activity-icon ${log.type==='quest'?'bg-[#7c3aed]/20 text-[#7c3aed]':(log.type==='chore'?'bg-[#10b981]/20 text-[#10b981]':'bg-[#3b82f6]/20 text-[#3b82f6]')}`}>
+                                                {log.type==='quest' ? '🎯' : (log.type==='chore' ? '🧹' : '👤')}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="activity-text truncate">
+                                                    <span className="font-bold">{log.type.toUpperCase()}</span> by {log.userId?.split('@')[0]}
+                                                </div>
+                                                <div className="activity-time">
+                                                    {log.timestamp ? new Date(log.timestamp.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {logs.length === 0 && <div className="text-center text-[#55556a] py-8 font-mono text-sm">Waiting for data stream...</div>}
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
             );
         };
 
+        // --- DASHBOARDS ---
         const ParentManager = ({ onBack }) => {
             const { parent, addChoreToChild, deleteChoreFromChild, addCustomReward, deleteCustomReward, deleteChild } = useContext(GameContext);
             const [tab, setTab] = useState('chores');
