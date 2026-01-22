@@ -168,40 +168,7 @@
         const DIFFICULTY_CONFIG={"Easy":{reward:15,bg:"bg-green-100",text:"text-green-700",border:"border-green-300"},"Medium":{reward:30,bg:"bg-blue-100",text:"text-blue-700",border:"border-blue-300"},"Hard":{reward:50,bg:"bg-orange-100",text:"text-orange-700",border:"border-orange-300"},"Epic":{reward:100,bg:"bg-purple-100",text:"text-purple-700",border:"border-purple-300"}};
         const RARITY_CONFIG={common:{label:"Common",color:"text-slate-500",bg:"bg-slate-100",border:"border-slate-200"},uncommon:{label:"Uncommon",color:"text-green-600",bg:"bg-green-100",border:"border-green-300"},rare:{label:"Rare",color:"text-blue-600",bg:"bg-blue-100",border:"border-blue-300"},epic:{label:"Epic",color:"text-purple-600",bg:"bg-purple-100",border:"border-purple-300"},mythic:{label:"Mythic",color:"text-amber-600",bg:"bg-amber-100",border:"border-amber-400"}};
         const BORDER_CONFIG=[{id:'border_1',minLevel:1,name:'Rookie',color:'#cbd5e1'},{id:'border_5',minLevel:5,name:'Bronze',color:'#b45309'},{id:'border_10',minLevel:10,name:'Silver',color:'#94a3b8'},{id:'border_20',minLevel:20,name:'Gold',color:'#fbbf24'},{id:'border_50',minLevel:50,name:'Diamond',color:'#60a5fa'}];
-        
-        const SHOP_ITEMS=[
-            // CAPS & BEANIES
-            {id:'hat_cap_blue',name:'Blue Cap',type:'hat',price:30,color:'#3b82f6',rarity:'common',minLevel:1},
-            {id:'hat_cap_red',name:'Red Cap',type:'hat',price:30,color:'#ef4444',rarity:'common',minLevel:1},
-            {id:'hat_beanie',name:'Beanie',type:'hat',price:50,color:'#475569',rarity:'uncommon',minLevel:2},
-            
-            // COSTUME HATS
-            {id:'hat_cowboy',name:'Cowboy Hat',type:'hat',price:100,color:'#78350f',rarity:'rare',minLevel:5},
-            {id:'hat_wizard',name:'Wizard Hat',type:'hat',price:120,color:'#4c1d95',rarity:'rare',minLevel:5},
-            {id:'hat_viking',name:'Viking Helm',type:'hat',price:150,color:'#94a3b8',rarity:'epic',minLevel:8},
-            {id:'hat_pirate',name:'Pirate Hat',type:'hat',price:150,color:'#1e293b',rarity:'epic',minLevel:8},
-            {id:'hat_headphones',name:'Pro Headset',type:'hat',price:200,color:'#ef4444',rarity:'epic',minLevel:10},
-            {id:'hat_top',name:'Gentleman',type:'hat',price:250,color:'#1e293b',rarity:'epic',minLevel:10},
-            {id:'hat_crown',name:'King\'s Crown',type:'hat',price:500,color:'#fbbf24',rarity:'mythic',minLevel:20},
-            
-            // SHIRTS
-            {id:'shirt_blue',name:'Blue Tee',type:'shirt',color:'#3b82f6',price:25,rarity:'common',minLevel:1},
-            {id:'shirt_green',name:'Green Tee',type:'shirt',color:'#22c55e',price:25,rarity:'common',minLevel:1},
-            {id:'shirt_purple',name:'Purple Tee',type:'shirt',color:'#a855f7',price:50,rarity:'uncommon',minLevel:2},
-            {id:'shirt_stripe',name:'Striped',type:'shirt',id:'shirt_stripe',price:60,rarity:'uncommon',minLevel:3},
-            {id:'shirt_super',name:'Super Hero',type:'shirt',id:'shirt_super',price:100,rarity:'rare',minLevel:5},
-            {id:'shirt_black',name:'Ninja Suit',type:'shirt',id:'shirt_ninja',price:100,rarity:'rare',minLevel:5},
-            {id:'shirt_gold',name:'Gilded Armor',type:'shirt',id:'shirt_gold_armor',price:250,rarity:'epic',minLevel:10},
-            {id:'shirt_void',name:'Void Walker',type:'shirt',id:'shirt_void',price:600,rarity:'mythic',minLevel:20},
-            
-            // GLASSES
-            {id:'glass_nerd',name:'Specs',type:'glasses',price:45,rarity:'uncommon',minLevel:2},
-            {id:'glass_monocle',name:'Monocle',type:'glasses',price:60,rarity:'uncommon',minLevel:3},
-            {id:'glass_shades',name:'Cool Shades',type:'glasses',price:80,rarity:'rare',minLevel:5},
-            {id:'glass_star',name:'Star Power',type:'glasses',price:120,rarity:'epic',minLevel:8},
-            {id:'glass_cyber',name:'Cyber Visor',type:'glasses',price:400,rarity:'mythic',minLevel:20}
-        ];
-
+        const SHOP_ITEMS=[{id:'hat_cap_blue',name:'Blue Cap',type:'hat',price:30,color:'#3b82f6',rarity:'common',minLevel:1},{id:'hat_cap_red',name:'Red Cap',type:'hat',price:30,color:'#ef4444',rarity:'common',minLevel:1},{id:'hat_beanie',name:'Beanie',type:'hat',price:50,color:'#475569',rarity:'uncommon',minLevel:2},{id:'hat_cowboy',name:'Cowboy Hat',type:'hat',price:100,color:'#78350f',rarity:'rare',minLevel:5},{id:'hat_headphones',name:'Pro Headset',type:'hat',price:150,color:'#ef4444',rarity:'epic',minLevel:10},{id:'hat_top',name:'Gentleman',type:'hat',price:200,color:'#1e293b',rarity:'epic',minLevel:10},{id:'hat_crown',name:'King\'s Crown',type:'hat',price:500,color:'#fbbf24',rarity:'mythic',minLevel:20},{id:'hat_wizard',name:'Wizard Hat',type:'hat',price:120,color:'#4c1d95',rarity:'rare',minLevel:5},{id:'hat_viking',name:'Viking Helm',type:'hat',price:150,color:'#94a3b8',rarity:'epic',minLevel:8},{id:'hat_pirate',name:'Pirate Hat',type:'hat',price:150,color:'#1e293b',rarity:'epic',minLevel:8},{id:'shirt_blue',name:'Blue Tee',type:'shirt',color:'#3b82f6',price:25,rarity:'common',minLevel:1},{id:'shirt_green',name:'Green Tee',type:'shirt',color:'#22c55e',price:25,rarity:'common',minLevel:1},{id:'shirt_purple',name:'Purple Tee',type:'shirt',color:'#a855f7',price:50,rarity:'uncommon',minLevel:2},{id:'shirt_stripe',name:'Striped',type:'shirt',id:'shirt_stripe',price:60,rarity:'uncommon',minLevel:3},{id:'shirt_super',name:'Super Hero',type:'shirt',id:'shirt_super',price:100,rarity:'rare',minLevel:5},{id:'shirt_black',name:'Ninja Suit',type:'shirt',id:'shirt_ninja',price:100,rarity:'rare',minLevel:5},{id:'shirt_gold',name:'Gilded Armor',type:'shirt',id:'shirt_gold_armor',price:250,rarity:'epic',minLevel:10},{id:'shirt_void',name:'Void Walker',type:'shirt',id:'shirt_void',price:600,rarity:'mythic',minLevel:20},{id:'glass_nerd',name:'Specs',type:'glasses',price:45,rarity:'uncommon',minLevel:2},{id:'glass_monocle',name:'Monocle',type:'glasses',price:60,rarity:'uncommon',minLevel:3},{id:'glass_shades',name:'Cool Shades',type:'glasses',price:80,rarity:'rare',minLevel:5},{id:'glass_star',name:'Star Power',type:'glasses',price:120,rarity:'epic',minLevel:8},{id:'glass_cyber',name:'Cyber Visor',type:'glasses',price:400,rarity:'mythic',minLevel:20}];
         const WORD_BANKS={color:["Red","Blue","Green","Yellow","Purple","Orange","Pink","White"],location:["kitchen","living room","bedroom","hallway","backyard","play area","couch","bathroom door"],animal:["Lion","Dog","Cat","Frog","Dinosaur","Bunny","Monkey","Chicken","Bear"],object_easy:["toy","pillow","book","spoon","shoe","ball","cup","hat"],object_hard:["flashlight","ruler","mug","sock","backpack","coin","leaf","pencil"],exercise_easy:["jumps","claps","spins","stomps","hops","wiggles"],exercise_hard:["squats","push-ups (knees)","lunges","sit-ups","planks","burpees"]};
 
         const generateQuest = (playerAge) => {
@@ -301,7 +268,6 @@
                 } catch(e) { alert("Error: " + e.message); }
             };
 
-            // --- CHORE & REWARD MANAGEMENT ---
             const addChoreToChild = async (childName, choreName, points) => {
                 const childRef = db.collection('parents').doc(parent.email).collection('kids').doc(childName);
                 const newChore = { id: Date.now(), text: choreName, points: parseInt(points), lastCompleted: null };
@@ -324,7 +290,6 @@
                 setParent(prev => ({ ...prev, customRewards: prev.customRewards.filter(r => r.id !== reward.id) }));
             };
 
-            // --- GAME ACTIONS ---
             const startGame = async (selectedNames) => {
                 if (selectedNames.length === 0) return;
                 setLoading(true);
@@ -347,16 +312,11 @@
             const completeChore = async (playerIndex, chore) => {
                 const player = activePlayers[playerIndex];
                 const today = new Date().toDateString();
-                
-                // Update local chore state
                 const updatedChores = player.chores.map(c => c.id === chore.id ? { ...c, lastCompleted: today } : c);
-                
-                // Add points
                 const newXP = player.xp + chore.points;
                 const oldLevel = player.level;
                 const newLevel = Math.floor(newXP / 100) + 1;
                 if (newLevel > oldLevel) setLevelUpQueue(prev => [...prev, { playerIdx: playerIndex, level: newLevel, bonus: 50 }]);
-                
                 const updatedPlayer = { 
                     ...player, 
                     sparks: player.sparks + chore.points + (newLevel > oldLevel ? 50 : 0), 
@@ -364,7 +324,6 @@
                     level: newLevel,
                     chores: updatedChores 
                 };
-
                 setActivePlayers(prev => prev.map(p => p.username === updatedPlayer.username ? updatedPlayer : p));
                 await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).set(updatedPlayer);
             };
