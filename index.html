@@ -38,9 +38,31 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useContext, createContext } = React;
+        const { useState, useEffect, useContext, createContext, Component } = React;
 
         const SUPPORT_EMAIL = "chadramsey01@gmail.com"; 
+
+        // ==========================================
+        // 🛡️ ERROR BOUNDARY (Prevents White Screen)
+        // ==========================================
+        class ErrorBoundary extends Component {
+            constructor(props) { super(props); this.state = { hasError: false, error: null }; }
+            static getDerivedStateFromError(error) { return { hasError: true, error }; }
+            componentDidCatch(error, errorInfo) { console.error("Game Crash:", error, errorInfo); }
+            render() {
+                if (this.state.hasError) {
+                    return (
+                        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-red-50 text-red-900 text-center">
+                            <h1 className="text-4xl mb-4">😵 OOPS!</h1>
+                            <p className="font-bold mb-4">The game crashed. Here is the error:</p>
+                            <pre className="bg-red-100 p-4 rounded text-left text-xs mb-4 overflow-auto max-w-sm">{this.state.error && this.state.error.toString()}</pre>
+                            <button onClick={() => window.location.reload()} className="bg-red-500 text-white px-6 py-3 rounded-xl font-bold uppercase shadow-lg">Restart Game</button>
+                        </div>
+                    );
+                }
+                return this.props.children;
+            }
+        }
 
         // ==========================================
         // 🔥 FIREBASE CONFIGURATION
@@ -60,9 +82,7 @@
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
             }
-        } catch(e) {
-            console.error("Firebase Init Error", e);
-        }
+        } catch(e) { console.error("Firebase Init Error", e); }
         
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -73,7 +93,6 @@
         // ==========================================
         const trackActivity = (type, id, details = {}) => {
             try {
-                // Check if user is logged in before tracking to prevent permission errors
                 if(auth.currentUser) {
                     db.collection('activities').add({
                         type, id, details,
@@ -83,7 +102,6 @@
                 }
             } catch(e) { console.warn("Track error", e); }
         };
-        // Expose globally for convenience
         window.sqTrack = { activity: trackActivity };
 
         // ==========================================
@@ -109,7 +127,6 @@
                 );
             }
 
-            // HAIR
             if (id === 'hair_brown_messy') return <path d="M 35 30 C 35 5, 165 5, 165 30 C 165 60, 170 85, 170 95 L 155 95 L 155 30 L 45 30 L 45 95 L 30 95 C 30 85, 35 60, 35 30 Z" fill="#563625" stroke={stroke} strokeWidth={strokeW} />;
             if (id === 'hair_blonde_ponytail') return <g><path d="M 45 25 C 45 5, 155 5, 155 25 C 155 55, 155 80, 155 80 L 45 80 C 45 80, 45 55, 45 25 Z" fill="#ecc94b" stroke={stroke} strokeWidth={strokeW} /><circle cx="160" cy="40" r="20" fill="#ecc94b" stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hair_black_spiky') return <path d="M 40 30 L 30 10 L 55 20 L 75 5 L 100 15 L 125 5 L 145 20 L 170 10 L 160 30 C 160 60, 150 80, 150 80 L 50 80 C 50 80, 40 60, 40 30 Z" fill="#2d3748" stroke={stroke} strokeWidth={strokeW} />;
@@ -123,10 +140,7 @@
             }
 
             if (id && id.includes('cap')) return <g><path d="M 45 40 C 45 20, 155 20, 155 40 L 155 55 L 45 55 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="40" y="50" width="120" height="12" rx="6" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><path d="M 160 50 L 190 55 L 160 60 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
-            
-            // Beanie
             if (id === 'hat_beanie') return <g><path d="M 40 45 C 40 10, 160 10, 160 45 L 160 65 L 40 65 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="35" y="60" width="130" height="20" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
-            
             if (id === 'hat_cowboy') return <g><ellipse cx="100" cy="55" rx="80" ry="20" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><path d="M 65 50 L 75 10 C 75 -5, 125 -5, 125 10 L 135 50 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_headphones') return <g><path d="M 30 70 C 30 10, 170 10, 170 70" fill="none" stroke={iColor} strokeWidth="12" /><rect x="20" y="60" width="30" height="50" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="150" y="60" width="30" height="50" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_top') return <g><rect x="60" y="0" width="80" height="60" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><rect x="30" y="60" width="140" height="15" rx="2" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><rect x="60" y="50" width="80" height="10" fill="#ef4444" /></g>;
@@ -373,39 +387,6 @@
             );
         };
 
-        const AuthScreen = () => {
-            const { loginParent, registerParent, resetPassword } = useContext(GameContext);
-            const [view, setView] = useState('login'); 
-            const [email, setEmail] = useState("");
-            const [password, setPassword] = useState("");
-            const [msg, setMsg] = useState("");
-            const handleSubmit = async (e) => { e.preventDefault(); setMsg("Loading..."); if(view==='forgot'){ if(!email) return setMsg("Enter Email"); const res = await resetPassword(email); if(res.success){ setMsg("Check email."); setTimeout(()=>setView('login'),3000); }else setMsg(res.msg); return; } if(!email||!password) return setMsg("Fill all fields"); const res = view==='register'? await registerParent(email,password) : await loginParent(email,password); if(!res.success) setMsg(res.msg); };
-            return (<div className="min-h-screen bg-sky-400 flex flex-col items-center justify-center p-6 text-white"><div className="bg-white/10 backdrop-blur-md p-8 rounded-3xl w-full max-w-sm border border-white/20 shadow-xl"><h1 className="text-4xl font-black mb-4 text-center">Spark Quest</h1><form onSubmit={handleSubmit} className="space-y-4"><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Parent Email" className="w-full p-4 rounded-xl text-sky-900 font-bold" />{view!=='forgot'&&<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" className="w-full p-4 rounded-xl text-sky-900 font-bold" />}{msg&&<p className="font-bold text-center text-sm bg-black/20 p-2 rounded">{msg}</p>}<button className="w-full py-4 bg-yellow-400 text-yellow-900 font-black rounded-xl uppercase shadow-lg">{view==='register'?'Create':(view==='forgot'?'Reset':'Enter')}</button></form><div className="mt-6 flex flex-col gap-2 text-center text-sm font-bold">{view==='login'&&<><button onClick={()=>setView('register')}>Need account? Register</button><button onClick={()=>setView('forgot')}>Forgot Password?</button></>}{view!=='login'&&<button onClick={()=>setView('login')}>Back to Login</button>}</div></div></div>);
-        };
-
-        const ParentDashboard = () => {
-            const { parent, logoutParent, initAddChild, startGame, deleteChild } = useContext(GameContext);
-            const [newName, setNewName] = useState(""); const [newDob, setNewDob] = useState(""); const [showAdd, setShowAdd] = useState(false); const [selected, setSelected] = useState([]); const [avatars, setAvatars] = useState({});
-            const toggleSelect = (name) => { if (selected.includes(name)) setSelected(selected.filter(n => n !== name)); else setSelected([...selected, name]); };
-            const getAge = (dob) => { if (!dob) return "8y"; const age = Math.floor((new Date() - new Date(dob)) / 31557600000); return `${age}y`; };
-            useEffect(() => { const loadAvatars = async () => { if (parent && parent.children) { const loaded = {}; for (const child of parent.children) { const doc = await db.collection('parents').doc(parent.email).collection('kids').doc(child.name).get(); if(doc.exists) loaded[child.name] = doc.data().avatar; } setAvatars(loaded); } }; loadAvatars(); }, [parent]);
-            return (
-                <div className="min-h-screen bg-sky-100 flex flex-col items-center p-6 text-slate-800"><div className="w-full max-w-lg"><div className="flex justify-between items-center mb-6"><div><h2 className="text-2xl font-black text-sky-900">Family Hub</h2><p className="text-xs font-bold text-slate-400 uppercase">Parent: {parent.email}</p></div><button onClick={logoutParent} className="text-xs font-bold text-red-400 bg-white px-4 py-2 rounded-xl border border-red-100">Log Out</button></div>
-                {(!parent.children || parent.children.length === 0) && !showAdd && <div className="text-center py-10 opacity-50"><div className="text-4xl mb-2">👋</div><p className="font-bold">Welcome! Add a child.</p></div>}
-                <div className="grid grid-cols-2 gap-4 mb-6">{parent.children && parent.children.map((child) => { const name = child.name; const isSel = selected.includes(name); const av = avatars[name]; return (
-                    <div key={name} className="relative">
-                        <button onClick={() => toggleSelect(name)} className={`w-full p-4 rounded-3xl shadow-md border-b-4 transition-all flex flex-col items-center relative ${isSel ? 'bg-sky-500 border-sky-700 text-white scale-105' : 'bg-white border-slate-200 text-slate-700'}`}><div className="w-16 h-16 mb-2 relative">{av ? <PrestigeFrame borderId={av.border}><BlockyAvatar config={av} size="full" /></PrestigeFrame> : <div className="text-4xl">😀</div>}</div><span className="font-black text-lg">{name}</span><span className="text-xs font-bold">{getAge(child.dob)}</span>{isSel && <div className="absolute top-2 right-2">✅</div>}</button>
-                        <button onClick={(e) => { e.stopPropagation(); deleteChild(name); }} className="absolute top-[-5px] right-[-5px] bg-red-500 text-white w-6 h-6 rounded-full font-bold text-xs shadow-md border-2 border-white z-10 hover:scale-110 transition-transform">X</button>
-                    </div>
-                ); })}
-                {!showAdd && <button onClick={() => setShowAdd(true)} className="bg-slate-200 p-6 rounded-3xl border-4 border-dashed border-slate-300 flex flex-col items-center justify-center hover:bg-slate-100"><span className="text-3xl mb-1">+</span><span className="font-bold text-xs uppercase">Add Child</span></button>}</div>
-                {showAdd && <form onSubmit={(e) => {e.preventDefault(); if(newName && newDob) { initAddChild(newName, newDob); setShowAdd(false); setNewName(""); setNewDob(""); }}} className="bg-white p-6 rounded-3xl shadow-xl animate-bounce-in border-4 border-sky-100 mb-6"><h3 className="font-black text-lg mb-4 text-center text-sky-900">New Profile</h3><div className="space-y-3 mb-4"><input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="Name" className="w-full p-3 rounded-xl bg-slate-100 font-bold" /><input type="date" value={newDob} onChange={e=>setNewDob(e.target.value)} className="w-full p-3 rounded-xl bg-slate-100 font-bold" /></div><div className="flex gap-2"><button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-3 font-bold text-slate-400 bg-slate-100 rounded-xl">Cancel</button><button type="submit" className="flex-[2] py-3 bg-sky-500 text-white font-black rounded-xl shadow-md">Next</button></div></form>}
-                {selected.length > 0 && <div className="fixed bottom-6 left-0 w-full px-6 flex justify-center animate-bounce-in"><button onClick={() => startGame(selected)} className="w-full max-w-md py-4 bg-green-500 text-white font-black rounded-2xl text-xl shadow-xl border-b-8 border-green-700 uppercase">Start Game</button></div>}</div></div>
-            );
-        };
-
-        const LandingPage = ({ onStart }) => (<div className="min-h-screen bg-sky-100 flex flex-col items-center justify-center p-6 text-center"><div className="mb-8 animate-bounce-in"><div className="w-32 h-32 mx-auto mb-4 bg-yellow-400 rounded-full flex items-center justify-center shadow-xl border-4 border-yellow-200"><svg viewBox="0 0 100 100" className="w-20 h-20"><path d="M 55 5 L 20 60 L 50 60 L 40 95 L 85 35 L 55 35 Z" fill="#fff" /></svg></div><h1 className="text-5xl font-black text-sky-900 mb-2">Spark Quest</h1><p className="text-xl font-bold text-sky-700">Adventure awaits!</p></div><div className="bg-white p-6 rounded-3xl shadow-xl max-w-md w-full border-b-8 border-slate-200 mb-8"><p className="text-slate-600 font-bold mb-4">Turn daily chores into an epic adventure!</p><button onClick={onStart} className="w-full py-4 bg-green-500 hover:bg-green-400 text-white font-black rounded-xl text-xl shadow-lg border-b-4 border-green-700 transition-all uppercase">Play Now</button></div></div>);
-
         const App = () => {
             const { parent, activePlayers, isCreating, exitGame, levelUpQueue, closeLevelUp, loading, startGame } = useContext(GameContext);
             const [view, setView] = useState('landing');
@@ -440,7 +421,7 @@
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<GameProvider><App /></GameProvider>);
+        root.render(<ErrorBoundary><GameProvider><App /></GameProvider></ErrorBoundary>);
     </script>
 </body>
 </html>
