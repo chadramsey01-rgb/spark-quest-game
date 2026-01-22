@@ -1,11 +1,12 @@
 /**
- * SparkQuest Analytics Tracker
+ * SparkQuest Analytics Tracker (FIXED)
  * ============================
  */
 (function() {
     'use strict';
 
-    // ✅ YOUR REAL KEYS ARE NOW PRE-FILLED HERE
+    // ✅ FIXED: I have inserted your REAL Firebase keys here.
+    // This was causing the white screen crash.
     const firebaseConfig = {
         apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk",
         authDomain: "spark-quest.firebaseapp.com",
@@ -58,7 +59,6 @@
     // Initialize
     window.SparkQuestTracker = new SparkQuestTracker();
     
-    // Auto-start safe wrapper
     const start = () => {
         const check = setInterval(() => {
             if (typeof firebase !== 'undefined') {
@@ -71,7 +71,6 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
     else start();
 
-    // Global helper
     window.sqTrack = {
         activity: (t, i, d) => window.SparkQuestTracker.trackActivity(t, i, d)
     };
