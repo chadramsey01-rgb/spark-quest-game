@@ -52,6 +52,9 @@
     <script type="text/babel">
         const { useState, useEffect, useContext, createContext, Component, useRef } = React;
 
+        // ✅ FIXED: Defined Globally
+        const SUPPORT_EMAIL = "chadramsey01@gmail.com"; 
+
         // --- 1. ERROR BOUNDARY ---
         class ErrorBoundary extends Component {
             constructor(props) { super(props); this.state = { hasError: false, error: null }; }
