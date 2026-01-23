@@ -270,6 +270,9 @@
                 await db.collection('parents').doc(parent.email).collection('kids').doc(updatedPlayer.username).update(updatedPlayer);
             };
 
+            // ✅ DEFINING EDIT AVATAR HERE FOR EXPORT
+            const editAvatar = (playerIndex) => { setPendingChild(activePlayers[playerIndex]); setIsCreating(true); }
+
             return (
                 <GameContext.Provider value={{ 
                     parent, activePlayers, isCreating, levelUpQueue, pendingChild, loading, 
@@ -477,6 +480,7 @@
         }
 
         function Dashboard() {
+            // ✅ CHECK: editAvatar included here
             const { activePlayers, equipItem, editAvatar } = useContext(GameContext);
             const [tab, setTab] = useState(0); const [subTab, setSubTab] = useState('inventory'); 
             const currentPlayer = activePlayers[tab];
@@ -530,11 +534,12 @@
 
         // --- 7. MAIN APP ---
         function App() {
+            // ✅ CHECK: exitGame included here
             const { 
                 parent, 
                 activePlayers, 
                 isCreating, 
-                exitGame, // ✅ FIXED: Explicitly destructured here to prevent ReferenceError
+                exitGame, 
                 levelUpQueue, 
                 closeLevelUp, 
                 loading, 
