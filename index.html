@@ -469,7 +469,19 @@ function ChoreList() {
         </div>
     );
 }
-(pin); onSuccess();
+
+function ParentPinModal({ onSuccess, onCancel }) {
+    const { parentPin, setupParentPin, verifyParentPin } = useGame();
+    const [pin, setPin] = useState('');
+    const [confirmPin, setConfirmPin] = useState('');
+    const [error, setError] = useState('');
+    const isSetup = !parentPin;
+    
+    const handleSubmit = () => {
+        if (pin.length < 4) { setError('PIN must be at least 4 digits'); return; }
+        if (isSetup) {
+            if (pin !== confirmPin) { setError('PINs do not match'); return; }
+            setupParentPin(pin); onSuccess();
         } else {
             if (verifyParentPin(pin)) onSuccess(); else { setError('Wrong PIN'); setPin(''); }
         }
