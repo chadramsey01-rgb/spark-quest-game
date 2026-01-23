@@ -26,7 +26,7 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Dashboard Styles */
+        /* === DASHBOARD STYLES (Restored) === */
         .dashboard-container {
             --bg-deep: #0a0a0f; --bg-card: #12121a; --border: #2a2a3a;
             --text-primary: #f0f0f5; --text-secondary: #8888a0;
@@ -40,6 +40,15 @@
         .kpi-card[data-accent="purple"]::before { background: #a855f7; }
         .kpi-value { font-family: 'Space Mono', monospace; font-size: 32px; font-weight: 700; margin-bottom: 8px; }
         
+        /* Activity Feed & Charts (Fixed Visibility) */
+        .chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+        .chart-container { position: relative; height: 280px; width: 100%; }
+        
+        .activity-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .activity-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .activity-text { font-size: 14px; color: var(--text-primary); }
+        .activity-time { font-size: 12px; color: var(--text-secondary); font-family: 'Space Mono', monospace; }
+
         /* Game Animations */
         @keyframes bounce-in { 0% { transform: scale(0.5); opacity: 0; } 80% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }
         .animate-bounce-in { animation: bounce-in 0.5s ease-out forwards; }
@@ -51,7 +60,6 @@
 
     <script type="text/babel">
         const { useState, useEffect, useContext, createContext, Component, useRef } = React;
-
         const SUPPORT_EMAIL = "chadramsey01@gmail.com"; 
 
         // --- 1. ERROR BOUNDARY ---
@@ -60,39 +68,17 @@
             static getDerivedStateFromError(error) { return { hasError: true, error }; }
             componentDidCatch(error, errorInfo) { console.error("Game Crash:", error, errorInfo); }
             render() {
-                if (this.state.hasError) {
-                    return (
-                        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-red-50 text-red-900 text-center">
-                            <h1 className="text-4xl mb-4">😵 OOPS!</h1>
-                            <p className="font-bold mb-4">The game crashed. Tap below to fix.</p>
-                            <pre className="bg-red-100 p-4 rounded text-left text-xs mb-4 overflow-auto max-w-sm">{this.state.error && this.state.error.toString()}</pre>
-                            <button onClick={() => window.location.reload()} className="bg-red-500 text-white px-6 py-3 rounded-xl font-bold uppercase shadow-lg">Restart</button>
-                        </div>
-                    );
-                }
+                if (this.state.hasError) return <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-red-50 text-red-900 text-center"><h1 className="text-4xl mb-4">😵 OOPS!</h1><p className="mb-4">Game crashed. Tap below.</p><button onClick={() => window.location.reload()} className="bg-red-500 text-white px-6 py-3 rounded-xl font-bold uppercase shadow-lg">Restart</button></div>;
                 return this.props.children;
             }
         }
 
-        // --- 2. FIREBASE SETUP ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk",
-            authDomain: "spark-quest.firebaseapp.com",
-            projectId: "spark-quest",
-            storageBucket: "spark-quest.firebasestorage.app",
-            messagingSenderId: "113841238943",
-            appId: "1:113841238943:web:fd6b69669fb891afcd43aa",
-            measurementId: "G-9VQJ7CT98X"
-        };
+        // --- 2. FIREBASE ---
+        const firebaseConfig = { apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk", authDomain: "spark-quest.firebaseapp.com", projectId: "spark-quest", storageBucket: "spark-quest.firebasestorage.app", messagingSenderId: "113841238943", appId: "1:113841238943:web:fd6b69669fb891afcd43aa", measurementId: "G-9VQJ7CT98X" };
+        try { if (!firebase.apps.length) firebase.initializeApp(firebaseConfig); } catch(e) { console.error("Firebase Error", e); }
+        const auth = firebase.auth(); const db = firebase.firestore();
 
-        try {
-            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        } catch(e) { console.error("Firebase Error", e); }
-        
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-
-        // --- 3. CONSTANTS & DATA ---
+        // --- 3. DATA & ASSETS ---
         const SKIN_TONES = [{id:'skin_pale',color:'#ffe0bd'},{id:'skin_fair',color:'#ffcd94'},{id:'skin_tan',color:'#eac086'},{id:'skin_medium',color:'#d1a3a4'},{id:'skin_dark',color:'#8d5524'},{id:'skin_deeper',color:'#563625'}];
         const HAIR_STYLES = [{id:'hair_brown_messy',name:'Brown Messy'},{id:'hair_blonde_ponytail',name:'Blonde Pony'},{id:'hair_black_spiky',name:'Black Spiky'},{id:'hair_red_bob',name:'Red Bob'}];
         const DIFFICULTY_CONFIG={"Easy":{reward:15,bg:"bg-green-100",text:"text-green-700",border:"border-green-300"},"Medium":{reward:30,bg:"bg-blue-100",text:"text-blue-700",border:"border-blue-300"},"Hard":{reward:50,bg:"bg-orange-100",text:"text-orange-700",border:"border-orange-300"},"Epic":{reward:100,bg:"bg-purple-100",text:"text-purple-700",border:"border-purple-300"}};
@@ -100,6 +86,7 @@
         const BORDER_CONFIG=[{id:'border_1',minLevel:1,name:'Rookie',color:'#cbd5e1'},{id:'border_5',minLevel:5,name:'Bronze',color:'#b45309'},{id:'border_10',minLevel:10,name:'Silver',color:'#94a3b8'},{id:'border_20',minLevel:20,name:'Gold',color:'#fbbf24'},{id:'border_50',minLevel:50,name:'Diamond',color:'#60a5fa'}];
         const SHOP_ITEMS=[{id:'hat_cap_blue',name:'Blue Cap',type:'hat',price:30,color:'#3b82f6',rarity:'common',minLevel:1},{id:'hat_cap_red',name:'Red Cap',type:'hat',price:30,color:'#ef4444',rarity:'common',minLevel:1},{id:'hat_beanie',name:'Beanie',type:'hat',price:50,color:'#475569',rarity:'uncommon',minLevel:2},{id:'hat_cowboy',name:'Cowboy Hat',type:'hat',price:100,color:'#78350f',rarity:'rare',minLevel:5},{id:'hat_headphones',name:'Pro Headset',type:'hat',price:150,color:'#ef4444',rarity:'epic',minLevel:10},{id:'hat_top',name:'Gentleman',type:'hat',price:200,color:'#1e293b',rarity:'epic',minLevel:10},{id:'hat_crown',name:'King\'s Crown',type:'hat',price:500,color:'#fbbf24',rarity:'mythic',minLevel:20},{id:'shirt_blue',name:'Blue Tee',type:'shirt',color:'#3b82f6',price:25,rarity:'common',minLevel:1},{id:'shirt_green',name:'Green Tee',type:'shirt',color:'#22c55e',price:25,rarity:'common',minLevel:1},{id:'shirt_purple',name:'Purple Tee',type:'shirt',color:'#a855f7',price:50,rarity:'uncommon',minLevel:2},{id:'shirt_stripe',name:'Striped',type:'shirt',id:'shirt_stripe',price:60,rarity:'uncommon',minLevel:3},{id:'shirt_super',name:'Super Hero',type:'shirt',id:'shirt_super',price:100,rarity:'rare',minLevel:5},{id:'shirt_black',name:'Ninja Suit',type:'shirt',id:'shirt_ninja',price:100,rarity:'rare',minLevel:5},{id:'shirt_gold',name:'Gilded Armor',type:'shirt',id:'shirt_gold_armor',price:250,rarity:'epic',minLevel:10},{id:'shirt_void',name:'Void Walker',type:'shirt',id:'shirt_void',price:600,rarity:'mythic',minLevel:20},{id:'glass_nerd',name:'Specs',type:'glasses',price:45,rarity:'uncommon',minLevel:2},{id:'glass_monocle',name:'Monocle',type:'glasses',price:60,rarity:'uncommon',minLevel:3},{id:'glass_shades',name:'Cool Shades',type:'glasses',price:80,rarity:'rare',minLevel:5},{id:'glass_star',name:'Star Power',type:'glasses',price:120,rarity:'epic',minLevel:8},{id:'glass_cyber',name:'Cyber Visor',type:'glasses',price:400,rarity:'mythic',minLevel:20},{id:'hat_wizard',name:'Wizard Hat',type:'hat',price:120,color:'#4c1d95',rarity:'rare',minLevel:5},{id:'hat_viking',name:'Viking Helm',type:'hat',price:150,color:'#94a3b8',rarity:'epic',minLevel:8},{id:'hat_pirate',name:'Pirate Hat',type:'hat',price:150,color:'#1e293b',rarity:'epic',minLevel:8}];
         const WORD_BANKS={color:["Red","Blue","Green","Yellow","Purple","Orange","Pink","White"],location:["kitchen","living room","bedroom","hallway","backyard","play area","couch","bathroom door"],animal:["Lion","Dog","Cat","Frog","Dinosaur","Bunny","Monkey","Chicken","Bear"],object_easy:["toy","pillow","book","spoon","shoe","ball","cup","hat"],object_hard:["flashlight","ruler","mug","sock","backpack","coin","leaf","pencil"],exercise_easy:["jumps","claps","spins","stomps","hops","wiggles"],exercise_hard:["squats","push-ups (knees)","lunges","sit-ups","planks","burpees"]};
+        const CAT_STYLES = { blaze: { icon: '⚔️', bg: 'bg-red-500', text: 'text-red-100' }, flow: { icon: '🔨', bg: 'bg-blue-500', text: 'text-blue-100' }, terra: { icon: '🌱', bg: 'bg-green-500', text: 'text-green-100' }, breeze: { icon: '💨', bg: 'bg-purple-500', text: 'text-purple-100' } };
 
         function generateQuest(playerAge) {
             let templates = [{text:"Find something [color]!",diff:"Easy",cat:'terra'},{text:"Do 5 [exercise_easy]!",diff:"Medium",cat:'blaze'},{text:"Draw a [animal]!",diff:"Medium",cat:'flow'},{text:"Clean up the [location]!",diff:"Hard",cat:'terra'}];
@@ -108,8 +95,6 @@
             Object.keys(WORD_BANKS).forEach(key => { const regex = new RegExp(`\\[${key}\\]`,'g'); text = text.replace(regex, () => WORD_BANKS[key][Math.floor(Math.random()*WORD_BANKS[key].length)]); });
             return { id: Date.now()+Math.random(), description: text, category: t.cat, difficulty: t.diff, sparks_reward: DIFFICULTY_CONFIG[t.diff].reward, date: new Date().toLocaleDateString() };
         }
-
-        const CAT_STYLES = { blaze: { icon: '⚔️', bg: 'bg-red-500', text: 'text-red-100' }, flow: { icon: '🔨', bg: 'bg-blue-500', text: 'text-blue-100' }, terra: { icon: '🌱', bg: 'bg-green-500', text: 'text-green-100' }, breeze: { icon: '💨', bg: 'bg-purple-500', text: 'text-purple-100' } };
 
         // --- 4. GAME CONTEXT ---
         const GameContext = createContext();
@@ -154,8 +139,8 @@
             const registerParent = async (email, password) => { try { await auth.createUserWithEmailAndPassword(email, password); const newParent = { email: email, children: [], customRewards: [] }; await db.collection('parents').doc(email).set(newParent); setParent(newParent); return { success: true }; } catch (e) { return { success: false, msg: e.message }; } };
             const resetPassword = async (email) => { try { await auth.sendPasswordResetEmail(email); return { success: true }; } catch (e) { return { success: false, msg: e.message }; } };
             const logoutParent = async () => { await auth.signOut(); setActivePlayers([]); };
-
             const initAddChild = (name, dob) => { setPendingChild({ username: name, dob: dob, sparks: 50, xp: 0, level: 1, inventory: [], history: [], chores: [], avatar: { base: 'boy', skin: 'skin_fair', hair: 'hair_brown_messy', shirt: null, hat: null, glasses: null, border: 'border_1' } }); setIsCreating(true); };
+            
             const completeAddChild = async (finalConfig) => {
                 const childToSave = { ...pendingChild, avatar: finalConfig };
                 const childMeta = { name: childToSave.username, dob: childToSave.dob };
@@ -196,97 +181,21 @@
                 const newChore = { id: Date.now(), text: choreName, points: parseInt(points), lastCompleted: null };
                 await db.collection('parents').doc(parent.email).collection('kids').doc(childName).update({ chores: firebase.firestore.FieldValue.arrayUnion(newChore) });
             };
-            const deleteChoreFromChild = async (childName, chore) => {
-                await db.collection('parents').doc(parent.email).collection('kids').doc(childName).update({ chores: firebase.firestore.FieldValue.arrayRemove(chore) });
-            };
-            const addCustomReward = async (name, cost) => {
-                const newReward = { id: Date.now(), name, cost: parseInt(cost) };
-                await db.collection('parents').doc(parent.email).update({ customRewards: firebase.firestore.FieldValue.arrayUnion(newReward) });
-                setParent(prev => ({ ...prev, customRewards: [...(prev.customRewards||[]), newReward] }));
-            };
-            const deleteCustomReward = async (reward) => {
-                await db.collection('parents').doc(parent.email).update({ customRewards: firebase.firestore.FieldValue.arrayRemove(reward) });
-                setParent(prev => ({ ...prev, customRewards: prev.customRewards.filter(r => r.id !== reward.id) }));
-            };
+            const deleteChoreFromChild = async (childName, chore) => { await db.collection('parents').doc(parent.email).collection('kids').doc(childName).update({ chores: firebase.firestore.FieldValue.arrayRemove(chore) }); };
+            const addCustomReward = async (name, cost) => { const newReward = { id: Date.now(), name, cost: parseInt(cost) }; await db.collection('parents').doc(parent.email).update({ customRewards: firebase.firestore.FieldValue.arrayUnion(newReward) }); setParent(prev => ({ ...prev, customRewards: [...(prev.customRewards||[]), newReward] })); };
+            const deleteCustomReward = async (reward) => { await db.collection('parents').doc(parent.email).update({ customRewards: firebase.firestore.FieldValue.arrayRemove(reward) }); setParent(prev => ({ ...prev, customRewards: prev.customRewards.filter(r => r.id !== reward.id) })); };
+            const completeChore = async (playerIndex, chore) => { const player = activePlayers[playerIndex]; const updatedChores = player.chores.map(c => c.id === chore.id ? { ...c, lastCompleted: new Date().toDateString() } : c); const newXP = player.xp + chore.points; const newLevel = Math.floor(newXP / 100) + 1; if (newLevel > player.level) setLevelUpQueue(prev => [...prev, { playerIdx: playerIndex, level: newLevel }]); const updatedPlayer = { ...player, sparks: player.sparks + chore.points + (newLevel > player.level ? 50 : 0), xp: newXP, level: newLevel, chores: updatedChores }; setActivePlayers(prev => prev.map(p => p.username === updatedPlayer.username ? updatedPlayer : p)); await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).set(updatedPlayer); db.collection('activities').add({ type: 'chore', userId: parent.email, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); };
+            const completeQuest = async (i, q) => { const player = activePlayers[i]; const newXP = player.xp + q.sparks_reward; const newLevel = Math.floor(newXP / 100) + 1; if (newLevel > player.level) setLevelUpQueue(prev => [...prev, { playerIdx: i, level: newLevel }]); const updated = { ...player, sparks: player.sparks + q.sparks_reward + (newLevel > player.level ? 50 : 0), xp: newXP, level: newLevel, history: [q, ...player.history] }; setActivePlayers(prev => prev.map(p => p.username === updated.username ? updated : p)); await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).set(updated); db.collection('activities').add({ type: 'quest', userId: parent.email, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); };
+            const redeemReward = async (playerIndex, reward) => { const player = activePlayers[playerIndex]; if (player.sparks < reward.cost) return { success: false, msg: "Not enough sparks!" }; const updated = { ...player, sparks: player.sparks - reward.cost }; setActivePlayers(prev => prev.map(p => p.username === player.username ? updated : p)); await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).update(updated); return { success: true, msg: "Redeemed!" }; };
+            const buyItem = async (playerIndex, item) => { const player = activePlayers[playerIndex]; if (player.inventory.includes(item.id)) return { success: false, msg: "Owned!" }; if (player.sparks < item.price) return { success: false, msg: "Need Sparks!" }; const updated = { ...player, sparks: player.sparks - item.price, inventory: [...player.inventory, item.id] }; setActivePlayers(prev => prev.map(p => p.username === player.username ? updated : p)); await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).update(updated); return { success: true, msg: "Got it!" }; };
+            const equipItem = async (playerIndex, item) => { const player = activePlayers[playerIndex]; const newAv = { ...player.avatar }; if (item.type === 'hat') newAv.hat = (newAv.hat === item.id) ? null : item.id; if (item.type === 'glasses') newAv.glasses = (newAv.glasses === item.id) ? null : item.id; if (item.type === 'shirt') newAv.shirt = (newAv.shirt === (item.color || item.id)) ? null : (item.color || item.id); const updated = { ...player, avatar: newAv }; setActivePlayers(prev => prev.map(p => p.username === player.username ? updated : p)); await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).update(updated); };
 
-            const completeChore = async (playerIndex, chore) => {
-                const player = activePlayers[playerIndex];
-                const updatedChores = player.chores.map(c => c.id === chore.id ? { ...c, lastCompleted: new Date().toDateString() } : c);
-                const newXP = player.xp + chore.points;
-                const newLevel = Math.floor(newXP / 100) + 1;
-                if (newLevel > player.level) setLevelUpQueue(prev => [...prev, { playerIdx: playerIndex, level: newLevel }]);
-                const updatedPlayer = { ...player, sparks: player.sparks + chore.points + (newLevel > player.level ? 50 : 0), xp: newXP, level: newLevel, chores: updatedChores };
-                setActivePlayers(prev => prev.map(p => p.username === updatedPlayer.username ? updatedPlayer : p));
-                await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).set(updatedPlayer);
-                db.collection('activities').add({ type: 'chore', userId: parent.email, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-            };
-
-            const completeQuest = async (i, q) => { 
-                const player = activePlayers[i];
-                const newXP = player.xp + q.sparks_reward;
-                const newLevel = Math.floor(newXP / 100) + 1;
-                if (newLevel > player.level) setLevelUpQueue(prev => [...prev, { playerIdx: i, level: newLevel }]);
-                const updated = { ...player, sparks: player.sparks + q.sparks_reward + (newLevel > player.level ? 50 : 0), xp: newXP, level: newLevel, history: [q, ...player.history] };
-                setActivePlayers(prev => prev.map(p => p.username === updated.username ? updated : p));
-                await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).set(updated);
-                db.collection('activities').add({ type: 'quest', userId: parent.email, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-            };
-
-            const redeemReward = async (playerIndex, reward) => {
-                const player = activePlayers[playerIndex];
-                if (player.sparks < reward.cost) return { success: false, msg: "Not enough sparks!" };
-                const updated = { ...player, sparks: player.sparks - reward.cost };
-                setActivePlayers(prev => prev.map(p => p.username === player.username ? updated : p));
-                await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).update(updated);
-                return { success: true, msg: "Redeemed!" };
-            };
-
-            const buyItem = async (playerIndex, item) => {
-                const player = activePlayers[playerIndex];
-                if (player.inventory.includes(item.id)) return { success: false, msg: "Owned!" };
-                if (player.sparks < item.price) return { success: false, msg: "Need Sparks!" };
-                const updated = { ...player, sparks: player.sparks - item.price, inventory: [...player.inventory, item.id] };
-                setActivePlayers(prev => prev.map(p => p.username === player.username ? updated : p));
-                await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).update(updated);
-                return { success: true, msg: "Got it!" };
-            };
-
-            const equipItem = async (playerIndex, item) => {
-                const player = activePlayers[playerIndex];
-                const newAv = { ...player.avatar };
-                if (item.type === 'hat') newAv.hat = (newAv.hat === item.id) ? null : item.id;
-                if (item.type === 'glasses') newAv.glasses = (newAv.glasses === item.id) ? null : item.id;
-                if (item.type === 'shirt') newAv.shirt = (newAv.shirt === (item.color || item.id)) ? null : (item.color || item.id);
-                const updated = { ...player, avatar: newAv };
-                setActivePlayers(prev => prev.map(p => p.username === player.username ? updated : p));
-                await db.collection('parents').doc(parent.email).collection('kids').doc(player.username).update(updated);
-            };
-
-            // ✅ DEFINING EXIT GAME HERE FOR EXPORT
             const exitGame = () => { setActivePlayers([]); setIsCreating(false); };
-
-            const saveEditedAvatar = async (finalConfig) => {
-                const updatedPlayer = { ...pendingChild, avatar: finalConfig };
-                setActivePlayers(prev => prev.map(p => p.username === updatedPlayer.username ? updatedPlayer : p));
-                setIsCreating(false); setPendingChild(null);
-                await db.collection('parents').doc(parent.email).collection('kids').doc(updatedPlayer.username).update(updatedPlayer);
-            };
-
-            // ✅ DEFINING EDIT AVATAR HERE FOR EXPORT
             const editAvatar = (playerIndex) => { setPendingChild(activePlayers[playerIndex]); setIsCreating(true); }
+            const saveEditedAvatar = async (finalConfig) => { const updatedPlayer = { ...pendingChild, avatar: finalConfig }; setActivePlayers(prev => prev.map(p => p.username === updatedPlayer.username ? updatedPlayer : p)); setIsCreating(false); setPendingChild(null); await db.collection('parents').doc(parent.email).collection('kids').doc(updatedPlayer.username).update(updatedPlayer); };
 
             return (
-                <GameContext.Provider value={{ 
-                    parent, activePlayers, isCreating, levelUpQueue, pendingChild, loading, 
-                    loginParent, registerParent, resetPassword, logoutParent, 
-                    initAddChild, completeAddChild, deleteChild, 
-                    addChoreToChild, deleteChoreFromChild, addCustomReward, deleteCustomReward,
-                    startGame, exitGame, editAvatar, saveEditedAvatar, 
-                    completeQuest, completeChore, redeemReward, buyItem, equipItem, 
-                    closeLevelUp: () => setLevelUpQueue(prev => prev.slice(1)) 
-                }}>
-                    {children}
-                </GameContext.Provider>
+                <GameContext.Provider value={{ parent, activePlayers, isCreating, levelUpQueue, pendingChild, loading, loginParent, registerParent, resetPassword, logoutParent, initAddChild, completeAddChild, deleteChild, addChoreToChild, deleteChoreFromChild, addCustomReward, deleteCustomReward, startGame, exitGame, editAvatar, saveEditedAvatar, completeQuest, completeChore, redeemReward, buyItem, equipItem, closeLevelUp: () => setLevelUpQueue(prev => prev.slice(1)) }}>{children}</GameContext.Provider>
             );
         }
 
@@ -295,7 +204,6 @@
             const sColor = skinColor || '#ffe0bd';
             const iColor = color || '#333';
             const stroke = "#1e293b"; const strokeW = "4";
-
             if (type === 'base') return ( <g><rect x="70" y="140" width="25" height="40" rx="8" fill={sColor} stroke={stroke} strokeWidth={strokeW} /><rect x="105" y="140" width="25" height="40" rx="8" fill={sColor} stroke={stroke} strokeWidth={strokeW} /><rect x="60" y="100" width="80" height="50" rx="12" fill={sColor} stroke={stroke} strokeWidth={strokeW} /><rect x="45" y="25" width="110" height="90" rx="20" fill={sColor} stroke={stroke} strokeWidth={strokeW} /><circle cx="85" cy="80" r="6" fill="#1e293b" /><circle cx="115" cy="80" r="6" fill="#1e293b" /><path d="M 90 100 Q 100 110 110 100" fill="none" stroke={stroke} strokeWidth={strokeW} strokeLinecap="round" /></g>);
             if (id === 'hair_brown_messy') return <path d="M 35 30 C 35 5, 165 5, 165 30 C 165 60, 170 85, 170 95 L 155 95 L 155 30 L 45 30 L 45 95 L 30 95 C 30 85, 35 60, 35 30 Z" fill="#563625" stroke={stroke} strokeWidth={strokeW} />;
             if (id === 'hair_blonde_ponytail') return <g><path d="M 45 25 C 45 5, 155 5, 155 25 C 155 55, 155 80, 155 80 L 45 80 C 45 80, 45 55, 45 25 Z" fill="#ecc94b" stroke={stroke} strokeWidth={strokeW} /><circle cx="160" cy="40" r="20" fill="#ecc94b" stroke={stroke} strokeWidth={strokeW} /></g>;
@@ -305,18 +213,27 @@
                 let path = "M 55 100 L 35 115 L 45 130 L 60 120 L 60 155 L 140 155 L 140 120 L 155 130 L 165 115 L 145 100 Q 100 110 55 100 Z";
                 if (id === 'shirt_ninja') return <g><path d={path} fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><path d="M 90 120 L 110 120 L 100 140 Z" fill="#ef4444" /></g>;
                 if (id === 'shirt_gold_armor') return <g><path d="M 50 95 L 30 110 L 40 130 L 60 115 L 60 160 L 140 160 L 140 115 L 160 130 L 170 110 L 150 95 Q 100 105 50 95 Z" fill="#fbbf24" stroke="#b45309" strokeWidth={strokeW} /><rect x="85" y="115" width="30" height="35" rx="5" fill="#f59e0b" /></g>;
+                if (id === 'shirt_super') return <g><path d={path} fill="#3b82f6" stroke={stroke} strokeWidth={strokeW} /><path d="M 85 115 L 115 115 L 100 145 Z" fill="#ef4444" stroke="#b91c1c" strokeWidth="2" /><text x="100" y="135" fontSize="15" textAnchor="middle" fill="white" fontWeight="bold">S</text></g>;
                 if (id === 'shirt_stripe') return <g><path d={path} fill="#fff" stroke={stroke} strokeWidth={strokeW} /><path d="M 60 120 H 140 M 60 135 H 140 M 60 150 H 140" stroke="#ef4444" strokeWidth="3" /></g>;
                 return <path d={path} fill={iColor} stroke={stroke} strokeWidth={strokeW} />;
             }
             if (id && id.includes('cap')) return <g><path d="M 45 40 C 45 20, 155 20, 155 40 L 155 55 L 45 55 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="40" y="50" width="120" height="12" rx="6" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><path d="M 160 50 L 190 55 L 160 60 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
             if (id === 'hat_beanie') return <g><path d="M 40 45 C 40 10, 160 10, 160 45 L 160 65 L 40 65 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="35" y="60" width="130" height="20" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
+            if (id === 'hat_cowboy') return <g><ellipse cx="100" cy="55" rx="80" ry="20" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><path d="M 65 50 L 75 10 C 75 -5, 125 -5, 125 10 L 135 50 Z" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
+            if (id === 'hat_headphones') return <g><path d="M 30 70 C 30 10, 170 10, 170 70" fill="none" stroke={iColor} strokeWidth="12" /><rect x="20" y="60" width="30" height="50" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /><rect x="150" y="60" width="30" height="50" rx="10" fill={iColor} stroke={stroke} strokeWidth={strokeW} /></g>;
+            if (id === 'hat_top') return <g><rect x="60" y="0" width="80" height="60" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><rect x="30" y="60" width="140" height="15" rx="2" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><rect x="60" y="50" width="80" height="10" fill="#ef4444" /></g>;
             if (id === 'hat_crown') return <g><path d="M 40 60 L 40 20 L 70 40 L 100 10 L 130 40 L 160 20 L 160 60 Z" fill="#fbbf24" stroke="#b45309" strokeWidth={strokeW} /></g>;
+            if (id === 'hat_wizard') return <g><path d="M 30 65 L 170 65 L 100 5 L 30 65 Z" fill="#4c1d95" stroke={stroke} strokeWidth={strokeW} /><ellipse cx="100" cy="65" rx="80" ry="15" fill="#5b21b6" stroke={stroke} strokeWidth={strokeW} /><path d="M 80 40 L 90 30 L 100 40 L 90 50 Z" fill="yellow" /></g>;
+            if (id === 'hat_viking') return <g><path d="M 40 60 C 40 20, 160 20, 160 60" fill="#94a3b8" stroke={stroke} strokeWidth={strokeW} /><path d="M 40 40 L 20 10 L 35 45" fill="white" stroke={stroke} strokeWidth="3" /><path d="M 160 40 L 180 10 L 165 45" fill="white" stroke={stroke} strokeWidth="3" /></g>;
+            if (id === 'hat_pirate') return <g><path d="M 30 55 C 30 20, 170 20, 170 55" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><path d="M 20 55 L 180 55 L 170 30 L 30 30 Z" fill="#1e293b" stroke={stroke} strokeWidth={strokeW} /><path d="M 90 40 L 110 40 M 100 30 L 100 50" stroke="white" strokeWidth="3" /></g>;
             if (id === 'glass_nerd') return <g stroke="black" strokeWidth="4" fill="none"><circle cx="75" cy="80" r="20"/><circle cx="125" cy="80" r="20"/><line x1="95" y1="80" x2="105" y2="80" /></g>;
             if (id === 'glass_shades') return <path d="M 50 70 L 95 70 L 100 80 L 105 70 L 150 70 L 160 90 L 140 95 L 105 90 L 95 90 L 60 95 L 40 90 Z" fill="#1e293b" stroke={stroke} strokeWidth={3} />;
+            if (id === 'glass_cyber') return <rect x="50" y="70" width="100" height="25" rx="5" fill="#ec4899" stroke="#be185d" strokeWidth="3" opacity="0.8" />;
+            if (id === 'glass_monocle') return <g><circle cx="115" cy="80" r="18" fill="none" stroke="#f59e0b" strokeWidth="3" /><path d="M 133 80 L 133 100" stroke="#f59e0b" strokeWidth="2" /></g>;
+            if (id === 'glass_star') return <g><path d="M 60 70 L 70 95 L 90 95 L 80 110 L 90 130 L 75 120 L 60 130 L 65 110 L 55 95 L 75 95 Z" fill="#f472b6" stroke="#db2777" opacity="0.8" transform="translate(0,-20) scale(0.8)" /><path d="M 120 70 L 130 95 L 150 95 L 140 110 L 150 130 L 135 120 L 120 130 L 125 110 L 115 95 L 135 95 Z" fill="#f472b6" stroke="#db2777" opacity="0.8" transform="translate(0,-20) scale(0.8)" /></g>;
             return null;
         }
 
-        // ✅ FIXED: ItemIcon is now defined here, BEFORE it is used in Shop or Dashboard
         function ItemIcon({ item, isLocked }) {
             if (!item) return <div className="text-4xl">📦</div>;
             const style = isLocked ? { filter: 'brightness(0) opacity(0.3)' } : {};
@@ -353,8 +270,14 @@
         function PrestigeFrame({ borderId, children }) {
             const config = BORDER_CONFIG.find(b => b.id === borderId) || BORDER_CONFIG[0];
             const renderBorder = () => {
-                const defs = (<defs><linearGradient id="gradSilver" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#e2e8f0" /><stop offset="50%" stopColor="#94a3b8" /><stop offset="100%" stopColor="#e2e8f0" /></linearGradient><linearGradient id="gradGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#fde047" /><stop offset="50%" stopColor="#b45309" /><stop offset="100%" stopColor="#fde047" /></linearGradient></defs>);
-                if (config.id === 'border_20') return <g>{defs}<circle cx="50" cy="50" r="46" fill="none" stroke="url(#gradGold)" strokeWidth="8" /></g>;
+                const defs = (<defs><linearGradient id="gradSilver" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#e2e8f0" /><stop offset="50%" stopColor="#94a3b8" /><stop offset="100%" stopColor="#e2e8f0" /></linearGradient><linearGradient id="gradGold" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#fde047" /><stop offset="50%" stopColor="#b45309" /><stop offset="100%" stopColor="#fde047" /></linearGradient><linearGradient id="gradDiamond" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#60a5fa" /><stop offset="50%" stopColor="#2563eb" /><stop offset="100%" stopColor="#93c5fd" /></linearGradient></defs>);
+                // Ensure defs are returned with the shape if needed
+                if (config.id === 'border_10') return <g>{defs}<circle cx="50" cy="50" r="46" fill="none" stroke="url(#gradSilver)" strokeWidth="8" /><path d="M 50 90 L 45 100 L 55 100 Z" fill="#94a3b8"/><text x="50" y="98" fontSize="16" textAnchor="middle">⭐</text></g>;
+                if (config.id === 'border_20') return <g>{defs}<circle cx="50" cy="50" r="46" fill="none" stroke="url(#gradGold)" strokeWidth="8" /><text x="50" y="98" fontSize="18" textAnchor="middle">👑</text></g>;
+                if (config.id === 'border_50') return <g className="animate-glow">{defs}<circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradDiamond)" strokeWidth="8" /><path d="M 50 2 L 60 12 L 50 22 L 40 12 Z" fill="#93c5fd" /><path d="M 50 98 L 60 88 L 50 78 L 40 88 Z" fill="#93c5fd" /></g>;
+                
+                // Defaults
+                if (config.id === 'border_5') return <circle cx="50" cy="50" r="46" fill="none" stroke="#b45309" strokeWidth="6" strokeDasharray="10,5" />;
                 return <circle cx="50" cy="50" r="46" fill="none" stroke="#cbd5e1" strokeWidth="4" />;
             };
             return (<div className="relative w-full h-full"><div className="absolute inset-0 z-0 p-3">{children}</div><svg viewBox="0 0 100 100" className="absolute inset-0 z-10 w-full h-full pointer-events-none">{renderBorder()}</svg></div>);
