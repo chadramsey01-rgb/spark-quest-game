@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Play | Spark Quest ⚡</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+  apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk",
+  authDomain: "spark-quest.firebaseapp.com",
+  projectId: "spark-quest",
+  storageBucket: "spark-quest.firebasestorage.app",
+  messagingSenderId: "113841238943",
+  appId: "1:113841238943:web:fd6b69669fb891afcd43aa",
+  measurementId: "G-9VQJ7CT98X"
+};
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Nunito', sans-serif; background: linear-gradient(135deg, #e0f2fe 0%, #fae8ff 100%); min-height: 100vh; }
+        .font-display { font-family: 'Fredoka', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes bounce-in { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes spin-wheel { 0% { transform: rotate(0deg); } 100% { transform: rotate(1800deg); } }
+        @keyframes confetti-fall { 0% { transform: translateY(-100%) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(250,204,21,0.5); } 50% { box-shadow: 0 0 20px rgba(250,204,21,0.8); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-bounce-in { animation: bounce-in 0.5s ease-out forwards; }
+        .animate-spin-wheel { animation: spin-wheel 2s cubic-bezier(0.17, 0.67, 0.12, 0.99) forwards; }
+        .card { background: white; border-radius: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-bottom: 4px solid #e2e8f0; }
+        .quest-blaze { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b; }
+        .quest-flow { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #3b82f6; }
+        .quest-terra { background: linear-gradient(135deg, #dcfce7, #bbf7d0); border-color: #22c55e; }
+        .quest-breeze { background: linear-gradient(135deg, #f3e8ff, #e9d5ff); border-color: #a855f7; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; font-weight: 700; padding: 0.875rem 1.75rem; border-radius: 1rem; box-shadow: 0 4px 14px rgba(59,130,246,0.4); border: none; cursor: pointer; }
+        .btn-success { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; font-weight: 700; padding: 0.875rem 1.75rem; border-radius: 1rem; border: none; cursor: pointer; }
+        .btn-spark { background: linear-gradient(135deg, #FACC15, #F59E0B); color: #78350F; font-weight: 700; padding: 1rem 2rem; border-radius: 1rem; font-size: 1.125rem; border: none; cursor: pointer; }
+        .spark-counter { background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 700; color: #92400e; display: inline-flex; align-items: center; gap: 0.375rem; }
+        .chore-checkbox { width: 32px; height: 32px; border: 3px solid #d1d5db; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .chore-checkbox.checked { background: linear-gradient(135deg, #22c55e, #16a34a); border-color: #16a34a; color: white; }
+        .chore-item.completed { opacity: 0.6; background: #f0fdf4; }
+        .glow-common { box-shadow: 0 0 10px rgba(148,163,184,0.5); }
+        .glow-rare { box-shadow: 0 0 15px rgba(59,130,246,0.6); }
+        .glow-epic { box-shadow: 0 0 20px rgba(168,85,247,0.7); }
+        .glow-legendary { box-shadow: 0 0 25px rgba(250,204,21,0.8); animation: pulse-glow 2s infinite; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; height: 100%; color: #94a3b8; cursor: pointer; }
+        .nav-item.active { color: #3b82f6; }
+        .loading-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #e0f2fe, #fae8ff); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
+        .loading-spinner { width: 48px; height: 48px; border: 4px solid #E2E8F0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
+        .confetti { position: fixed; width: 10px; height: 10px; top: -20px; animation: confetti-fall 3s ease-in forwards; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+const { useState, useEffect } = React;
+
+const CATEGORY_CONFIG = { blaze: { emoji: '🔥', label: 'Blaze' }, flow: { emoji: '🎨', label: 'Flow' }, terra: { emoji: '🌿', label: 'Terra' }, breeze: { emoji: '💨', label: 'Breeze' } };
+const DIFFICULTY_CONFIG = { Easy: { sparks: 5, xp: 10, label: '⭐ Easy' }, Medium: { sparks: 10, xp: 20, label: '⭐⭐ Medium' }, Hard: { sparks: 20, xp: 40, label: '⭐⭐⭐ Hard' }, Epic: { sparks: 50, xp: 100, label: '🏆 EPIC' } };
+const RARITY_CONFIG = { common: { label: 'Common', glow: 'glow-common' }, rare: { label: 'Rare', glow: 'glow-rare' }, epic: { label: 'Epic', glow: 'glow-epic' }, legendary: { label: 'Legendary', glow: 'glow-legendary' } };
+const SHOP_ITEMS = [
+    { id: 'hat_1', name: 'Crown', type: 'avatar_part', slot: 'hat', rarity: 'rare', price: 100, emoji: '👑' },
+    { id: 'hat_2', name: 'Wizard Hat', type: 'avatar_part', slot: 'hat', rarity: 'epic', price: 200, emoji: '🧙' },
+    { id: 'hat_3', name: 'Party Hat', type: 'avatar_part', slot: 'hat', rarity: 'common', price: 30, emoji: '🎉' },
+    { id: 'acc_1', name: 'Cool Shades', type: 'avatar_part', slot: 'accessory', rarity: 'common', price: 40, emoji: '😎' },
+    { id: 'acc_2', name: 'Magic Wand', type: 'avatar_part', slot: 'accessory', rarity: 'epic', price: 180, emoji: '✨' },
+    { id: 'acc_3', name: 'Hero Cape', type: 'avatar_part', slot: 'accessory', rarity: 'legendary', price: 500, emoji: '🦸' },
+    { id: 'sticker_1', name: 'Gold Star', type: 'sticker', rarity: 'common', price: 15, emoji: '⭐' },
+    { id: 'sticker_2', name: 'Rainbow', type: 'sticker', rarity: 'rare', price: 50, emoji: '🌈' },
+    { id: 'sticker_3', name: 'Dragon', type: 'sticker', rarity: 'epic', price: 150, emoji: '🐉' },
+    { id: 'sticker_4', name: 'Unicorn', type: 'sticker', rarity: 'legendary', price: 300, emoji: '🦄' }
+];
+const WORD_BANKS = { number_small: ['3','4','5','6'], number_large: ['10','12','15'], exercise_easy: ['jumping jacks','hops','spins','claps'], animal: ['dragon','unicorn','dinosaur','superhero'], color: ['red','blue','green','yellow'], location: ['kitchen','living room','bedroom'] };
+const QUEST_TEMPLATES = {
+    blaze: { Easy: [{text:"Do [number_small] [exercise_easy]!",minAge:4}], Medium: [{text:"Do [number_large] [exercise_easy]!",minAge:6}], Hard: [{text:"Do 20 jumping jacks and 10 squats!",minAge:9}], Epic: [{text:"EPIC: 50 exercises!",minAge:10}] },
+    flow: { Easy: [{text:"Draw a [animal]!",minAge:4}], Medium: [{text:"Write about a [animal]!",minAge:7}], Hard: [{text:"Create a comic!",minAge:8}], Epic: [{text:"EPIC: Illustrated story!",minAge:9}] },
+    terra: { Easy: [{text:"Find something [color]!",minAge:4}], Medium: [{text:"Clean up the [location]!",minAge:5}], Hard: [{text:"Organize a drawer!",minAge:8}], Epic: [{text:"EPIC: Clean a room!",minAge:10}] },
+    breeze: { Easy: [{text:"Give a high five!",minAge:4}], Medium: [{text:"Help someone!",minAge:5}], Hard: [{text:"Teach something!",minAge:8}], Epic: [{text:"EPIC: Complete a puzzle!",minAge:9}] }
+};
+const DEFAULT_AVATAR = { skinTone: '#FFD5B8', hairStyle: 'spiky', hairColor: '#4A3728', eyeColor: '#4A90D9', outfitColor: '#3B82F6' };
+
+function calculateAge(dob) { if (!dob) return 8; const b = new Date(dob), t = new Date(); let a = t.getFullYear() - b.getFullYear(); if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) a--; return Math.max(4, Math.min(13, a)); }
+function getTodayString() { return new Date().toDateString(); }
+function fillTemplate(t) { return t.replace(/\[(\w+)\]/g, (m, k) => { const b = WORD_BANKS[k]; return b ? b[Math.floor(Math.random() * b.length)] : m; }); }
+function generateQuest(age = 8) {
+    const diffs = age >= 10 ? ['Easy','Medium','Hard','Epic'] : age >= 8 ? ['Easy','Medium','Hard'] : ['Easy','Medium'];
+    const cats = ['blaze','flow','terra','breeze'], cat = cats[Math.floor(Math.random() * cats.length)];
+    const diff = diffs[Math.floor(Math.random() * diffs.length)];
+    const tmpls = QUEST_TEMPLATES[cat][diff].filter(t => (t.minAge || 4) <= age);
+    const tmpl = tmpls[Math.floor(Math.random() * tmpls.length)] || {text:"Do something fun!"};
+    const r = DIFFICULTY_CONFIG[diff];
+    return { id: 'q_' + Date.now(), text: fillTemplate(tmpl.text), category: cat, difficulty: diff, rewards: { sparks: r.sparks, xp: r.xp } };
+}
+
+function BlockyAvatar({ config, size = 'md' }) {
+    const sizes = { xs: 40, sm: 56, md: 80, lg: 120 }, w = sizes[size] || 80;
+    const c = { ...DEFAULT_AVATAR, ...config };
+    const hairPaths = { spiky: "M30,35 L35,15 L45,30 L55,10 L65,30 L75,15 L80,35", wavy: "M25,40 Q35,20 50,35 Q65,20 80,40", short: "M30,40 L30,30 L80,30 L80,40", bald: "" };
+    const hatItem = c.hat ? SHOP_ITEMS.find(i => i.id === c.hat) : null;
+    return (
+        <svg width={w} height={w} viewBox="0 0 110 130" style={{display:'block'}}>
+            <circle cx="55" cy="65" r="50" fill="#E0F2FE"/>
+            <rect x="35" y="85" width="40" height="35" rx="5" fill={c.outfitColor}/>
+            <rect x="30" y="30" width="50" height="55" rx="10" fill={c.skinTone}/>
+            {c.hairStyle !== 'bald' && <path d={hairPaths[c.hairStyle] || hairPaths.spiky} fill={c.hairColor}/>}
+            <ellipse cx="42" cy="55" rx="5" ry="6" fill="white"/><ellipse cx="68" cy="55" rx="5" ry="6" fill="white"/>
+            <circle cx="43" cy="56" r="3" fill={c.eyeColor}/><circle cx="69" cy="56" r="3" fill={c.eyeColor}/>
+            <path d="M45,70 Q55,78 65,70" stroke="#333" strokeWidth="2" fill="none"/>
+            {hatItem && <text x="55" y="25" textAnchor="middle" fontSize="24">{hatItem.emoji}</text>}
+        </svg>
+    );
+}
+
+function SparkCounter({ amount }) { return <div className="spark-counter"><span>⚡</span><span>{amount}</span></div>; }
+
+function LevelProgress({ xp, level }) {
+    const progress = xp % 100;
+    return (
+        <div className="flex items-center gap-3">
+            <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">Lvl {level}</span>
+            <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500" style={{width: progress + '%'}}/>
+            </div>
+        </div>
+    );
+}
+
+function StreakFlame({ streak }) {
+    if (streak <= 0) return null;
+    return <div className="flex items-center gap-1 bg-orange-100 px-3 py-1 rounded-full"><span>🔥</span><span className="text-orange-700 font-bold text-sm">{streak} day streak!</span></div>;
+}
+
+function QuestCard({ quest, onComplete }) {
+    const cat = CATEGORY_CONFIG[quest.category], diff = DIFFICULTY_CONFIG[quest.difficulty];
+    return (
+        <div className={`card p-6 quest-${quest.category} border-l-4 animate-bounce-in`}>
+            <div className="flex items-center gap-2 mb-3">
+                <span className="text-2xl">{cat.emoji}</span>
+                <span className="text-xs font-bold uppercase text-slate-600">{cat.label}</span>
+                <span className="ml-auto text-xs font-bold px-2 py-1 rounded-full bg-white/50">{diff.label}</span>
+            </div>
+            <h3 className="text-xl font-bold text-slate-800 mb-4">{quest.text}</h3>
+            <div className="flex items-center justify-between">
+                <div className="flex gap-3"><span className="text-sm font-bold text-yellow-600">⚡ {quest.rewards.sparks}</span><span className="text-sm font-bold text-purple-600">✨ {quest.rewards.xp} XP</span></div>
+                <button onClick={() => onComplete(quest)} className="btn-success">Complete! ✓</button>
+            </div>
+        </div>
+    );
+}
+
+function CompletionModal({ rewards, onClose }) {
+    const confetti = Array.from({length:30}, (_,i) => ({ id:i, left:Math.random()*100, delay:Math.random()*0.5, color:['#FFD700','#FF6B6B','#4ECDC4','#45B7D1'][i%4] }));
+    return (
+        <div className="modal-overlay">
+            {confetti.map(p => <div key={p.id} className="confetti" style={{left:p.left+'%',backgroundColor:p.color,animationDelay:p.delay+'s',borderRadius:Math.random()>0.5?'50%':'2px'}}/>)}
+            <div className="card p-8 text-center max-w-sm w-full animate-bounce-in">
+                <div className="text-6xl mb-4">🎉</div>
+                <h2 className="font-display text-2xl font-bold text-slate-800 mb-2">Awesome Job!</h2>
+                <div className="bg-gradient-to-r from-yellow-100 to-purple-100 rounded-2xl p-4 mb-4">
+                    <div className="flex justify-center gap-6">
+                        <div><div className="text-3xl font-bold text-yellow-600">+{rewards.sparksEarned}</div><div className="text-sm text-slate-500">Sparks</div></div>
+                        <div><div className="text-3xl font-bold text-purple-600">+{rewards.xpEarned}</div><div className="text-sm text-slate-500">XP</div></div>
+                    </div>
+                </div>
+                {rewards.streakBonus && <div className="bg-orange-100 rounded-xl p-2 mb-4"><span className="text-orange-700 font-bold text-sm">🔥 Streak Bonus!</span></div>}
+                <button onClick={onClose} className="btn-primary w-full text-lg">Awesome! 🚀</button>
+            </div>
+        </div>
+    );
+}
+
+function HomeScreen({ kid, onCompleteQuest, onCompleteChore }) {
+    const [quest, setQuest] = useState(null);
+    const [spinning, setSpinning] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [lastRewards, setLastRewards] = useState(null);
+    const [mode, setMode] = useState('adventure');
+    const level = Math.floor((kid.xp || 0) / 100) + 1;
+    const today = getTodayString();
+    const chores = (kid.chores || []).map(c => ({...c, isCompleted: c.recurrence === 'daily' ? c.lastCompleted === today : !!c.lastCompleted}));
+    
+    const spin = () => { if (spinning) return; setSpinning(true); setQuest(null); setTimeout(() => { setQuest(generateQuest(calculateAge(kid.dob))); setSpinning(false); }, 1500); };
+    const handleQuest = async (q) => { const r = await onCompleteQuest(q); if (r) { setLastRewards(r); setShowModal(true); } };
+    const handleChore = async (id) => { const r = await onCompleteChore(id); if (r) { setLastRewards(r); setShowModal(true); } };
+    const closeModal = () => { setShowModal(false); setQuest(null); };
+    
+    return (
+        <div className="p-4 pb-24">
+            <div className="card p-4 mb-4 flex items-center gap-4">
+                <div className="bg-sky-50 rounded-xl p-2"><BlockyAvatar config={kid.avatar} size="md"/></div>
+                <div className="flex-1"><h2 className="font-display text-xl font-bold text-slate-800">{kid.name}</h2><LevelProgress xp={kid.xp||0} level={level}/></div>
+                <SparkCounter amount={kid.sparks||0}/>
+            </div>
+            {(kid.streak||0) > 0 && <div className="flex justify-center mb-4"><StreakFlame streak={kid.streak}/></div>}
+            <div className="flex bg-white p-1 rounded-xl mb-4 shadow">
+                <button onClick={() => setMode('adventure')} className={`flex-1 py-3 rounded-xl font-bold text-sm ${mode==='adventure'?'bg-sky-500 text-white':'text-slate-400'}`}>🎲 Adventure</button>
+                <button onClick={() => setMode('chores')} className={`flex-1 py-3 rounded-xl font-bold text-sm ${mode==='chores'?'bg-sky-500 text-white':'text-slate-400'}`}>📋 Chores</button>
+            </div>
+            {mode === 'adventure' && (
+                <div className="card p-6 text-center">
+                    <h3 className="font-display text-lg font-bold text-slate-700 mb-4">🎯 Random Quest</h3>
+                    {!quest && !spinning && <div><div className="text-6xl mb-4 animate-float">🎰</div><p className="text-slate-500 mb-4">Ready for adventure?</p><button onClick={spin} className="btn-spark">Spin for Quest! 🎲</button></div>}
+                    {spinning && <div><div className="text-6xl mb-4 animate-spin-wheel">🎡</div><p className="text-slate-500">Finding quest...</p></div>}
+                    {quest && !spinning && <div><QuestCard quest={quest} onComplete={handleQuest}/><button onClick={() => setQuest(null)} className="mt-4 text-sm text-slate-400">Skip →</button></div>}
+                </div>
+            )}
+            {mode === 'chores' && (
+                <div className="space-y-3">
+                    {chores.length === 0 ? <div className="card p-8 text-center"><div className="text-5xl mb-3">📋</div><p className="text-slate-500">No chores yet! Ask a parent to add some.</p></div> : 
+                    chores.map(c => (
+                        <div key={c.id} className={`card p-4 flex items-center gap-4 ${c.isCompleted?'chore-item completed':''}`}>
+                            <button onClick={() => !c.isCompleted && handleChore(c.id)} disabled={c.isCompleted} className={`chore-checkbox ${c.isCompleted?'checked':''}`}>{c.isCompleted && '✓'}</button>
+                            <span className="text-2xl">{c.emoji}</span>
+                            <div className="flex-1"><h4 className={`font-bold ${c.isCompleted?'text-slate-400 line-through':'text-slate-800'}`}>{c.name}</h4><div className="flex gap-2 mt-1"><span className="text-sm text-yellow-600 font-bold">⚡ {c.sparks}</span><span className="text-sm text-purple-600 font-bold">✨ {c.xp}</span></div></div>
+                            {c.isCompleted && <span className="text-green-500 font-bold text-sm">Done!</span>}
+                        </div>
+                    ))}
+                </div>
+            )}
+            {showModal && lastRewards && <CompletionModal rewards={lastRewards} onClose={closeModal}/>}
+        </div>
+    );
+}
+
+function ShopScreen({ kid, rewards, onBuyItem, onRedeemReward }) {
+    const [cat, setCat] = useState('all');
+    const [notif, setNotif] = useState(null);
+    const items = cat === 'all' ? SHOP_ITEMS : cat === 'real' ? [] : SHOP_ITEMS.filter(i => i.type === cat);
+    const handleBuy = async (item) => { const r = await onBuyItem(item.id); setNotif(r); setTimeout(() => setNotif(null), 2000); };
+    const handleRedeem = async (reward) => { const r = await onRedeemReward(reward.id); setNotif(r); setTimeout(() => setNotif(null), 3000); };
+    return (
+        <div className="p-4 pb-24">
+            <div className="flex items-center justify-between mb-4"><h2 className="font-display text-2xl font-bold text-slate-800">🏪 Shop</h2><SparkCounter amount={kid.sparks||0}/></div>
+            <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">
+                {[{id:'all',label:'All',emoji:'🛒'},{id:'avatar_part',label:'Avatar',emoji:'👤'},{id:'sticker',label:'Stickers',emoji:'⭐'},{id:'real',label:'Rewards',emoji:'🎁'}].map(c => (
+                    <button key={c.id} onClick={() => setCat(c.id)} className={`flex items-center gap-1 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap ${cat===c.id?'bg-sky-500 text-white shadow-lg':'bg-white text-slate-500 shadow'}`}><span>{c.emoji}</span><span>{c.label}</span></button>
+                ))}
+            </div>
+            {cat === 'real' && (
+                <div className="space-y-3">
+                    {rewards.length > 0 ? rewards.map(r => {
+                        const can = (kid.sparks||0) >= r.cost;
+                        return <div key={r.id} className={`card p-4 ${!can?'opacity-60':''}`}><div className="flex items-center gap-4"><span className="text-4xl">{r.emoji}</span><div className="flex-1"><h3 className="font-bold text-slate-800">{r.name}</h3></div><button onClick={() => handleRedeem(r)} disabled={!can} className={`px-4 py-2 rounded-lg font-bold ${can?'bg-green-500 text-white':'bg-slate-200 text-slate-400'}`}>⚡ {r.cost}</button></div></div>;
+                    }) : <div className="card p-8 text-center"><div className="text-4xl mb-2">🎁</div><p className="text-slate-500">No rewards yet!</p></div>}
+                </div>
+            )}
+            {cat !== 'real' && (
+                <div className="grid grid-cols-2 gap-3">
+                    {items.map(item => {
+                        const owned = (kid.inventory||[]).includes(item.id), can = (kid.sparks||0) >= item.price;
+                        const rarity = RARITY_CONFIG[item.rarity];
+                        return <div key={item.id} className={`card p-4 text-center ${rarity.glow} ${!can&&!owned?'opacity-60':''}`}><div className="text-4xl mb-2">{item.emoji}</div><h3 className="font-bold text-slate-800 text-sm">{item.name}</h3><span className="text-xs font-bold text-slate-500 uppercase">{rarity.label}</span>{owned ? <div className="mt-2 py-2 bg-green-100 rounded-lg text-green-700 font-bold text-sm">✓ Owned</div> : <button onClick={() => handleBuy(item)} disabled={!can} className={`mt-2 w-full py-2 rounded-lg font-bold text-sm ${can?'bg-sky-500 text-white':'bg-slate-200 text-slate-400'}`}>⚡ {item.price}</button>}</div>;
+                    })}
+                </div>
+            )}
+            {notif && <div className={`fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50 ${notif.success?'bg-green-500':'bg-red-500'} text-white`}>{notif.message}</div>}
+        </div>
+    );
+}
+
+function ProfileScreen({ kid, onEquipItem }) {
+    const level = Math.floor((kid.xp||0) / 100) + 1;
+    const owned = SHOP_ITEMS.filter(i => (kid.inventory||[]).includes(i.id));
+    const avatarItems = owned.filter(i => i.type === 'avatar_part');
+    return (
+        <div className="p-4 pb-24">
+            <div className="card p-6 mb-4">
+                <div className="flex items-center gap-4">
+                    <div className="bg-sky-50 rounded-2xl p-3"><BlockyAvatar config={kid.avatar} size="lg"/></div>
+                    <div className="flex-1"><h2 className="font-display text-2xl font-bold text-slate-800">{kid.name}</h2><p className="text-sm text-slate-500 mb-1">Age {calculateAge(kid.dob)}</p><div className="flex gap-2 mt-2"><span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">Lvl {level}</span><SparkCounter amount={kid.sparks||0}/></div><div className="mt-3"><LevelProgress xp={kid.xp||0} level={level}/></div></div>
+                </div>
+                {(kid.streak||0) > 0 && <div className="mt-4 flex justify-center"><StreakFlame streak={kid.streak}/></div>}
+            </div>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="card p-4 text-center"><div className="text-2xl font-bold text-sky-600">{(kid.completedQuests||[]).length}</div><div className="text-xs text-slate-500">Quests</div></div>
+                <div className="card p-4 text-center"><div className="text-2xl font-bold text-green-600">{(kid.choreHistory||[]).length}</div><div className="text-xs text-slate-500">Chores</div></div>
+                <div className="card p-4 text-center"><div className="text-2xl font-bold text-purple-600">{owned.length}</div><div className="text-xs text-slate-500">Items</div></div>
+            </div>
+            <div className="card p-4"><h3 className="font-display font-bold text-slate-800 mb-3">🎒 My Items</h3>
+                {avatarItems.length > 0 ? <div className="grid grid-cols-2 gap-3">{avatarItems.map(item => {const eq = kid.avatar?.[item.slot] === item.id; return <button key={item.id} onClick={() => onEquipItem(item)} className={`card p-4 text-center ${eq?'ring-2 ring-green-400 bg-green-50':''}`}><div className="text-3xl mb-2">{item.emoji}</div><div className="font-bold text-sm text-slate-800">{item.name}</div><div className={`text-xs mt-1 ${eq?'text-green-600 font-bold':'text-slate-400'}`}>{eq?'✓ Equipped':'Tap to equip'}</div></button>;})}</div> : <div className="text-center py-6"><div className="text-4xl mb-2">🛒</div><p className="text-slate-500 text-sm">No items yet!</p></div>}
+            </div>
+        </div>
+    );
+}
+
+function PlayApp() {
+    const [loading, setLoading] = useState(true);
+    const [kids, setKids] = useState([]);
+    const [rewards, setRewards] = useState([]);
+    const [selectedKid, setSelectedKid] = useState(null);
+    const [view, setView] = useState('home');
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        const unsub = auth.onAuthStateChanged(u => { if (u) { setUser(u); loadData(u.uid); } else { window.location.href = 'login.html'; } });
+        return () => unsub();
+    }, []);
+
+    const loadData = async (uid) => {
+        try {
+            const doc = await db.collection('parents').doc(uid).get();
+            if (doc.exists) { const d = doc.data(); setKids(d.kids || []); setRewards(d.rewards || []); if (d.kids?.length > 0) setSelectedKid(d.kids[0]); }
+        } catch (e) { console.error(e); }
+        setLoading(false);
+    };
+
+    const saveData = async (updates) => { if (user) await db.collection('parents').doc(user.uid).update(updates); };
+    const updateKid = async (kidId, updates) => {
+        const newKids = kids.map(k => k.id === kidId ? {...k, ...updates} : k);
+        setKids(newKids);
+        if (selectedKid?.id === kidId) setSelectedKid({...selectedKid, ...updates});
+        await saveData({ kids: newKids });
+    };
+
+    const completeQuest = async (quest) => {
+        if (!selectedKid) return null;
+        const today = getTodayString(), yesterday = new Date(Date.now() - 86400000).toDateString();
+        let streak = selectedKid.streak || 0;
+        if (selectedKid.lastPlayedDate === yesterday) streak++; else if (selectedKid.lastPlayedDate !== today) streak = 1;
+        const bonus = Math.min(streak * 0.1, 0.5);
+        const sparksEarned = Math.round(quest.rewards.sparks * (1 + bonus)), xpEarned = Math.round(quest.rewards.xp * (1 + bonus));
+        await updateKid(selectedKid.id, { sparks: (selectedKid.sparks||0) + sparksEarned, xp: (selectedKid.xp||0) + xpEarned, streak, lastPlayedDate: today, completedQuests: [{questId:quest.id,timestamp:Date.now()}, ...(selectedKid.completedQuests||[]).slice(0,99)] });
+        return { sparksEarned, xpEarned, streakBonus: bonus > 0 };
+    };
+
+    const completeChore = async (choreId) => {
+        if (!selectedKid) return null;
+        const chore = (selectedKid.chores||[]).find(c => c.id === choreId);
+        if (!chore) return null;
+        const today = getTodayString();
+        if (chore.recurrence === 'daily' && chore.lastCompleted === today) return null;
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        let streak = selectedKid.streak || 0;
+        if (selectedKid.lastPlayedDate === yesterday) streak++; else if (selectedKid.lastPlayedDate !== today) streak = 1;
+        const bonus = Math.min(streak * 0.1, 0.5);
+        const sparksEarned = Math.round(chore.sparks * (1 + bonus)), xpEarned = Math.round(chore.xp * (1 + bonus));
+        let newChores = (selectedKid.chores||[]).map(c => c.id === choreId ? {...c, lastCompleted: today} : c);
+        if (chore.recurrence === 'once') newChores = newChores.filter(c => c.id !== choreId);
+        await updateKid(selectedKid.id, { sparks: (selectedKid.sparks||0) + sparksEarned, xp: (selectedKid.xp||0) + xpEarned, streak, lastPlayedDate: today, chores: newChores, choreHistory: [{choreId,choreName:chore.name,timestamp:Date.now(),sparks:sparksEarned,xp:xpEarned}, ...(selectedKid.choreHistory||[]).slice(0,99)] });
+        return { sparksEarned, xpEarned, streakBonus: bonus > 0 };
+    };
+
+    const buyItem = async (itemId) => {
+        if (!selectedKid) return {success:false,message:'No player'};
+        const item = SHOP_ITEMS.find(i => i.id === itemId);
+        if (!item) return {success:false,message:'Not found'};
+        if ((selectedKid.sparks||0) < item.price) return {success:false,message:'Not enough Sparks!'};
+        if ((selectedKid.inventory||[]).includes(itemId)) return {success:false,message:'Already owned!'};
+        await updateKid(selectedKid.id, { sparks: selectedKid.sparks - item.price, inventory: [...(selectedKid.inventory||[]), itemId] });
+        return {success:true,message:'Got ' + item.name + '!'};
+    };
+
+    const redeemReward = async (rewardId) => {
+        if (!selectedKid) return {success:false,message:'No player'};
+        const reward = rewards.find(r => r.id === rewardId);
+        if (!reward) return {success:false,message:'Not found'};
+        if ((selectedKid.sparks||0) < reward.cost) return {success:false,message:'Not enough Sparks!'};
+        await updateKid(selectedKid.id, { sparks: selectedKid.sparks - reward.cost });
+        return {success:true,message:'🎉 Redeemed "' + reward.name + '"!'};
+    };
+
+    const equipItem = async (item) => {
+        if (!selectedKid || item.type !== 'avatar_part') return;
+        const eq = selectedKid.avatar?.[item.slot] === item.id;
+        await updateKid(selectedKid.id, { avatar: {...selectedKid.avatar, [item.slot]: eq ? null : item.id} });
+    };
+
+    if (loading) return <div className="loading-screen"><div className="loading-spinner mb-4"></div><p className="font-display text-lg text-slate-600">Loading...</p></div>;
+    if (kids.length === 0) return <div className="min-h-screen flex items-center justify-center p-4"><div className="card p-8 text-center max-w-sm"><div className="text-6xl mb-4">👶</div><h2 className="font-display text-xl font-bold text-slate-800 mb-2">No Players Yet!</h2><p className="text-slate-500 mb-6">A parent needs to add children first.</p><a href="parent-hub.html" className="btn-primary inline-flex">Go to Parent Hub →</a></div></div>;
+
+    return (
+        <div className="min-h-screen max-w-lg mx-auto">
+            {kids.length > 1 && (
+                <div className="sticky top-0 bg-white/90 backdrop-blur-sm z-40 p-3 border-b border-slate-100">
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                        {kids.map(k => <button key={k.id} onClick={() => setSelectedKid(k)} className={`flex items-center gap-2 px-3 py-2 rounded-2xl font-bold text-sm whitespace-nowrap border-2 ${selectedKid?.id===k.id?'bg-sky-500 text-white border-sky-600':'bg-white text-slate-600 border-slate-200'}`}><BlockyAvatar config={k.avatar} size="xs"/><span>{k.name}</span></button>)}
+                    </div>
+                </div>
+            )}
+            {selectedKid && <>
+                {view === 'home' && <HomeScreen kid={selectedKid} onCompleteQuest={completeQuest} onCompleteChore={completeChore}/>}
+                {view === 'shop' && <ShopScreen kid={selectedKid} rewards={rewards} onBuyItem={buyItem} onRedeemReward={redeemReward}/>}
+                {view === 'profile' && <ProfileScreen kid={selectedKid} onEquipItem={equipItem}/>}
+            </>}
+            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50">
+                <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
+                    <button onClick={() => setView('home')} className={`nav-item ${view==='home'?'active':''}`}><span className="text-2xl">🎯</span><span className="text-xs font-bold mt-1">Quests</span></button>
+                    <button onClick={() => setView('shop')} className={`nav-item ${view==='shop'?'active':''}`}><span className="text-2xl">🏪</span><span className="text-xs font-bold mt-1">Shop</span></button>
+                    <button onClick={() => setView('profile')} className={`nav-item ${view==='profile'?'active':''}`}><span className="text-2xl">👤</span><span className="text-xs font-bold mt-1">Profile</span></button>
+                </div>
+            </nav>
+            <a href="parent-hub.html" className="fixed top-4 right-4 bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full text-sm font-bold shadow z-40">👨‍👩‍👧 Parent</a>
+        </div>
+    );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<PlayApp />);
+    </script>
+</body>
+</html>
