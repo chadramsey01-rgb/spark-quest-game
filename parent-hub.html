@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Parent Hub | Spark Quest ⚡</title>
+    <meta name="description" content="Manage your children's quests, chores, and rewards in Spark Quest">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'display': ['Fredoka', 'sans-serif'],
+                        'body': ['Nunito', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script>
+        // =====================================================
+        // FIREBASE CONFIGURATION
+        // Replace with your Firebase project config
+        // =====================================================
+        const firebaseConfig = {
+  apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk",
+  authDomain: "spark-quest.firebaseapp.com",
+  projectId: "spark-quest",
+  storageBucket: "spark-quest.firebasestorage.app",
+  messagingSenderId: "113841238943",
+  appId: "1:113841238943:web:fd6b69669fb891afcd43aa",
+  measurementId: "G-9VQJ7CT98X"
+};
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Nunito', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            background: linear-gradient(135deg, #EDE9FE 0%, #DBEAFE 50%, #F0FDF4 100%);
+            min-height: 100vh;
+        }
+        .font-display { font-family: 'Fredoka', sans-serif; }
+        
+        /* Scrollbar */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes bounce-in {
+            0% { transform: scale(0.9); opacity: 0; }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes slide-up {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(139, 92, 246, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.6); }
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-bounce-in { animation: bounce-in 0.4s ease-out forwards; }
+        .animate-slide-up { animation: slide-up 0.3s ease-out forwards; }
+        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-bottom: 4px solid #E2E8F0;
+        }
+        
+        .card-purple { border-bottom-color: #8B5CF6; }
+        .card-blue { border-bottom-color: #3B82F6; }
+        .card-green { border-bottom-color: #22C55E; }
+        .card-amber { border-bottom-color: #F59E0B; }
+        .card-pink { border-bottom-color: #EC4899; }
+        
+        /* Buttons */
+        .btn {
+            font-weight: 700;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.875rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+        }
+        
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.45); }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
+        }
+        
+        .btn-success:hover { transform: translateY(-2px); }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+        }
+        
+        .btn-secondary {
+            background: #F1F5F9;
+            color: #475569;
+        }
+        
+        .btn-secondary:hover { background: #E2E8F0; }
+        
+        .btn-outline {
+            background: white;
+            color: #8B5CF6;
+            border: 2px solid #8B5CF6;
+        }
+        
+        .btn-outline:hover { background: #F5F3FF; }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        /* Form Inputs */
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #E2E8F0;
+            border-radius: 0.875rem;
+            font-size: 1rem;
+            font-family: 'Nunito', sans-serif;
+            transition: all 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #8B5CF6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Navigation */
+        .nav-tab {
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+            color: #64748B;
+            border-radius: 0.75rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-tab:hover { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
+        .nav-tab.active { background: #8B5CF6; color: white; }
+        
+        /* Kid Card */
+        .kid-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .kid-card:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+        .kid-card.selected { ring: 3px; ring-color: #8B5CF6; }
+        
+        /* Chore Item */
+        .chore-item {
+            transition: all 0.2s ease;
+        }
+        
+        .chore-item:hover { background: #F8FAFC; }
+        
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 1rem;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 1.5rem;
+            max-width: 480px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Avatar */
+        .avatar-preview {
+            background: linear-gradient(135deg, #E0F2FE 0%, #F0FDF4 100%);
+            border-radius: 1rem;
+            padding: 1rem;
+        }
+        
+        /* Color Picker */
+        .color-option {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 3px solid transparent;
+        }
+        
+        .color-option:hover { transform: scale(1.1); }
+        .color-option.selected { border-color: #1E293B; box-shadow: 0 0 0 2px white, 0 0 0 4px #8B5CF6; }
+        
+        /* Spark Badge */
+        .spark-badge {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            border: 2px solid #F59E0B;
+            border-radius: 9999px;
+            padding: 0.375rem 0.75rem;
+            font-weight: 700;
+            color: #92400E;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #94A3B8;
+        }
+        
+        /* Loading */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #EDE9FE 0%, #DBEAFE 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #E2E8F0;
+            border-top-color: #8B5CF6;
+            border-radius: 50%;
+        }
+        
+        /* Quick Actions */
+        .quick-action {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .quick-action:hover {
+            border-color: #8B5CF6;
+            transform: translateY(-2px);
+        }
+        
+        /* Stats Card */
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem 1.25rem;
+            text-align: center;
+        }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 26px;
+            background: #E2E8F0;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-switch.active { background: #8B5CF6; }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-switch.active::after { left: 24px; }
+    </style>
+</head>
+<body class="font-body">
+    <div id="root"></div>
+    
+    <script type="text/babel">
+const { useState, useEffect, useContext, createContext, useCallback, useRef } = React;
+
+// =====================================================
+// CONSTANTS & CONFIGURATION
+// =====================================================
+const SKIN_TONES = ['#FFDBAC', '#F5CBA7', '#FFD5B8', '#E8BEAC', '#D4A574', '#C68642', '#8D5524', '#6B4423', '#4A3728', '#3B2F2F'];
+const HAIR_STYLES = ['spiky', 'wavy', 'curly', 'short', 'long', 'ponytail', 'mohawk', 'bald'];
+const HAIR_COLORS = ['#4A3728', '#8B4513', '#2C1810', '#FFD700', '#FF6B35', '#9B59B6', '#3498DB', '#E74C3C', '#1ABC9C', '#E91E63'];
+const OUTFIT_COLORS = ['#3B82F6', '#EF4444', '#22C55E', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'];
+const EYE_COLORS = ['#4A90D9', '#2E7D32', '#8B4513', '#1A1A1A', '#6B4423', '#9C27B0'];
+
+const DEFAULT_AVATAR = {
+    skinTone: '#FFD5B8',
+    hairStyle: 'spiky',
+    hairColor: '#4A3728',
+    eyeColor: '#4A90D9',
+    outfitColor: '#3B82F6'
+};
+
+const CHORE_TEMPLATES = [
+    { name: 'Make your bed', sparks: 5, xp: 10, emoji: '🛏️', category: 'bedroom' },
+    { name: 'Brush teeth (morning)', sparks: 3, xp: 5, emoji: '🪥', category: 'hygiene' },
+    { name: 'Brush teeth (night)', sparks: 3, xp: 5, emoji: '🪥', category: 'hygiene' },
+    { name: 'Clean your room', sparks: 15, xp: 30, emoji: '🧹', category: 'bedroom' },
+    { name: 'Put away toys', sparks: 8, xp: 15, emoji: '🧸', category: 'bedroom' },
+    { name: 'Set the table', sparks: 5, xp: 10, emoji: '🍽️', category: 'kitchen' },
+    { name: 'Clear the table', sparks: 5, xp: 10, emoji: '🍽️', category: 'kitchen' },
+    { name: 'Load dishwasher', sparks: 10, xp: 20, emoji: '🫧', category: 'kitchen' },
+    { name: 'Unload dishwasher', sparks: 10, xp: 20, emoji: '🫧', category: 'kitchen' },
+    { name: 'Feed pet', sparks: 5, xp: 10, emoji: '🐕', category: 'pets' },
+    { name: 'Walk the dog', sparks: 15, xp: 30, emoji: '🐕‍🦺', category: 'pets' },
+    { name: 'Take out trash', sparks: 8, xp: 15, emoji: '🗑️', category: 'household' },
+    { name: 'Fold laundry', sparks: 12, xp: 25, emoji: '👕', category: 'laundry' },
+    { name: 'Put away laundry', sparks: 10, xp: 20, emoji: '👔', category: 'laundry' },
+    { name: 'Do homework', sparks: 20, xp: 40, emoji: '📚', category: 'school' },
+    { name: 'Read for 20 minutes', sparks: 10, xp: 20, emoji: '📖', category: 'school' },
+    { name: 'Practice instrument', sparks: 15, xp: 30, emoji: '🎹', category: 'activities' },
+    { name: 'Water plants', sparks: 5, xp: 10, emoji: '🌱', category: 'household' },
+    { name: 'Help with groceries', sparks: 10, xp: 20, emoji: '🛒', category: 'household' },
+    { name: 'Vacuum room', sparks: 12, xp: 25, emoji: '🧹', category: 'cleaning' }
+];
+
+const RECURRENCE_OPTIONS = [
+    { id: 'daily', label: 'Daily', emoji: '📅', description: 'Resets every day' },
+    { id: 'weekly', label: 'Weekly', emoji: '📆', description: 'Resets every week' },
+    { id: 'once', label: 'One-time', emoji: '1️⃣', description: 'Complete once' }
+];
+
+const REWARD_TEMPLATES = [
+    { name: '30 min extra screen time', cost: 50, emoji: '📱' },
+    { name: '1 hour extra screen time', cost: 100, emoji: '🎮' },
+    { name: 'Pick dinner tonight', cost: 75, emoji: '🍕' },
+    { name: 'Stay up 30 min late', cost: 80, emoji: '🌙' },
+    { name: 'Movie night pick', cost: 100, emoji: '🎬' },
+    { name: 'Small toy/treat', cost: 200, emoji: '🎁' },
+    { name: 'Trip to park', cost: 150, emoji: '🏞️' },
+    { name: 'Sleepover with friend', cost: 300, emoji: '🏠' },
+    { name: '$5 allowance', cost: 500, emoji: '💵' }
+];
+
+// =====================================================
+// HELPER FUNCTIONS
+// =====================================================
+function calculateAge(dob) {
+    if (!dob) return 8;
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    if (today.getMonth() < birth.getMonth() || 
+        (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) {
+        age--;
+    }
+    return Math.max(4, Math.min(13, age));
+}
+
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+}
+
+// =====================================================
+// CONTEXT
+// =====================================================
+const AppContext = createContext();
+
+function useApp() {
+    const ctx = useContext(AppContext);
+    if (!ctx) throw new Error('useApp must be within AppProvider');
+    return ctx;
+}
+
+// =====================================================
+// AVATAR COMPONENT
+// =====================================================
+function BlockyAvatar({ config, size = 'md' }) {
+    const sizes = { xs: 40, sm: 56, md: 80, lg: 120, xl: 160 };
+    const w = sizes[size] || 80;
+    const c = { ...DEFAULT_AVATAR, ...config };
+    
+    const hairPaths = {
+        spiky: "M30,35 L35,15 L45,30 L55,10 L65,30 L75,15 L80,35",
+        wavy: "M25,40 Q35,20 50,35 Q65,20 80,40",
+        curly: "M25,40 Q30,25 40,35 Q45,20 55,35 Q60,20 70,35 Q75,25 85,40",
+        short: "M30,40 L30,30 L80,30 L80,40",
+        long: "M25,35 L25,80 L35,80 L35,45 L75,45 L75,80 L85,80 L85,35",
+        ponytail: "M30,35 L30,30 L80,30 L80,35 M75,30 L85,50 L75,70",
+        mohawk: "M48,40 L48,5 L62,5 L62,40",
+        bald: ""
+    };
+    
+    return (
+        <svg width={w} height={w} viewBox="0 0 110 130" style={{display:'block'}}>
+            <defs>
+                <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#E0F2FE"/>
+                    <stop offset="100%" stopColor="#F0FDF4"/>
+                </linearGradient>
+            </defs>
+            <circle cx="55" cy="65" r="50" fill="url(#bgGrad)"/>
+            <rect x="35" y="85" width="40" height="35" rx="5" fill={c.outfitColor}/>
+            <rect x="30" y="30" width="50" height="55" rx="10" fill={c.skinTone}/>
+            {c.hairStyle !== 'bald' && <path d={hairPaths[c.hairStyle] || hairPaths.spiky} fill={c.hairColor} strokeLinecap="round"/>}
+            <ellipse cx="42" cy="55" rx="5" ry="6" fill="white"/>
+            <ellipse cx="68" cy="55" rx="5" ry="6" fill="white"/>
+            <circle cx="43" cy="56" r="3" fill={c.eyeColor}/>
+            <circle cx="69" cy="56" r="3" fill={c.eyeColor}/>
+            <circle cx="44" cy="55" r="1" fill="white"/>
+            <circle cx="70" cy="55" r="1" fill="white"/>
+            <path d="M45,70 Q55,78 65,70" stroke="#333" strokeWidth="2" fill="none" strokeLinecap="round"/>
+        </svg>
+    );
+}
+
+// =====================================================
+// MODAL COMPONENT
+// =====================================================
+function Modal({ isOpen, onClose, title, children }) {
+    if (!isOpen) return null;
+    
+    return (
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+            <div className="modal-content animate-bounce-in">
+                <div className="flex items-center justify-between p-5 border-b border-slate-100">
+                    <h2 className="font-display text-xl font-bold text-slate-800">{title}</h2>
+                    <button onClick={onClose} className="text-2xl text-slate-400 hover:text-slate-600 w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100">
+                        ×
+                    </button>
+                </div>
+                <div className="p-5">
+                    {children}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// =====================================================
+// ADD/EDIT KID MODAL
+// =====================================================
+function KidModal({ isOpen, onClose, kid, onSave }) {
+    const [name, setName] = useState('');
+    const [dob, setDob] = useState('');
+    const [avatar, setAvatar] = useState({ ...DEFAULT_AVATAR });
+    const [saving, setSaving] = useState(false);
+    
+    useEffect(() => {
+        if (kid) {
+            setName(kid.name || '');
+            setDob(kid.dob || '');
+            setAvatar(kid.avatar || { ...DEFAULT_AVATAR });
+        } else {
+            setName('');
+            setDob('');
+            setAvatar({ ...DEFAULT_AVATAR });
+        }
+    }, [kid, isOpen]);
+    
+    const handleSave = async () => {
+        if (!name.trim()) return;
+        setSaving(true);
+        await onSave({ name: name.trim(), dob, avatar });
+        setSaving(false);
+        onClose();
+    };
+    
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={kid ? 'Edit Child' : 'Add Child'}>
+            <div className="space-y-5">
+                {/* Avatar Preview */}
+                <div className="flex justify-center">
+                    <div className="avatar-preview">
+                        <BlockyAvatar config={avatar} size="xl" />
+                    </div>
+                </div>
+                
+                {/* Name */}
+                <div>
+                    <label className="form-label">Child's Name</label>
+                    <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="form-input"
+                        placeholder="Enter name"
+                        maxLength={20}
+                    />
+                </div>
+                
+                {/* Date of Birth */}
+                <div>
+                    <label className="form-label">Date of Birth</label>
+                    <input
+                        type="date"
+                        value={dob}
+                        onChange={(e) => setDob(e.target.value)}
+                        className="form-input"
+                    />
+                    {dob && <p className="text-sm text-slate-500 mt-1">Age: {calculateAge(dob)} years old</p>}
+                </div>
+                
+                {/* Skin Tone */}
+                <div>
+                    <label className="form-label">Skin Tone</label>
+                    <div className="flex flex-wrap gap-2">
+                        {SKIN_TONES.map(color => (
+                            <button
+                                key={color}
+                                onClick={() => setAvatar(a => ({ ...a, skinTone: color }))}
+                                className={`color-option ${avatar.skinTone === color ? 'selected' : ''}`}
+                                style={{ backgroundColor: color }}
+                            />
+                        ))}
+                    </div>
+                </div>
+                
+                {/* Hair Style */}
+                <div>
+                    <label className="form-label">Hair Style</label>
+                    <div className="flex flex-wrap gap-2">
+                        {HAIR_STYLES.map(style => (
+                            <button
+                                key={style}
+                                onClick={() => setAvatar(a => ({ ...a, hairStyle: style }))}
+                                className={`px-3 py-1.5 rounded-lg text-sm font-bold capitalize transition-all ${
+                                    avatar.hairStyle === style
+                                        ? 'bg-purple-500 text-white'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
+                            >
+                                {style}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                
+                {/* Hair Color */}
+                <div>
+                    <label className="form-label">Hair Color</label>
+                    <div className="flex flex-wrap gap-2">
+                        {HAIR_COLORS.map(color => (
+                            <button
+                                key={color}
+                                onClick={() => setAvatar(a => ({ ...a, hairColor: color }))}
+                                className={`color-option ${avatar.hairColor === color ? 'selected' : ''}`}
+                                style={{ backgroundColor: color }}
+                            />
+                        ))}
+                    </div>
+                </div>
+                
+                {/* Eye Color */}
+                <div>
+                    <label className="form-label">Eye Color</label>
+                    <div className="flex flex-wrap gap-2">
+                        {EYE_COLORS.map(color => (
+                            <button
+                                key={color}
+                                onClick={() => setAvatar(a => ({ ...a, eyeColor: color }))}
+                                className={`color-option ${avatar.eyeColor === color ? 'selected' : ''}`}
+                                style={{ backgroundColor: color }}
+                            />
+                        ))}
+                    </div>
+                </div>
+                
+                {/* Outfit Color */}
+                <div>
+                    <label className="form-label">Outfit Color</label>
+                    <div className="flex flex-wrap gap-2">
+                        {OUTFIT_COLORS.map(color => (
+                            <button
+                                key={color}
+                                onClick={() => setAvatar(a => ({ ...a, outfitColor: color }))}
+                                className={`color-option ${avatar.outfitColor === color ? 'selected' : ''}`}
+                                style={{ backgroundColor: color }}
+                            />
+                        ))}
+                    </div>
+                </div>
+                
+                {/* Actions */}
+                <div className="flex gap-3 pt-3">
+                    <button onClick={onClose} className="btn btn-secondary flex-1">Cancel</button>
+                    <button 
+                        onClick={handleSave} 
+                        disabled={!name.trim() || saving}
+                        className="btn btn-primary flex-1"
+                    >
+                        {saving ? 'Saving...' : (kid ? 'Save Changes' : 'Add Child')}
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    );
+}
+
+// =====================================================
+// ADD/EDIT CHORE MODAL
+// =====================================================
+function ChoreModal({ isOpen, onClose, chore, kidId, onSave }) {
+    const [name, setName] = useState('');
+    const [sparks, setSparks] = useState(10);
+    const [xp, setXp] = useState(20);
+    const [emoji, setEmoji] = useState('✅');
+    const [recurrence, setRecurrence] = useState('daily');
+    const [saving, setSaving] = useState(false);
+    
+    useEffect(() => {
+        if (chore) {
+            setName(chore.name || '');
+            setSparks(chore.sparks || 10);
+            setXp(chore.xp || 20);
+            setEmoji(chore.emoji || '✅');
+            setRecurrence(chore.recurrence || 'daily');
+        } else {
+            setName('');
+            setSparks(10);
+            setXp(20);
+            setEmoji('✅');
+            setRecurrence('daily');
+        }
+    }, [chore, isOpen]);
+    
+    const selectTemplate = (template) => {
+        setName(template.name);
+        setSparks(template.sparks);
+        setXp(template.xp);
+        setEmoji(template.emoji);
+    };
+    
+    const handleSave = async () => {
+        if (!name.trim()) return;
+        setSaving(true);
+        await onSave({
+            name: name.trim(),
+            sparks: Math.max(1, sparks),
+            xp: Math.max(1, xp),
+            emoji,
+            recurrence
+        });
+        setSaving(false);
+        onClose();
+    };
+    
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={chore ? 'Edit Chore' : 'Add Chore'}>
+            <div className="space-y-5">
+                {/* Quick Templates */}
+                {!chore && (
+                    <div>
+                        <label className="form-label">Quick Add Templates</label>
+                        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                            {CHORE_TEMPLATES.map((t, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => selectTemplate(t)}
+                                    className="px-3 py-1.5 bg-slate-100 rounded-lg text-sm hover:bg-slate-200 flex items-center gap-1 transition-all"
+                                >
+                                    <span>{t.emoji}</span>
+                                    <span>{t.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                
+                {/* Chore Name */}
+                <div>
+                    <label className="form-label">Chore Name</label>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={emoji}
+                            onChange={(e) => setEmoji(e.target.value)}
+                            className="form-input w-16 text-center text-xl"
+                            maxLength={2}
+                        />
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="form-input flex-1"
+                            placeholder="e.g., Make your bed"
+                        />
+                    </div>
+                </div>
+                
+                {/* Rewards */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="form-label">⚡ Sparks Reward</label>
+                        <input
+                            type="number"
+                            value={sparks}
+                            onChange={(e) => setSparks(parseInt(e.target.value) || 0)}
+                            className="form-input"
+                            min={1}
+                            max={100}
+                        />
+                    </div>
+                    <div>
+                        <label className="form-label">✨ XP Reward</label>
+                        <input
+                            type="number"
+                            value={xp}
+                            onChange={(e) => setXp(parseInt(e.target.value) || 0)}
+                            className="form-input"
+                            min={1}
+                            max={200}
+                        />
+                    </div>
+                </div>
+                
+                {/* Recurrence */}
+                <div>
+                    <label className="form-label">Recurrence</label>
+                    <div className="grid grid-cols-3 gap-2">
+                        {RECURRENCE_OPTIONS.map(opt => (
+                            <button
+                                key={opt.id}
+                                onClick={() => setRecurrence(opt.id)}
+                                className={`p-3 rounded-xl text-center transition-all ${
+                                    recurrence === opt.id
+                                        ? 'bg-purple-500 text-white'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
+                            >
+                                <div className="text-xl mb-1">{opt.emoji}</div>
+                                <div className="text-sm font-bold">{opt.label}</div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                
+                {/* Actions */}
+                <div className="flex gap-3 pt-3">
+                    <button onClick={onClose} className="btn btn-secondary flex-1">Cancel</button>
+                    <button 
+                        onClick={handleSave} 
+                        disabled={!name.trim() || saving}
+                        className="btn btn-success flex-1"
+                    >
+                        {saving ? 'Saving...' : (chore ? 'Save Changes' : 'Add Chore')}
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    );
+}
+
+// =====================================================
+// ADD/EDIT REWARD MODAL
+// =====================================================
+function RewardModal({ isOpen, onClose, reward, onSave }) {
+    const [name, setName] = useState('');
+    const [cost, setCost] = useState(100);
+    const [emoji, setEmoji] = useState('🎁');
+    const [description, setDescription] = useState('');
+    const [saving, setSaving] = useState(false);
+    
+    useEffect(() => {
+        if (reward) {
+            setName(reward.name || '');
+            setCost(reward.cost || 100);
+            setEmoji(reward.emoji || '🎁');
+            setDescription(reward.description || '');
+        } else {
+            setName('');
+            setCost(100);
+            setEmoji('🎁');
+            setDescription('');
+        }
+    }, [reward, isOpen]);
+    
+    const selectTemplate = (template) => {
+        setName(template.name);
+        setCost(template.cost);
+        setEmoji(template.emoji);
+    };
+    
+    const handleSave = async () => {
+        if (!name.trim()) return;
+        setSaving(true);
+        await onSave({
+            name: name.trim(),
+            cost: Math.max(1, cost),
+            emoji,
+            description: description.trim()
+        });
+        setSaving(false);
+        onClose();
+    };
+    
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={reward ? 'Edit Reward' : 'Add Reward'}>
+            <div className="space-y-5">
+                {/* Quick Templates */}
+                {!reward && (
+                    <div>
+                        <label className="form-label">Quick Add Templates</label>
+                        <div className="flex flex-wrap gap-2 max-h-28 overflow-y-auto">
+                            {REWARD_TEMPLATES.map((t, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => selectTemplate(t)}
+                                    className="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-sm hover:bg-amber-100 flex items-center gap-1 transition-all"
+                                >
+                                    <span>{t.emoji}</span>
+                                    <span>{t.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+                
+                {/* Reward Name */}
+                <div>
+                    <label className="form-label">Reward Name</label>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={emoji}
+                            onChange={(e) => setEmoji(e.target.value)}
+                            className="form-input w-16 text-center text-xl"
+                            maxLength={2}
+                        />
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="form-input flex-1"
+                            placeholder="e.g., Extra screen time"
+                        />
+                    </div>
+                </div>
+                
+                {/* Cost */}
+                <div>
+                    <label className="form-label">⚡ Spark Cost</label>
+                    <input
+                        type="number"
+                        value={cost}
+                        onChange={(e) => setCost(parseInt(e.target.value) || 0)}
+                        className="form-input"
+                        min={1}
+                        max={1000}
+                    />
+                </div>
+                
+                {/* Description */}
+                <div>
+                    <label className="form-label">Description (Optional)</label>
+                    <input
+                        type="text"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="form-input"
+                        placeholder="Any additional details..."
+                    />
+                </div>
+                
+                {/* Actions */}
+                <div className="flex gap-3 pt-3">
+                    <button onClick={onClose} className="btn btn-secondary flex-1">Cancel</button>
+                    <button 
+                        onClick={handleSave} 
+                        disabled={!name.trim() || saving}
+                        className="btn btn-primary flex-1"
+                    >
+                        {saving ? 'Saving...' : (reward ? 'Save Changes' : 'Add Reward')}
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    );
+}
+
+// =====================================================
+// CONFIRM DELETE MODAL
+// =====================================================
+function ConfirmModal({ isOpen, onClose, title, message, onConfirm, confirmText = 'Delete', danger = true }) {
+    const [confirming, setConfirming] = useState(false);
+    
+    const handleConfirm = async () => {
+        setConfirming(true);
+        await onConfirm();
+        setConfirming(false);
+        onClose();
+    };
+    
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={title}>
+            <div className="text-center">
+                <div className="text-5xl mb-4">⚠️</div>
+                <p className="text-slate-600 mb-6">{message}</p>
+                <div className="flex gap-3">
+                    <button onClick={onClose} className="btn btn-secondary flex-1">Cancel</button>
+                    <button 
+                        onClick={handleConfirm} 
+                        disabled={confirming}
+                        className={`btn flex-1 ${danger ? 'btn-danger' : 'btn-primary'}`}
+                    >
+                        {confirming ? 'Please wait...' : confirmText}
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    );
+}
+
+// =====================================================
+// KIDS LIST COMPONENT
+// =====================================================
+function KidsList({ kids, selectedKid, onSelectKid, onAddKid, onEditKid, onDeleteKid }) {
+    const [showKidModal, setShowKidModal] = useState(false);
+    const [editingKid, setEditingKid] = useState(null);
+    const [deleteKid, setDeleteKid] = useState(null);
+    
+    const handleAddKid = () => {
+        setEditingKid(null);
+        setShowKidModal(true);
+    };
+    
+    const handleEditKid = (kid, e) => {
+        e.stopPropagation();
+        setEditingKid(kid);
+        setShowKidModal(true);
+    };
+    
+    const handleSaveKid = async (data) => {
+        if (editingKid) {
+            await onEditKid(editingKid.id, data);
+        } else {
+            await onAddKid(data);
+        }
+    };
+    
+    return (
+        <div>
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display text-lg font-bold text-slate-800">Your Children</h3>
+                <button onClick={handleAddKid} className="btn btn-primary text-sm py-2 px-4">
+                    + Add Child
+                </button>
+            </div>
+            
+            {kids.length === 0 ? (
+                <div className="empty-state card">
+                    <div className="text-5xl mb-3">👶</div>
+                    <h4 className="font-display font-bold text-slate-700 mb-2">No children added yet</h4>
+                    <p className="text-sm mb-4">Add your first child to get started with Spark Quest!</p>
+                    <button onClick={handleAddKid} className="btn btn-primary">
+                        Add Your First Child
+                    </button>
+                </div>
+            ) : (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {kids.map(kid => {
+                        const age = calculateAge(kid.dob);
+                        const isSelected = selectedKid?.id === kid.id;
+                        const level = Math.floor((kid.xp || 0) / 100) + 1;
+                        
+                        return (
+                            <div
+                                key={kid.id}
+                                onClick={() => onSelectKid(kid)}
+                                className={`card kid-card p-4 ${isSelected ? 'ring-3 ring-purple-400 card-purple' : ''}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="avatar-preview p-2 rounded-xl">
+                                        <BlockyAvatar config={kid.avatar} size="md" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-display font-bold text-slate-800 truncate">{kid.name}</h4>
+                                        <p className="text-sm text-slate-500">Age {age}</p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="spark-badge text-xs py-0.5 px-2">
+                                                <span>⚡</span>
+                                                <span>{kid.sparks || 0}</span>
+                                            </span>
+                                            <span className="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
+                                                Lvl {level}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+                                    <button
+                                        onClick={(e) => handleEditKid(kid, e)}
+                                        className="flex-1 text-sm font-bold text-slate-500 hover:text-purple-600 py-1"
+                                    >
+                                        ✏️ Edit
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setDeleteKid(kid); }}
+                                        className="flex-1 text-sm font-bold text-slate-500 hover:text-red-600 py-1"
+                                    >
+                                        🗑️ Remove
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+            
+            <KidModal
+                isOpen={showKidModal}
+                onClose={() => setShowKidModal(false)}
+                kid={editingKid}
+                onSave={handleSaveKid}
+            />
+            
+            <ConfirmModal
+                isOpen={!!deleteKid}
+                onClose={() => setDeleteKid(null)}
+                title="Remove Child"
+                message={`Are you sure you want to remove ${deleteKid?.name}? This will delete all their progress, chores, and history.`}
+                onConfirm={() => onDeleteKid(deleteKid.id)}
+                confirmText="Remove"
+            />
+        </div>
+    );
+}
+
+// =====================================================
+// CHORES LIST COMPONENT
+// =====================================================
+function ChoresList({ kid, onAddChore, onEditChore, onDeleteChore }) {
+    const [showChoreModal, setShowChoreModal] = useState(false);
+    const [editingChore, setEditingChore] = useState(null);
+    const [deleteChore, setDeleteChore] = useState(null);
+    
+    const chores = kid?.chores || [];
+    
+    const handleAddChore = () => {
+        setEditingChore(null);
+        setShowChoreModal(true);
+    };
+    
+    const handleEditChore = (chore) => {
+        setEditingChore(chore);
+        setShowChoreModal(true);
+    };
+    
+    const handleSaveChore = async (data) => {
+        if (editingChore) {
+            await onEditChore(kid.id, editingChore.id, data);
+        } else {
+            await onAddChore(kid.id, data);
+        }
+    };
+    
+    if (!kid) {
+        return (
+            <div className="empty-state card">
+                <div className="text-5xl mb-3">👈</div>
+                <h4 className="font-display font-bold text-slate-700 mb-2">Select a child first</h4>
+                <p className="text-sm">Choose a child from the list to manage their chores</p>
+            </div>
+        );
+    }
+    
+    return (
+        <div>
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <BlockyAvatar config={kid.avatar} size="sm" />
+                    <div>
+                        <h3 className="font-display text-lg font-bold text-slate-800">{kid.name}'s Chores</h3>
+                        <p className="text-sm text-slate-500">{chores.length} chore{chores.length !== 1 ? 's' : ''} assigned</p>
+                    </div>
+                </div>
+                <button onClick={handleAddChore} className="btn btn-success text-sm py-2 px-4">
+                    + Add Chore
+                </button>
+            </div>
+            
+            {chores.length === 0 ? (
+                <div className="empty-state card">
+                    <div className="text-5xl mb-3">📋</div>
+                    <h4 className="font-display font-bold text-slate-700 mb-2">No chores yet</h4>
+                    <p className="text-sm mb-4">Add chores for {kid.name} to complete and earn Sparks!</p>
+                    <button onClick={handleAddChore} className="btn btn-success">
+                        Add First Chore
+                    </button>
+                </div>
+            ) : (
+                <div className="space-y-2">
+                    {chores.map(chore => (
+                        <div key={chore.id} className="card chore-item p-4 flex items-center gap-4">
+                            <span className="text-3xl">{chore.emoji}</span>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-slate-800">{chore.name}</h4>
+                                <div className="flex items-center gap-3 mt-1">
+                                    <span className="text-sm text-amber-600 font-bold">⚡ {chore.sparks}</span>
+                                    <span className="text-sm text-purple-600 font-bold">✨ {chore.xp} XP</span>
+                                    <span className="text-xs text-slate-400 capitalize">• {chore.recurrence}</span>
+                                </div>
+                            </div>
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={() => handleEditChore(chore)}
+                                    className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                                >
+                                    ✏️
+                                </button>
+                                <button
+                                    onClick={() => setDeleteChore(chore)}
+                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                >
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+            
+            <ChoreModal
+                isOpen={showChoreModal}
+                onClose={() => setShowChoreModal(false)}
+                chore={editingChore}
+                kidId={kid?.id}
+                onSave={handleSaveChore}
+            />
+            
+            <ConfirmModal
+                isOpen={!!deleteChore}
+                onClose={() => setDeleteChore(null)}
+                title="Delete Chore"
+                message={`Are you sure you want to delete "${deleteChore?.name}"?`}
+                onConfirm={() => onDeleteChore(kid.id, deleteChore.id)}
+            />
+        </div>
+    );
+}
+
+// =====================================================
+// REWARDS LIST COMPONENT
+// =====================================================
+function RewardsList({ rewards, onAddReward, onEditReward, onDeleteReward }) {
+    const [showRewardModal, setShowRewardModal] = useState(false);
+    const [editingReward, setEditingReward] = useState(null);
+    const [deleteReward, setDeleteReward] = useState(null);
+    
+    const handleAddReward = () => {
+        setEditingReward(null);
+        setShowRewardModal(true);
+    };
+    
+    const handleEditReward = (reward) => {
+        setEditingReward(reward);
+        setShowRewardModal(true);
+    };
+    
+    const handleSaveReward = async (data) => {
+        if (editingReward) {
+            await onEditReward(editingReward.id, data);
+        } else {
+            await onAddReward(data);
+        }
+    };
+    
+    return (
+        <div>
+            <div className="flex items-center justify-between mb-4">
+                <div>
+                    <h3 className="font-display text-lg font-bold text-slate-800">Real Rewards</h3>
+                    <p className="text-sm text-slate-500">Rewards all children can redeem with their Sparks</p>
+                </div>
+                <button onClick={handleAddReward} className="btn btn-primary text-sm py-2 px-4">
+                    + Add Reward
+                </button>
+            </div>
+            
+            {rewards.length === 0 ? (
+                <div className="empty-state card">
+                    <div className="text-5xl mb-3">🎁</div>
+                    <h4 className="font-display font-bold text-slate-700 mb-2">No rewards yet</h4>
+                    <p className="text-sm mb-4">Add real-world rewards that kids can redeem with their Sparks!</p>
+                    <button onClick={handleAddReward} className="btn btn-primary">
+                        Add First Reward
+                    </button>
+                </div>
+            ) : (
+                <div className="grid gap-3 sm:grid-cols-2">
+                    {rewards.map(reward => (
+                        <div key={reward.id} className="card card-amber p-4">
+                            <div className="flex items-start gap-3">
+                                <span className="text-3xl">{reward.emoji}</span>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-slate-800">{reward.name}</h4>
+                                    {reward.description && (
+                                        <p className="text-sm text-slate-500 mt-0.5">{reward.description}</p>
+                                    )}
+                                    <div className="spark-badge mt-2">
+                                        <span>⚡</span>
+                                        <span>{reward.cost}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+                                <button
+                                    onClick={() => handleEditReward(reward)}
+                                    className="flex-1 text-sm font-bold text-slate-500 hover:text-purple-600 py-1"
+                                >
+                                    ✏️ Edit
+                                </button>
+                                <button
+                                    onClick={() => setDeleteReward(reward)}
+                                    className="flex-1 text-sm font-bold text-slate-500 hover:text-red-600 py-1"
+                                >
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+            
+            <RewardModal
+                isOpen={showRewardModal}
+                onClose={() => setShowRewardModal(false)}
+                reward={editingReward}
+                onSave={handleSaveReward}
+            />
+            
+            <ConfirmModal
+                isOpen={!!deleteReward}
+                onClose={() => setDeleteReward(null)}
+                title="Delete Reward"
+                message={`Are you sure you want to delete "${deleteReward?.name}"?`}
+                onConfirm={() => onDeleteReward(deleteReward.id)}
+            />
+        </div>
+    );
+}
+
+// =====================================================
+// DASHBOARD OVERVIEW COMPONENT
+// =====================================================
+function DashboardOverview({ kids, rewards }) {
+    const totalSparks = kids.reduce((sum, k) => sum + (k.sparks || 0), 0);
+    const totalXp = kids.reduce((sum, k) => sum + (k.xp || 0), 0);
+    const totalChores = kids.reduce((sum, k) => sum + (k.chores?.length || 0), 0);
+    
+    return (
+        <div className="space-y-6">
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="stat-card card-blue">
+                    <div className="text-3xl mb-1">👶</div>
+                    <div className="text-2xl font-bold text-slate-800">{kids.length}</div>
+                    <div className="text-sm text-slate-500">Children</div>
+                </div>
+                <div className="stat-card card-green">
+                    <div className="text-3xl mb-1">📋</div>
+                    <div className="text-2xl font-bold text-slate-800">{totalChores}</div>
+                    <div className="text-sm text-slate-500">Total Chores</div>
+                </div>
+                <div className="stat-card card-amber">
+                    <div className="text-3xl mb-1">⚡</div>
+                    <div className="text-2xl font-bold text-slate-800">{totalSparks}</div>
+                    <div className="text-sm text-slate-500">Total Sparks</div>
+                </div>
+                <div className="stat-card card-purple">
+                    <div className="text-3xl mb-1">🎁</div>
+                    <div className="text-2xl font-bold text-slate-800">{rewards.length}</div>
+                    <div className="text-sm text-slate-500">Rewards</div>
+                </div>
+            </div>
+            
+            {/* Kids Summary */}
+            {kids.length > 0 && (
+                <div className="card p-5">
+                    <h3 className="font-display font-bold text-slate-800 mb-4">Children Overview</h3>
+                    <div className="space-y-3">
+                        {kids.map(kid => {
+                            const level = Math.floor((kid.xp || 0) / 100) + 1;
+                            const progress = (kid.xp || 0) % 100;
+                            const age = calculateAge(kid.dob);
+                            
+                            return (
+                                <div key={kid.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
+                                    <BlockyAvatar config={kid.avatar} size="sm" />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span className="font-bold text-slate-800">{kid.name}</span>
+                                            <span className="text-sm text-slate-500">Age {age}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="spark-badge text-xs py-0.5 px-2">
+                                                ⚡ {kid.sparks || 0}
+                                            </span>
+                                            <span className="text-xs font-bold text-purple-600">Level {level}</span>
+                                            <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                <div 
+                                                    className="h-full bg-gradient-to-r from-purple-400 to-pink-500"
+                                                    style={{ width: `${progress}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+            
+            {/* Quick Start */}
+            {kids.length === 0 && (
+                <div className="card p-6 text-center bg-gradient-to-br from-purple-50 to-blue-50">
+                    <div className="text-6xl mb-4">🚀</div>
+                    <h3 className="font-display text-xl font-bold text-slate-800 mb-2">Welcome to Spark Quest!</h3>
+                    <p className="text-slate-600 mb-4">
+                        Get started by adding your first child. Then you can assign chores, 
+                        set up rewards, and let them start their adventure!
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// =====================================================
+// MAIN APP COMPONENT
+// =====================================================
+function ParentHub() {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('dashboard');
+    const [kids, setKids] = useState([]);
+    const [rewards, setRewards] = useState([]);
+    const [selectedKid, setSelectedKid] = useState(null);
+    const [notification, setNotification] = useState(null);
+    
+    // Auth state listener
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user) {
+                setUser(user);
+                loadData(user.uid);
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+        
+        return () => unsubscribe();
+    }, []);
+    
+    // Load data from Firestore
+    const loadData = async (userId) => {
+        try {
+            const userDoc = await db.collection('parents').doc(userId).get();
+            
+            if (userDoc.exists) {
+                const data = userDoc.data();
+                setKids(data.kids || []);
+                setRewards(data.rewards || []);
+            } else {
+                // Create initial document
+                await db.collection('parents').doc(userId).set({
+                    email: auth.currentUser.email,
+                    kids: [],
+                    rewards: [],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+            showNotification('Error loading data', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+    
+    // Save data to Firestore
+    const saveData = async (updates) => {
+        if (!user) return;
+        try {
+            await db.collection('parents').doc(user.uid).update(updates);
+        } catch (error) {
+            console.error('Error saving data:', error);
+            showNotification('Error saving data', 'error');
+        }
+    };
+    
+    // Notification helper
+    const showNotification = (message, type = 'success') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+    };
+    
+    // Kid operations
+    const addKid = async (data) => {
+        const newKid = {
+            id: generateId(),
+            ...data,
+            sparks: 0,
+            xp: 0,
+            chores: [],
+            completedQuests: [],
+            choreHistory: [],
+            createdAt: Date.now()
+        };
+        const updatedKids = [...kids, newKid];
+        setKids(updatedKids);
+        await saveData({ kids: updatedKids });
+        showNotification(`${data.name} has been added!`);
+    };
+    
+    const editKid = async (kidId, data) => {
+        const updatedKids = kids.map(k => 
+            k.id === kidId ? { ...k, ...data } : k
+        );
+        setKids(updatedKids);
+        if (selectedKid?.id === kidId) {
+            setSelectedKid({ ...selectedKid, ...data });
+        }
+        await saveData({ kids: updatedKids });
+        showNotification('Changes saved!');
+    };
+    
+    const deleteKid = async (kidId) => {
+        const updatedKids = kids.filter(k => k.id !== kidId);
+        setKids(updatedKids);
+        if (selectedKid?.id === kidId) {
+            setSelectedKid(null);
+        }
+        await saveData({ kids: updatedKids });
+        showNotification('Child removed');
+    };
+    
+    // Chore operations
+    const addChore = async (kidId, data) => {
+        const newChore = {
+            id: generateId(),
+            ...data,
+            createdAt: Date.now()
+        };
+        const updatedKids = kids.map(k => 
+            k.id === kidId 
+                ? { ...k, chores: [...(k.chores || []), newChore] }
+                : k
+        );
+        setKids(updatedKids);
+        if (selectedKid?.id === kidId) {
+            setSelectedKid({ ...selectedKid, chores: [...(selectedKid.chores || []), newChore] });
+        }
+        await saveData({ kids: updatedKids });
+        showNotification('Chore added!');
+    };
+    
+    const editChore = async (kidId, choreId, data) => {
+        const updatedKids = kids.map(k => {
+            if (k.id !== kidId) return k;
+            return {
+                ...k,
+                chores: (k.chores || []).map(c =>
+                    c.id === choreId ? { ...c, ...data } : c
+                )
+            };
+        });
+        setKids(updatedKids);
+        if (selectedKid?.id === kidId) {
+            setSelectedKid({
+                ...selectedKid,
+                chores: (selectedKid.chores || []).map(c =>
+                    c.id === choreId ? { ...c, ...data } : c
+                )
+            });
+        }
+        await saveData({ kids: updatedKids });
+        showNotification('Chore updated!');
+    };
+    
+    const deleteChore = async (kidId, choreId) => {
+        const updatedKids = kids.map(k => {
+            if (k.id !== kidId) return k;
+            return {
+                ...k,
+                chores: (k.chores || []).filter(c => c.id !== choreId)
+            };
+        });
+        setKids(updatedKids);
+        if (selectedKid?.id === kidId) {
+            setSelectedKid({
+                ...selectedKid,
+                chores: (selectedKid.chores || []).filter(c => c.id !== choreId)
+            });
+        }
+        await saveData({ kids: updatedKids });
+        showNotification('Chore deleted');
+    };
+    
+    // Reward operations
+    const addReward = async (data) => {
+        const newReward = {
+            id: generateId(),
+            ...data,
+            createdAt: Date.now()
+        };
+        const updatedRewards = [...rewards, newReward];
+        setRewards(updatedRewards);
+        await saveData({ rewards: updatedRewards });
+        showNotification('Reward added!');
+    };
+    
+    const editReward = async (rewardId, data) => {
+        const updatedRewards = rewards.map(r =>
+            r.id === rewardId ? { ...r, ...data } : r
+        );
+        setRewards(updatedRewards);
+        await saveData({ rewards: updatedRewards });
+        showNotification('Reward updated!');
+    };
+    
+    const deleteReward = async (rewardId) => {
+        const updatedRewards = rewards.filter(r => r.id !== rewardId);
+        setRewards(updatedRewards);
+        await saveData({ rewards: updatedRewards });
+        showNotification('Reward deleted');
+    };
+    
+    // Sign out
+    const handleSignOut = async () => {
+        await auth.signOut();
+        window.location.href = 'login.html';
+    };
+    
+    // Loading state
+    if (loading) {
+        return (
+            <div className="loading-screen">
+                <div className="loading-spinner animate-spin mb-4"></div>
+                <p className="font-display text-lg text-slate-600">Loading your family...</p>
+            </div>
+        );
+    }
+    
+    const tabs = [
+        { id: 'dashboard', label: 'Dashboard', emoji: '📊' },
+        { id: 'kids', label: 'Children', emoji: '👶' },
+        { id: 'chores', label: 'Chores', emoji: '📋' },
+        { id: 'rewards', label: 'Rewards', emoji: '🎁' }
+    ];
+    
+    return (
+        <div className="min-h-screen pb-20 lg:pb-8">
+            {/* Header */}
+            <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+                <div className="max-w-6xl mx-auto px-4">
+                    <div className="flex items-center justify-between h-16">
+                        <div className="flex items-center gap-3">
+                            <a href="index.html" className="flex items-center gap-2">
+                                <span className="text-2xl">⚡</span>
+                                <span className="font-display text-xl font-bold text-slate-800 hidden sm:inline">Spark Quest</span>
+                            </a>
+                            <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-full">
+                                Parent Hub
+                            </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-bold text-slate-800">{user?.email}</p>
+                            </div>
+                            <button
+                                onClick={handleSignOut}
+                                className="btn btn-secondary text-sm py-2 px-3"
+                            >
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:block bg-white border-b border-slate-100">
+                <div className="max-w-6xl mx-auto px-4">
+                    <div className="flex gap-2 py-3">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`nav-tab ${activeTab === tab.id ? 'active' : ''}`}
+                            >
+                                <span>{tab.emoji}</span>
+                                <span>{tab.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </nav>
+            
+            {/* Main Content */}
+            <main className="max-w-6xl mx-auto px-4 py-6">
+                {activeTab === 'dashboard' && (
+                    <DashboardOverview kids={kids} rewards={rewards} />
+                )}
+                
+                {activeTab === 'kids' && (
+                    <KidsList
+                        kids={kids}
+                        selectedKid={selectedKid}
+                        onSelectKid={setSelectedKid}
+                        onAddKid={addKid}
+                        onEditKid={editKid}
+                        onDeleteKid={deleteKid}
+                    />
+                )}
+                
+                {activeTab === 'chores' && (
+                    <div className="grid lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-1">
+                            <div className="card p-4 mb-4">
+                                <h3 className="font-display font-bold text-slate-800 mb-3">Select Child</h3>
+                                <div className="space-y-2">
+                                    {kids.map(kid => (
+                                        <button
+                                            key={kid.id}
+                                            onClick={() => setSelectedKid(kid)}
+                                            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
+                                                selectedKid?.id === kid.id
+                                                    ? 'bg-purple-100 ring-2 ring-purple-400'
+                                                    : 'bg-slate-50 hover:bg-slate-100'
+                                            }`}
+                                        >
+                                            <BlockyAvatar config={kid.avatar} size="xs" />
+                                            <div className="text-left">
+                                                <div className="font-bold text-slate-800">{kid.name}</div>
+                                                <div className="text-xs text-slate-500">
+                                                    {kid.chores?.length || 0} chores
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                    {kids.length === 0 && (
+                                        <p className="text-sm text-slate-400 text-center py-4">
+                                            Add a child first
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="lg:col-span-2">
+                            <ChoresList
+                                kid={selectedKid}
+                                onAddChore={addChore}
+                                onEditChore={editChore}
+                                onDeleteChore={deleteChore}
+                            />
+                        </div>
+                    </div>
+                )}
+                
+                {activeTab === 'rewards' && (
+                    <RewardsList
+                        rewards={rewards}
+                        onAddReward={addReward}
+                        onEditReward={editReward}
+                        onDeleteReward={deleteReward}
+                    />
+                )}
+            </main>
+            
+            {/* Mobile Bottom Navigation */}
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50">
+                <div className="flex justify-around items-center h-16">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex flex-col items-center justify-center flex-1 h-full ${
+                                activeTab === tab.id ? 'text-purple-600' : 'text-slate-400'
+                            }`}
+                        >
+                            <span className="text-xl mb-0.5">{tab.emoji}</span>
+                            <span className="text-xs font-bold">{tab.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </nav>
+            
+            {/* Play Button - Opens Game */}
+            <a
+                href="play.html"
+                className="hidden lg:flex fixed bottom-6 right-6 btn btn-success text-lg py-4 px-6 shadow-xl hover:shadow-2xl animate-pulse-glow"
+            >
+                🎮 Let Kids Play
+            </a>
+            
+            {/* Notification */}
+            {notification && (
+                <div className={`fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50 ${
+                    notification.type === 'error' ? 'bg-red-500' : 'bg-green-500'
+                } text-white`}>
+                    {notification.message}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Render
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<ParentHub />);
+    </script>
+</body>
+</html>
