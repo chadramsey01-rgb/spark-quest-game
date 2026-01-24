@@ -20,11 +20,12 @@
         @keyframes spin-wheel { 0% { transform: rotate(0deg); } 100% { transform: rotate(1800deg); } }
         @keyframes confetti-fall { 0% { transform: translateY(-100%) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
         @keyframes flame-flicker { 0%, 100% { transform: scaleY(1) scaleX(1); } 25% { transform: scaleY(1.1) scaleX(0.95); } 50% { transform: scaleY(0.95) scaleX(1.05); } 75% { transform: scaleY(1.05) scaleX(0.98); } }
-        @keyframes checkmark { 0% { stroke-dashoffset: 100; } 100% { stroke-dashoffset: 0; } }
+        @keyframes stagger-in { 0% { transform: translateY(20px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         .animate-bounce-in { animation: bounce-in 0.5s ease-out forwards; }
         .animate-float { animation: float 3s ease-in-out infinite; }
         .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .animate-stagger { animation: stagger-in 0.4s ease-out forwards; }
         .glow-common { box-shadow: 0 0 10px rgba(148, 163, 184, 0.5); }
         .glow-rare { box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); }
         .glow-epic { box-shadow: 0 0 20px rgba(168, 85, 247, 0.7); }
@@ -38,6 +39,8 @@
         .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 1rem; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4); transition: all 0.2s; }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); }
         .btn-success { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 1rem; box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4); }
+        .btn-family { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 1rem; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4); transition: all 0.2s; }
+        .btn-family:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5); }
         .spark-counter { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 700; color: #92400e; }
         .chore-item { transition: all 0.2s; }
         .chore-item.completed { opacity: 0.6; background: #f0fdf4; }
@@ -46,6 +49,11 @@
         .challenge-card { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fbbf24 100%); border: 2px solid #f59e0b; position: relative; overflow: hidden; }
         .challenge-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent); animation: shimmer 3s infinite; }
         .parent-mode-badge { background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; }
+        .player-pill { transition: all 0.2s; }
+        .player-pill.active { transform: scale(1.05); }
+        .family-quest-card { position: relative; overflow: hidden; }
+        .family-quest-card.quest-done { opacity: 0.7; }
+        .family-quest-card.quest-done::after { content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; color: rgba(34, 197, 94, 0.3); }
     </style>
 </head>
 <body>
@@ -53,7 +61,6 @@
     <script type="text/babel">
 const { useState, useEffect, useContext, createContext, useCallback } = React;
 
-// Configuration
 const LEVEL_CONFIG = { xpPerLevel: 100, getLevel: (xp) => Math.floor(xp / 100) + 1, getProgress: (xp) => (xp % 100), getXpToNext: (xp) => 100 - (xp % 100) };
 const RARITY_CONFIG = { common: { label: 'Common', color: 'slate', glow: 'glow-common' }, rare: { label: 'Rare', color: 'blue', glow: 'glow-rare' }, epic: { label: 'Epic', color: 'purple', glow: 'glow-epic' }, legendary: { label: 'Legendary', color: 'yellow', glow: 'glow-legendary' } };
 const CATEGORY_CONFIG = { blaze: { emoji: '🔥', label: 'Blaze', color: 'amber' }, flow: { emoji: '🎨', label: 'Flow', color: 'blue' }, terra: { emoji: '🌿', label: 'Terra', color: 'green' }, breeze: { emoji: '💨', label: 'Breeze', color: 'purple' } };
@@ -141,7 +148,6 @@ const HAIR_STYLES = ['spiky', 'wavy', 'curly', 'short', 'long', 'ponytail', 'moh
 const HAIR_COLORS = ['#4A3728', '#8B4513', '#2C1810', '#FFD700', '#FF6B35', '#9B59B6', '#3498DB', '#E74C3C'];
 const OUTFIT_COLORS = ['#3B82F6', '#EF4444', '#22C55E', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
 
-// Utility Functions
 function calculateAge(dob) { if (!dob) return 8; const birth = new Date(dob); const today = new Date(); let age = today.getFullYear() - birth.getFullYear(); if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--; return Math.max(4, Math.min(13, age)); }
 function getTodayString() { return new Date().toDateString(); }
 function fillTemplate(template) { return template.replace(/\[(\w+)\]/g, (m, key) => { const bank = WORD_BANKS[key]; return bank ? bank[Math.floor(Math.random() * bank.length)] : m; }); }
@@ -157,7 +163,7 @@ function generateQuest(playerAge = 8) {
     const templates = (QUEST_TEMPLATES[cat][diff] || QUEST_TEMPLATES[cat]['Easy']).filter(t => (t.minAge || 4) <= age);
     const tmpl = templates[Math.floor(Math.random() * templates.length)] || { text: "Do something fun!", minAge: 4 };
     const rewards = DIFFICULTY_CONFIG[diff] || DIFFICULTY_CONFIG['Easy'];
-    return { id: `quest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, text: fillTemplate(tmpl.text), category: cat, difficulty: diff, rewards: { sparks: rewards.sparks, xp: rewards.xp } };
+    return { id: 'quest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9), text: fillTemplate(tmpl.text), category: cat, difficulty: diff, rewards: { sparks: rewards.sparks, xp: rewards.xp } };
 }
 
 function generateDailyChallenge(player) {
@@ -167,7 +173,6 @@ function generateDailyChallenge(player) {
     return { ...tmpl, date: today, completed: false, progress: 0 };
 }
 
-// Game Context
 const GameContext = createContext();
 function useGame() { const ctx = useContext(GameContext); if (!ctx) throw new Error('useGame must be within GameProvider'); return ctx; }
 
@@ -184,6 +189,9 @@ function GameProvider({ children }) {
     const [isSpinning, setIsSpinning] = useState(false);
     const [showCompletion, setShowCompletion] = useState(false);
     const [notification, setNotification] = useState(null);
+    const [familyQuests, setFamilyQuests] = useState({});
+    const [isFamilySpinning, setIsFamilySpinning] = useState(false);
+    const [familyMode, setFamilyMode] = useState(false);
     
     const activePlayer = players[activePlayerIndex] || null;
     
@@ -192,16 +200,16 @@ function GameProvider({ children }) {
     const showNotif = useCallback((msg, type = 'success') => { setNotification({ message: msg, type }); setTimeout(() => setNotification(null), 3000); }, []);
     
     const createPlayer = useCallback((data) => {
-        const p = { id: `p_${Date.now()}`, username: data.username || 'Hero', dob: data.dob, sparks: 0, xp: 0, level: 1, streak: 0, lastPlayedDate: null, inventory: [], completedQuests: [], chores: [], choreHistory: [], dailyChallenge: null, questsCompletedToday: 0, lastQuestDate: null, avatar: { ...DEFAULT_AVATAR, ...data.avatar } };
+        const p = { id: 'p_' + Date.now(), username: data.username || 'Hero', dob: data.dob, sparks: 0, xp: 0, level: 1, streak: 0, lastPlayedDate: null, inventory: [], completedQuests: [], chores: [], choreHistory: [], dailyChallenge: null, questsCompletedToday: 0, lastQuestDate: null, avatar: { ...DEFAULT_AVATAR, ...data.avatar } };
         setPlayers(prev => [...prev, p]); setActivePlayerIndex(players.length); return p;
     }, [players.length]);
     
     const updatePlayer = useCallback((id, updates) => { setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p)); }, []);
     
     const addChore = useCallback((playerId, data) => {
-        const chore = { id: `c_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, name: data.name, sparks: data.sparks || 5, xp: data.xp || 10, emoji: data.emoji || '✅', recurrence: data.recurrence || 'daily', lastCompleted: null, completedDates: [] };
+        const chore = { id: 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5), name: data.name, sparks: data.sparks || 5, xp: data.xp || 10, emoji: data.emoji || '✅', recurrence: data.recurrence || 'daily', lastCompleted: null, completedDates: [] };
         setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, chores: [...(p.chores || []), chore] } : p));
-        showNotif(`Added "${chore.name}"!`); return chore;
+        showNotif('Added "' + chore.name + '"!'); return chore;
     }, [showNotif]);
     
     const removeChore = useCallback((playerId, choreId) => {
@@ -209,34 +217,36 @@ function GameProvider({ children }) {
         showNotif('Chore removed');
     }, [showNotif]);
     
-    const completeChore = useCallback((choreId) => {
-        if (!activePlayer) return null;
-        const chore = (activePlayer.chores || []).find(c => c.id === choreId);
+    const completeChore = useCallback((choreId, playerId = null) => {
+        const targetPlayer = playerId ? players.find(p => p.id === playerId) : activePlayer;
+        if (!targetPlayer) return null;
+        const chore = (targetPlayer.chores || []).find(c => c.id === choreId);
         if (!chore) return null;
         const today = getTodayString();
         if (chore.recurrence === 'daily' && chore.lastCompleted === today) { showNotif('Already done today!', 'error'); return null; }
         
-        const lastPlayed = activePlayer.lastPlayedDate;
+        const lastPlayed = targetPlayer.lastPlayedDate;
         const yesterday = new Date(Date.now() - 86400000).toDateString();
-        let streak = activePlayer.streak;
+        let streak = targetPlayer.streak;
         if (lastPlayed === yesterday) streak += 1; else if (lastPlayed !== today) streak = 1;
         const bonus = Math.min(streak * 0.1, 0.5);
         const sparksEarned = Math.round(chore.sparks * (1 + bonus));
         const xpEarned = Math.round(chore.xp * (1 + bonus));
-        const newXp = activePlayer.xp + xpEarned;
+        const newXp = targetPlayer.xp + xpEarned;
         
-        let updatedChores = (activePlayer.chores || []).map(c => c.id === choreId ? { ...c, lastCompleted: today, completedDates: [...(c.completedDates || []), today] } : c);
+        let updatedChores = (targetPlayer.chores || []).map(c => c.id === choreId ? { ...c, lastCompleted: today, completedDates: [...(c.completedDates || []), today] } : c);
         if (chore.recurrence === 'once') updatedChores = updatedChores.filter(c => c.id !== choreId);
         
-        updatePlayer(activePlayer.id, { sparks: activePlayer.sparks + sparksEarned, xp: newXp, level: LEVEL_CONFIG.getLevel(newXp), streak, lastPlayedDate: today, chores: updatedChores, choreHistory: [{ choreId, choreName: chore.name, timestamp: Date.now(), sparks: sparksEarned, xp: xpEarned }, ...(activePlayer.choreHistory || []).slice(0, 99)] });
+        updatePlayer(targetPlayer.id, { sparks: targetPlayer.sparks + sparksEarned, xp: newXp, level: LEVEL_CONFIG.getLevel(newXp), streak, lastPlayedDate: today, chores: updatedChores, choreHistory: [{ choreId, choreName: chore.name, timestamp: Date.now(), sparks: sparksEarned, xp: xpEarned }, ...(targetPlayer.choreHistory || []).slice(0, 99)] });
         return { sparksEarned, xpEarned, streakBonus: bonus > 0 };
-    }, [activePlayer, updatePlayer, showNotif]);
+    }, [activePlayer, players, updatePlayer, showNotif]);
     
-    const getTodayChores = useCallback(() => {
-        if (!activePlayer) return [];
+    const getTodayChores = useCallback((playerId = null) => {
+        const targetPlayer = playerId ? players.find(p => p.id === playerId) : activePlayer;
+        if (!targetPlayer) return [];
         const today = getTodayString();
-        return (activePlayer.chores || []).map(c => ({ ...c, isCompleted: c.recurrence === 'daily' ? c.lastCompleted === today : !!c.lastCompleted }));
-    }, [activePlayer]);
+        return (targetPlayer.chores || []).map(c => ({ ...c, isCompleted: c.recurrence === 'daily' ? c.lastCompleted === today : !!c.lastCompleted }));
+    }, [activePlayer, players]);
     
     const getDailyChallenge = useCallback(() => {
         if (!activePlayer) return null;
@@ -249,27 +259,58 @@ function GameProvider({ children }) {
     
     const spinQuest = useCallback(() => {
         if (!activePlayer || isSpinning) return;
+        setFamilyMode(false);
         setIsSpinning(true);
         setTimeout(() => { setCurrentQuest(generateQuest(calculateAge(activePlayer.dob))); setIsSpinning(false); }, 1500);
     }, [activePlayer, isSpinning]);
     
-    const completeQuest = useCallback((quest) => {
-        if (!activePlayer || !quest) return;
+    const spinAllQuests = useCallback(() => {
+        if (players.length === 0 || isFamilySpinning) return;
+        setFamilyMode(true);
+        setIsFamilySpinning(true);
+        setCurrentQuest(null);
+        
+        setTimeout(() => {
+            const newFamilyQuests = {};
+            players.forEach(player => {
+                const playerAge = calculateAge(player.dob);
+                const quest = generateQuest(playerAge);
+                newFamilyQuests[player.id] = { quest, completed: false, rewards: null, playerAge };
+            });
+            setFamilyQuests(newFamilyQuests);
+            setIsFamilySpinning(false);
+        }, 1500);
+    }, [players, isFamilySpinning]);
+    
+    const completeQuest = useCallback((quest, playerId = null) => {
+        const targetPlayer = playerId ? players.find(p => p.id === playerId) : activePlayer;
+        if (!targetPlayer || !quest) return null;
+        
         const today = getTodayString();
-        const lastPlayed = activePlayer.lastPlayedDate;
+        const lastPlayed = targetPlayer.lastPlayedDate;
         const yesterday = new Date(Date.now() - 86400000).toDateString();
-        let streak = activePlayer.streak;
+        let streak = targetPlayer.streak;
         if (lastPlayed === yesterday) streak += 1; else if (lastPlayed !== today) streak = 1;
         const bonus = Math.min(streak * 0.1, 0.5);
         const sparksEarned = Math.round(quest.rewards.sparks * (1 + bonus));
         const xpEarned = Math.round(quest.rewards.xp * (1 + bonus));
-        const newXp = activePlayer.xp + xpEarned;
-        const questsToday = activePlayer.lastQuestDate === today ? (activePlayer.questsCompletedToday || 0) + 1 : 1;
+        const newXp = targetPlayer.xp + xpEarned;
+        const questsToday = targetPlayer.lastQuestDate === today ? (targetPlayer.questsCompletedToday || 0) + 1 : 1;
         
-        updatePlayer(activePlayer.id, { sparks: activePlayer.sparks + sparksEarned, xp: newXp, level: LEVEL_CONFIG.getLevel(newXp), streak, lastPlayedDate: today, lastQuestDate: today, questsCompletedToday: questsToday, completedQuests: [{ questId: quest.id, category: quest.category, timestamp: Date.now() }, ...activePlayer.completedQuests.slice(0, 99)] });
-        setShowCompletion(true);
-        return { sparksEarned, xpEarned, streakBonus: bonus > 0 };
-    }, [activePlayer, updatePlayer]);
+        updatePlayer(targetPlayer.id, { sparks: targetPlayer.sparks + sparksEarned, xp: newXp, level: LEVEL_CONFIG.getLevel(newXp), streak, lastPlayedDate: today, lastQuestDate: today, questsCompletedToday: questsToday, completedQuests: [{ questId: quest.id, category: quest.category, timestamp: Date.now() }, ...targetPlayer.completedQuests.slice(0, 99)] });
+        
+        const rewards = { sparksEarned, xpEarned, streakBonus: bonus > 0 };
+        
+        if (familyMode && playerId) {
+            setFamilyQuests(prev => ({ ...prev, [playerId]: { ...prev[playerId], completed: true, rewards } }));
+        } else {
+            setShowCompletion(true);
+        }
+        
+        return rewards;
+    }, [activePlayer, players, updatePlayer, familyMode]);
+    
+    const clearFamilyQuests = useCallback(() => { setFamilyQuests({}); setFamilyMode(false); }, []);
     
     const buyItem = useCallback((itemId) => {
         if (!activePlayer) return { success: false, message: 'No player' };
@@ -278,7 +319,7 @@ function GameProvider({ children }) {
         if (activePlayer.sparks < item.price) return { success: false, message: 'Not enough Sparks!' };
         if (activePlayer.inventory.includes(itemId)) return { success: false, message: 'Already owned!' };
         updatePlayer(activePlayer.id, { sparks: activePlayer.sparks - item.price, inventory: [...activePlayer.inventory, itemId] });
-        return { success: true, message: `Got ${item.name}!` };
+        return { success: true, message: 'Got ' + item.name + '!' };
     }, [activePlayer, updatePlayer]);
     
     const equipItem = useCallback((itemId) => {
@@ -289,8 +330,8 @@ function GameProvider({ children }) {
     }, [activePlayer, updatePlayer]);
     
     const addRealReward = useCallback((data) => {
-        const r = { id: `r_${Date.now()}`, name: data.name, cost: data.cost || 100, emoji: data.emoji || '🎁', description: data.description || '' };
-        setRealRewards(prev => [...prev, r]); showNotif(`Added "${r.name}"!`); return r;
+        const r = { id: 'r_' + Date.now(), name: data.name, cost: data.cost || 100, emoji: data.emoji || '🎁', description: data.description || '' };
+        setRealRewards(prev => [...prev, r]); showNotif('Added "' + r.name + '"!'); return r;
     }, [showNotif]);
     
     const removeRealReward = useCallback((id) => { setRealRewards(prev => prev.filter(r => r.id !== id)); showNotif('Removed'); }, [showNotif]);
@@ -301,7 +342,7 @@ function GameProvider({ children }) {
         if (!r) return { success: false, message: 'Not found' };
         if (activePlayer.sparks < r.cost) return { success: false, message: 'Not enough Sparks!' };
         updatePlayer(activePlayer.id, { sparks: activePlayer.sparks - r.cost });
-        showNotif(`🎉 Redeemed "${r.name}"!`);
+        showNotif('🎉 Redeemed "' + r.name + '"!');
         return { success: true, reward: r };
     }, [activePlayer, realRewards, updatePlayer, showNotif]);
     
@@ -309,15 +350,23 @@ function GameProvider({ children }) {
     const verifyParentPin = useCallback((pin) => { if (pin === parentPin) { setIsParentMode(true); return true; } return false; }, [parentPin]);
     const exitParentMode = useCallback(() => { setIsParentMode(false); setCurrentView('home'); }, []);
     
-    return <GameContext.Provider value={{ players, activePlayer, activePlayerIndex, currentView, currentQuest, isSpinning, showCompletion, isParentMode, parentPin, realRewards, notification, setActivePlayerIndex, setCurrentView, setCurrentQuest, setShowCompletion, createPlayer, updatePlayer, showNotif, spinQuest, completeQuest, buyItem, equipItem, addChore, removeChore, completeChore, getTodayChores, getDailyChallenge, addRealReward, removeRealReward, redeemReward, setupParentPin, verifyParentPin, exitParentMode }}>{children}</GameContext.Provider>;
+    return React.createElement(GameContext.Provider, { value: { 
+        players, activePlayer, activePlayerIndex, currentView, currentQuest, isSpinning, showCompletion, isParentMode, parentPin, realRewards, notification,
+        familyQuests, isFamilySpinning, familyMode,
+        setActivePlayerIndex, setCurrentView, setCurrentQuest, setShowCompletion, 
+        createPlayer, updatePlayer, showNotif, spinQuest, spinAllQuests, completeQuest, clearFamilyQuests,
+        buyItem, equipItem, addChore, removeChore, completeChore, getTodayChores, getDailyChallenge, 
+        addRealReward, removeRealReward, redeemReward, setupParentPin, verifyParentPin, exitParentMode 
+    }}, children);
 }
 
-// Components
 function BlockyAvatar({ config, size = 'md' }) {
     const sizes = { xs: 48, sm: 64, md: 96, lg: 128 };
     const w = sizes[size] || 96;
     const c = { ...DEFAULT_AVATAR, ...config };
     const hairPaths = { spiky: "M30,35 L35,15 L45,30 L55,10 L65,30 L75,15 L80,35", wavy: "M25,40 Q35,20 50,35 Q65,20 80,40", curly: "M25,40 Q30,25 40,35 Q45,20 55,35 Q60,20 70,35 Q75,25 85,40", short: "M30,40 L30,30 L80,30 L80,40", long: "M25,35 L25,80 L35,80 L35,45 L75,45 L75,80 L85,80 L85,35", ponytail: "M30,35 L30,30 L80,30 L80,35 M75,30 L85,50 L75,70", mohawk: "M48,40 L48,5 L62,5 L62,40", bald: "" };
+    const hatItem = c.hat ? SHOP_ITEMS.find(i=>i.id===c.hat) : null;
+    const accItem = c.accessory ? SHOP_ITEMS.find(i=>i.id===c.accessory) : null;
     return (
         <svg width={w} height={w} viewBox="0 0 110 130" style={{display:'block'}}>
             <circle cx="55" cy="65" r="50" fill="#E0F2FE"/>
@@ -328,8 +377,8 @@ function BlockyAvatar({ config, size = 'md' }) {
             <circle cx="43" cy="56" r="3" fill={c.eyeColor}/><circle cx="69" cy="56" r="3" fill={c.eyeColor}/>
             <circle cx="44" cy="55" r="1" fill="white"/><circle cx="70" cy="55" r="1" fill="white"/>
             <path d="M45,70 Q55,78 65,70" stroke="#333" strokeWidth="2" fill="none" strokeLinecap="round"/>
-            {c.hat && <text x="55" y="25" textAnchor="middle" fontSize="24">{SHOP_ITEMS.find(i=>i.id===c.hat)?.emoji||''}</text>}
-            {c.accessory && <text x="90" y="60" textAnchor="middle" fontSize="20">{SHOP_ITEMS.find(i=>i.id===c.accessory)?.emoji||''}</text>}
+            {hatItem && <text x="55" y="25" textAnchor="middle" fontSize="24">{hatItem.emoji}</text>}
+            {accItem && <text x="90" y="60" textAnchor="middle" fontSize="20">{accItem.emoji}</text>}
         </svg>
     );
 }
@@ -342,7 +391,7 @@ function LevelProgress({ xp, level }) {
         <div className="flex items-center gap-3">
             <div className="bg-purple-100 px-3 py-1 rounded-full"><span className="text-purple-700 font-bold text-sm">Lvl {level}</span></div>
             <div className="flex-1">
-                <div className="h-2 bg-slate-200 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all" style={{width:`${progress}%`}}/></div>
+                <div className="h-2 bg-slate-200 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all" style={{width: progress + '%'}}/></div>
                 <p className="text-xs text-slate-400 mt-1">{toNext} XP to next</p>
             </div>
         </div>
@@ -354,14 +403,109 @@ function StreakFlame({ streak }) {
     return <div className="flex items-center gap-1 bg-orange-100 px-3 py-1 rounded-full"><span className="text-lg" style={{animation:'flame-flicker 0.5s ease-in-out infinite'}}>🔥</span><span className="text-orange-700 font-bold text-sm">{streak} day streak!</span></div>;
 }
 
+function PlayerSelector() {
+    const { players, setActivePlayerIndex, activePlayerIndex } = useGame();
+    if (players.length <= 1) return null;
+    return (
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+            {players.map((p, i) => {
+                const isActive = i === activePlayerIndex;
+                const age = calculateAge(p.dob);
+                return (
+                    <button key={p.id} onClick={() => setActivePlayerIndex(i)} className={'player-pill flex items-center gap-2 px-3 py-2 rounded-2xl font-bold text-sm whitespace-nowrap border-2 transition-all ' + (isActive ? 'bg-sky-500 text-white border-sky-600 shadow-lg active' : 'bg-white text-slate-600 border-slate-200 shadow hover:border-sky-300')}>
+                        <BlockyAvatar config={p.avatar} size="xs"/>
+                        <div className="text-left">
+                            <div className={isActive ? 'text-white' : 'text-slate-800'}>{p.username}</div>
+                            <div className={'text-xs ' + (isActive ? 'text-sky-100' : 'text-slate-400')}>Age {age}</div>
+                        </div>
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+function FamilyQuestCard({ player, questData, onComplete, index }) {
+    const { quest, completed, rewards } = questData;
+    const cat = CATEGORY_CONFIG[quest.category];
+    const diff = DIFFICULTY_CONFIG[quest.difficulty];
+    const age = calculateAge(player.dob);
+    
+    return (
+        <div className={'family-quest-card card p-4 quest-' + quest.category + ' border-l-4 animate-stagger ' + (completed ? 'quest-done' : '')} style={{ animationDelay: (index * 0.1) + 's' }}>
+            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200/50">
+                <div className="bg-white/80 rounded-xl p-1"><BlockyAvatar config={player.avatar} size="xs"/></div>
+                <div className="flex-1">
+                    <h4 className="font-bold text-slate-800">{player.username}</h4>
+                    <span className="text-xs text-slate-500">Age {age} • Lvl {player.level}</span>
+                </div>
+                <SparkCounter amount={player.sparks}/>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl">{cat.emoji}</span>
+                <span className={'text-xs font-bold uppercase text-' + cat.color + '-600'}>{cat.label}</span>
+                <span className={'ml-auto text-xs font-bold px-2 py-1 rounded-full bg-' + diff.color + '-100 text-' + diff.color + '-700'}>{diff.label}</span>
+            </div>
+            <h3 className="text-lg font-bold text-slate-800 mb-3">{quest.text}</h3>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-yellow-600">⚡ {quest.rewards.sparks}</span>
+                    <span className="text-sm font-bold text-purple-600">✨ {quest.rewards.xp} XP</span>
+                </div>
+                {completed ? (
+                    <div className="flex items-center gap-2 bg-green-100 px-4 py-2 rounded-xl">
+                        <span className="text-green-600">✓</span>
+                        <span className="text-green-700 font-bold text-sm">+{rewards.sparksEarned} ⚡</span>
+                    </div>
+                ) : (
+                    <button onClick={() => onComplete(quest, player.id)} className="btn-success text-sm px-4 py-2">Done! ✓</button>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function FamilyQuestView() {
+    const { players, familyQuests, completeQuest, clearFamilyQuests, spinAllQuests, isFamilySpinning } = useGame();
+    const allCompleted = Object.values(familyQuests).every(q => q.completed);
+    const completedCount = Object.values(familyQuests).filter(q => q.completed).length;
+    const totalQuests = Object.keys(familyQuests).length;
+    
+    return (
+        <div className="space-y-4">
+            <div className="card p-4">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-slate-700">👨‍👩‍👧‍👦 Family Quest Progress</span>
+                    <span className="font-bold text-sky-600">{completedCount}/{totalQuests}</span>
+                </div>
+                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 transition-all duration-500" style={{width: (totalQuests > 0 ? (completedCount/totalQuests*100) : 0) + '%'}}/>
+                </div>
+                {allCompleted && <div className="text-center mt-3"><span className="text-2xl">🎉</span><span className="text-green-600 font-bold ml-2">Everyone finished!</span></div>}
+            </div>
+            <div className="space-y-4">
+                {players.map((player, index) => {
+                    const questData = familyQuests[player.id];
+                    if (!questData) return null;
+                    return <FamilyQuestCard key={player.id} player={player} questData={questData} onComplete={completeQuest} index={index}/>;
+                })}
+            </div>
+            <div className="flex gap-2">
+                <button onClick={clearFamilyQuests} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">← Back</button>
+                {allCompleted && <button onClick={spinAllQuests} disabled={isFamilySpinning} className="flex-1 btn-family">Spin Again! 🎲</button>}
+            </div>
+        </div>
+    );
+}
+
 function QuestCard({ quest, onComplete }) {
     const cat = CATEGORY_CONFIG[quest.category], diff = DIFFICULTY_CONFIG[quest.difficulty];
     return (
-        <div className={`card card-elevated p-6 quest-${quest.category} border-l-4 animate-bounce-in`}>
+        <div className={'card card-elevated p-6 quest-' + quest.category + ' border-l-4 animate-bounce-in'}>
             <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">{cat.emoji}</span>
-                <span className={`text-xs font-bold uppercase text-${cat.color}-600`}>{cat.label}</span>
-                <span className={`ml-auto text-xs font-bold px-2 py-1 rounded-full bg-${diff.color}-100 text-${diff.color}-700`}>{diff.label}</span>
+                <span className={'text-xs font-bold uppercase text-' + cat.color + '-600'}>{cat.label}</span>
+                <span className={'ml-auto text-xs font-bold px-2 py-1 rounded-full bg-' + diff.color + '-100 text-' + diff.color + '-700'}>{diff.label}</span>
             </div>
             <h3 className="text-xl font-bold text-slate-800 mb-4">{quest.text}</h3>
             <div className="flex items-center justify-between">
@@ -376,17 +520,17 @@ function QuestCard({ quest, onComplete }) {
 }
 
 function CompletionModal({ rewards, onClose }) {
-    const [confetti] = useState(() => Array.from({length:50}, (_,i) => ({ id:i, left:Math.random()*100, delay:Math.random()*0.5, color:['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4'][Math.floor(Math.random()*5)] })));
+    const confetti = Array.from({length:50}, (_,i) => ({ id:i, left:Math.random()*100, delay:Math.random()*0.5, color:['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#96CEB4'][Math.floor(Math.random()*5)] }));
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            {confetti.map(p => <div key={p.id} className="absolute w-3 h-3 rounded-sm" style={{left:`${p.left}%`,top:'-20px',backgroundColor:p.color,animation:'confetti-fall 2s ease-in forwards',animationDelay:`${p.delay}s`}}/>)}
+            {confetti.map(p => <div key={p.id} className="absolute w-3 h-3 rounded-sm" style={{left: p.left + '%', top:'-20px', backgroundColor:p.color, animation:'confetti-fall 2s ease-in forwards', animationDelay: p.delay + 's'}}/>)}
             <div className="card card-elevated p-8 text-center max-w-sm w-full animate-bounce-in">
                 <div className="text-6xl mb-4">🎉</div>
                 <h2 className="text-2xl font-bold text-slate-800 mb-2">Complete!</h2>
                 <div className="bg-gradient-to-r from-yellow-100 to-purple-100 rounded-2xl p-4 mb-4">
                     <div className="flex justify-center gap-6">
-                        <div><div className="text-3xl font-bold text-yellow-600">+{rewards.sparks}</div><div className="text-sm text-slate-500">Sparks</div></div>
-                        <div><div className="text-3xl font-bold text-purple-600">+{rewards.xp}</div><div className="text-sm text-slate-500">XP</div></div>
+                        <div><div className="text-3xl font-bold text-yellow-600">+{rewards.sparksEarned}</div><div className="text-sm text-slate-500">Sparks</div></div>
+                        <div><div className="text-3xl font-bold text-purple-600">+{rewards.xpEarned}</div><div className="text-sm text-slate-500">XP</div></div>
                     </div>
                 </div>
                 {rewards.streakBonus && <div className="bg-orange-100 rounded-xl p-2 mb-4"><span className="text-orange-700 font-bold text-sm">🔥 Streak Bonus!</span></div>}
@@ -399,108 +543,7 @@ function CompletionModal({ rewards, onClose }) {
 function Notification() {
     const { notification } = useGame();
     if (!notification) return null;
-    return <div className={`fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50 ${notification.type === 'error' ? 'bg-red-500' : 'bg-green-500'} text-white`}>{notification.message}</div>;
-}
-
-function ChoreItem({ chore, onComplete }) {
-    return (
-        <div className={`chore-item card p-4 flex items-center gap-4 ${chore.isCompleted ? 'completed' : ''}`}>
-            <button onClick={() => !chore.isCompleted && onComplete(chore.id)} className={`chore-checkbox ${chore.isCompleted ? 'checked' : ''}`} disabled={chore.isCompleted}>
-                {chore.isCompleted && <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>}
-            </button>
-            <div className="text-2xl">{chore.emoji}</div>
-            <div className="flex-1">
-                <h4 className={`font-bold ${chore.isCompleted ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{chore.name}</h4>
-                <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs font-bold text-yellow-600">⚡ {chore.sparks}</span>
-                    <span className="text-xs font-bold text-purple-600">✨ {chore.xp} XP</span>
-                    <span className="text-xs text-slate-400 capitalize">• {chore.recurrence}</span>
-                </div>
-            </div>
-            {chore.isCompleted && <span className="text-green-500 text-xl">✓</span>}
-        </div>
-    );
-}
-
-function DailyChallengeCard() {
-    const { getDailyChallenge } = useGame();
-    const challenge = getDailyChallenge();
-    if (!challenge) return null;
-    return (
-        <div className={`challenge-card card p-4 mb-4 ${challenge.completed ? 'opacity-75' : ''}`}>
-            <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-2">
-                    <span className="text-3xl">{challenge.emoji}</span>
-                    <div>
-                        <div className="flex items-center gap-2"><h3 className="font-bold text-amber-900">{challenge.name}</h3>{challenge.completed && <span className="text-green-600">✓</span>}</div>
-                        <p className="text-sm text-amber-700">{challenge.description}</p>
-                    </div>
-                </div>
-                <div className="text-sm font-bold text-amber-800">Bonus: ⚡ {challenge.bonusSparks} + ✨ {challenge.bonusXp} XP</div>
-            </div>
-        </div>
-    );
-}
-
-function ChoreList() {
-    const { getTodayChores, completeChore } = useGame();
-    const [showRewards, setShowRewards] = useState(null);
-    const chores = getTodayChores();
-    const done = chores.filter(c => c.isCompleted).length, total = chores.length;
-    
-    const handleComplete = (id) => { const r = completeChore(id); if (r) { setShowRewards(r); setTimeout(() => setShowRewards(null), 2000); } };
-    
-    return (
-        <div>
-            {total > 0 && (
-                <div className="card p-4 mb-4">
-                    <div className="flex items-center justify-between mb-2"><span className="font-bold text-slate-700">Today's Progress</span><span className="font-bold text-sky-600">{done}/{total}</span></div>
-                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-sky-400 to-sky-600 transition-all" style={{width:`${total>0?(done/total*100):0}%`}}/></div>
-                    {done === total && total > 0 && <div className="text-center mt-2 text-green-600 font-bold">🎉 All done!</div>}
-                </div>
-            )}
-            <DailyChallengeCard />
-            <div className="space-y-3">
-                {chores.length > 0 ? chores.map(c => <ChoreItem key={c.id} chore={c} onComplete={handleComplete}/>) : (
-                    <div className="card p-8 text-center"><div className="text-4xl mb-2">📋</div><p className="text-slate-500">No chores yet!</p><p className="text-sm text-slate-400">Ask a parent to add some.</p></div>
-                )}
-            </div>
-            {showRewards && <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50">+{showRewards.sparksEarned} ⚡ +{showRewards.xpEarned} XP</div>}
-        </div>
-    );
-}
-
-function ParentPinModal({ onSuccess, onCancel }) {
-    const { parentPin, setupParentPin, verifyParentPin } = useGame();
-    const [pin, setPin] = useState('');
-    const [confirmPin, setConfirmPin] = useState('');
-    const [error, setError] = useState('');
-    const isSetup = !parentPin;
-    
-    const handleSubmit = () => {
-        if (pin.length < 4) { setError('PIN must be at least 4 digits'); return; }
-        if (isSetup) {
-            if (pin !== confirmPin) { setError('PINs do not match'); return; }
-            setupParentPin(pin); onSuccess();
-        } else {
-            if (verifyParentPin(pin)) onSuccess(); else { setError('Wrong PIN'); setPin(''); }
-        }
-    };
-    
-    return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="card p-6 w-full max-w-sm animate-bounce-in">
-                <h2 className="text-xl font-bold text-slate-800 mb-4 text-center">{isSetup ? '🔐 Set Parent PIN' : '🔐 Enter Parent PIN'}</h2>
-                <input type="password" inputMode="numeric" value={pin} onChange={(e) => {setPin(e.target.value.replace(/\D/g,'')); setError('');}} placeholder="Enter PIN..." className="w-full p-4 text-2xl text-center border-2 border-slate-200 rounded-xl focus:border-purple-400 focus:outline-none tracking-widest" maxLength={6}/>
-                {isSetup && <input type="password" inputMode="numeric" value={confirmPin} onChange={(e) => {setConfirmPin(e.target.value.replace(/\D/g,'')); setError('');}} placeholder="Confirm PIN..." className="w-full p-4 text-2xl text-center border-2 border-slate-200 rounded-xl focus:border-purple-400 focus:outline-none tracking-widest mt-3" maxLength={6}/>}
-                {error && <p className="text-red-500 text-sm text-center mt-2">{error}</p>}
-                <div className="flex gap-2 mt-4">
-                    <button onClick={onCancel} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">Cancel</button>
-                    <button onClick={handleSubmit} className="flex-1 btn-primary">{isSetup ? 'Set PIN' : 'Enter'}</button>
-                </div>
-            </div>
-        </div>
-    );
+    return <div className={'fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50 ' + (notification.type === 'error' ? 'bg-red-500' : 'bg-green-500') + ' text-white'}>{notification.message}</div>;
 }
 
 function ParentDashboard() {
@@ -525,24 +568,35 @@ function ParentDashboard() {
             </div>
             
             <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">
-                {players.map(p => (
-                    <button key={p.id} onClick={() => setSelectedPlayer(p.id)} className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap ${selectedPlayer === p.id ? 'bg-purple-500 text-white shadow-lg' : 'bg-white text-slate-500 shadow'}`}>
-                        <BlockyAvatar config={p.avatar} size="xs"/><span>{p.username}</span>
-                    </button>
-                ))}
+                {players.map(p => {
+                    const age = calculateAge(p.dob);
+                    return (
+                        <button key={p.id} onClick={() => setSelectedPlayer(p.id)} className={'flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap ' + (selectedPlayer === p.id ? 'bg-purple-500 text-white shadow-lg' : 'bg-white text-slate-500 shadow')}>
+                            <BlockyAvatar config={p.avatar} size="xs"/>
+                            <div className="text-left">
+                                <div>{p.username}</div>
+                                <div className={'text-xs ' + (selectedPlayer === p.id ? 'text-purple-200' : 'text-slate-400')}>Age {age}</div>
+                            </div>
+                        </button>
+                    );
+                })}
             </div>
             
             {player && (
                 <>
                     <div className="card p-4 mb-4 flex items-center gap-3">
                         <BlockyAvatar config={player.avatar} size="sm"/>
-                        <div><h3 className="font-bold text-slate-800">{player.username}</h3><div className="flex gap-2 text-sm"><span className="text-yellow-600">⚡ {player.sparks}</span><span className="text-purple-600">Lvl {player.level}</span><span className="text-orange-600">🔥 {player.streak}</span></div></div>
+                        <div>
+                            <h3 className="font-bold text-slate-800">{player.username}</h3>
+                            <div className="text-xs text-slate-500 mb-1">Age {calculateAge(player.dob)}</div>
+                            <div className="flex gap-2 text-sm"><span className="text-yellow-600">⚡ {player.sparks}</span><span className="text-purple-600">Lvl {player.level}</span><span className="text-orange-600">🔥 {player.streak}</span></div>
+                        </div>
                     </div>
                     
                     <div className="flex bg-white rounded-xl p-1 shadow mb-4">
-                        <button onClick={() => setTab('chores')} className={`flex-1 py-2 rounded-lg font-bold text-sm ${tab === 'chores' ? 'bg-purple-100 text-purple-700' : 'text-slate-400'}`}>📋 Chores</button>
-                        <button onClick={() => setTab('rewards')} className={`flex-1 py-2 rounded-lg font-bold text-sm ${tab === 'rewards' ? 'bg-purple-100 text-purple-700' : 'text-slate-400'}`}>🎁 Rewards</button>
-                        <button onClick={() => setTab('history')} className={`flex-1 py-2 rounded-lg font-bold text-sm ${tab === 'history' ? 'bg-purple-100 text-purple-700' : 'text-slate-400'}`}>📜 History</button>
+                        <button onClick={() => setTab('chores')} className={'flex-1 py-2 rounded-lg font-bold text-sm ' + (tab === 'chores' ? 'bg-purple-100 text-purple-700' : 'text-slate-400')}>📋 Chores</button>
+                        <button onClick={() => setTab('rewards')} className={'flex-1 py-2 rounded-lg font-bold text-sm ' + (tab === 'rewards' ? 'bg-purple-100 text-purple-700' : 'text-slate-400')}>🎁 Rewards</button>
+                        <button onClick={() => setTab('history')} className={'flex-1 py-2 rounded-lg font-bold text-sm ' + (tab === 'history' ? 'bg-purple-100 text-purple-700' : 'text-slate-400')}>📜 History</button>
                     </div>
                     
                     {tab === 'chores' && (
@@ -608,7 +662,7 @@ function ParentDashboard() {
                                 <div><label className="text-sm font-bold text-slate-600 mb-1 block">⚡ Sparks</label><input type="number" value={newChore.sparks} onChange={(e) => setNewChore({...newChore, sparks: parseInt(e.target.value)||0})} className="w-full p-3 border-2 border-slate-200 rounded-xl" min="1"/></div>
                                 <div><label className="text-sm font-bold text-slate-600 mb-1 block">✨ XP</label><input type="number" value={newChore.xp} onChange={(e) => setNewChore({...newChore, xp: parseInt(e.target.value)||0})} className="w-full p-3 border-2 border-slate-200 rounded-xl" min="1"/></div>
                             </div>
-                            <div><label className="text-sm font-bold text-slate-600 mb-1 block">Recurrence</label><div className="flex gap-2">{RECURRENCE_OPTIONS.map(o => <button key={o.id} onClick={() => setNewChore({...newChore, recurrence: o.id})} className={`flex-1 py-2 rounded-lg font-bold text-sm ${newChore.recurrence === o.id ? 'bg-purple-500 text-white' : 'bg-slate-100 text-slate-600'}`}>{o.emoji} {o.label}</button>)}</div></div>
+                            <div><label className="text-sm font-bold text-slate-600 mb-1 block">Recurrence</label><div className="flex gap-2">{RECURRENCE_OPTIONS.map(o => <button key={o.id} onClick={() => setNewChore({...newChore, recurrence: o.id})} className={'flex-1 py-2 rounded-lg font-bold text-sm ' + (newChore.recurrence === o.id ? 'bg-purple-500 text-white' : 'bg-slate-100 text-slate-600')}>{o.emoji} {o.label}</button>)}</div></div>
                         </div>
                         <div className="flex gap-2 mt-6"><button onClick={() => setShowAddChore(false)} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">Cancel</button><button onClick={handleAddChore} className="flex-1 btn-success">Add</button></div>
                     </div>
@@ -632,22 +686,24 @@ function ParentDashboard() {
     );
 }
 
-// Main Screens
 function PlayerSetupScreen() {
-    const { createPlayer, setCurrentView } = useGame();
+    const { createPlayer, setCurrentView, players } = useGame();
     const [step, setStep] = useState(1);
     const [username, setUsername] = useState('');
     const [dob, setDob] = useState('');
     const [avatar, setAvatar] = useState({ ...DEFAULT_AVATAR });
+    const isAddingAnother = players.length > 0;
     
     const handleComplete = () => { createPlayer({ username, dob, avatar }); setCurrentView('home'); };
+    const handleCancel = () => { setCurrentView('home'); };
     
     return (
         <div className="min-h-screen p-4 flex flex-col items-center justify-center">
             <div className="card p-6 w-full max-w-md">
+                {isAddingAnother && <button onClick={handleCancel} className="text-slate-400 text-sm mb-4 hover:text-slate-600">← Back to game</button>}
                 {step === 1 && (
                     <div className="text-center">
-                        <h2 className="text-2xl font-bold text-slate-800 mb-4">👋 What's your name?</h2>
+                        <h2 className="text-2xl font-bold text-slate-800 mb-4">{isAddingAnother ? '👋 Add another player!' : "👋 What's your name?"}</h2>
                         <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter name..." className="w-full p-4 text-lg border-2 border-slate-200 rounded-xl focus:border-sky-400 focus:outline-none mb-4" maxLength={20}/>
                         <button onClick={() => setStep(2)} disabled={!username.trim()} className="btn-primary w-full disabled:opacity-50">Next →</button>
                     </div>
@@ -664,10 +720,10 @@ function PlayerSetupScreen() {
                     <div>
                         <h2 className="text-2xl font-bold text-slate-800 mb-4 text-center">🎨 Create Avatar!</h2>
                         <div className="flex justify-center mb-4"><div className="bg-sky-50 rounded-2xl p-4"><BlockyAvatar config={avatar} size="lg"/></div></div>
-                        <div className="mb-4"><label className="text-sm font-bold text-slate-600 mb-2 block">Skin</label><div className="flex flex-wrap gap-2">{SKIN_TONES.map(t => <button key={t} onClick={() => setAvatar(a => ({...a, skinTone: t}))} className={`w-8 h-8 rounded-full border-2 ${avatar.skinTone === t ? 'border-sky-500 ring-2 ring-sky-200' : 'border-slate-200'}`} style={{backgroundColor:t}}/>)}</div></div>
-                        <div className="mb-4"><label className="text-sm font-bold text-slate-600 mb-2 block">Hair Style</label><div className="flex flex-wrap gap-2">{HAIR_STYLES.map(s => <button key={s} onClick={() => setAvatar(a => ({...a, hairStyle: s}))} className={`px-3 py-1 rounded-full text-sm font-medium capitalize ${avatar.hairStyle === s ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600'}`}>{s}</button>)}</div></div>
-                        <div className="mb-4"><label className="text-sm font-bold text-slate-600 mb-2 block">Hair Color</label><div className="flex flex-wrap gap-2">{HAIR_COLORS.map(c => <button key={c} onClick={() => setAvatar(a => ({...a, hairColor: c}))} className={`w-8 h-8 rounded-full border-2 ${avatar.hairColor === c ? 'border-sky-500 ring-2 ring-sky-200' : 'border-slate-200'}`} style={{backgroundColor:c}}/>)}</div></div>
-                        <div className="mb-4"><label className="text-sm font-bold text-slate-600 mb-2 block">Outfit</label><div className="flex flex-wrap gap-2">{OUTFIT_COLORS.map(c => <button key={c} onClick={() => setAvatar(a => ({...a, outfitColor: c}))} className={`w-8 h-8 rounded-full border-2 ${avatar.outfitColor === c ? 'border-sky-500 ring-2 ring-sky-200' : 'border-slate-200'}`} style={{backgroundColor:c}}/>)}</div></div>
+                        <div className="mb-4"><label className="text-sm font-bold text-slate-600 mb-2 block">Skin</label><div className="flex flex-wrap gap-2">{SKIN_TONES.map(t => <button key={t} onClick={() => setAvatar(a => ({...a, skinTone: t}))} className={'w-8 h-8 rounded-full border-2 ' + (avatar.skinTone === t ? 'border-sky-500 ring-2 ring-sky-200' : 'border-slate-200')} style={{backgroundColor:t}}/>)}</div></div>
+                        <div className="mb-4"><label className="text-sm font-bold text-slate-600 mb-2 block">Hair Style</label><div className="flex flex-wrap gap-2">{HAIR_STYLES.map(s => <button key={s} onClick={() => setAvatar(a => ({...a, hairStyle: s}))} className={'px-3 py-1 rounded-full text-sm font-medium capitalize ' + (avatar.hairStyle === s ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600')}>{s}</button>)}</div></div>
+                        <div className="mb-4"><label className="text-sm font-bold text-slate-600 mb-2 block">Hair Color</label><div className="flex flex-wrap gap-2">{HAIR_COLORS.map(c => <button key={c} onClick={() => setAvatar(a => ({...a, hairColor: c}))} className={'w-8 h-8 rounded-full border-2 ' + (avatar.hairColor === c ? 'border-sky-500 ring-2 ring-sky-200' : 'border-slate-200')} style={{backgroundColor:c}}/>)}</div></div>
+                        <div className="mb-4"><label className="text-sm font-bold text-slate-600 mb-2 block">Outfit</label><div className="flex flex-wrap gap-2">{OUTFIT_COLORS.map(c => <button key={c} onClick={() => setAvatar(a => ({...a, outfitColor: c}))} className={'w-8 h-8 rounded-full border-2 ' + (avatar.outfitColor === c ? 'border-sky-500 ring-2 ring-sky-200' : 'border-slate-200')} style={{backgroundColor:c}}/>)}</div></div>
                         <div className="flex gap-2 mt-6"><button onClick={() => setStep(2)} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">← Back</button><button onClick={handleComplete} className="flex-1 btn-primary">Let's Go! 🚀</button></div>
                     </div>
                 )}
@@ -677,9 +733,11 @@ function PlayerSetupScreen() {
 }
 
 function HomeScreen() {
-    const { activePlayer, currentQuest, isSpinning, spinQuest, completeQuest, showCompletion, setShowCompletion, setCurrentQuest } = useGame();
+    const { players, activePlayer, currentQuest, isSpinning, spinQuest, completeQuest, showCompletion, setShowCompletion, setCurrentQuest, familyQuests, isFamilySpinning, familyMode, spinAllQuests } = useGame();
     const [mode, setMode] = useState('adventure');
     const [lastRewards, setLastRewards] = useState(null);
+    const hasMultiplePlayers = players.length > 1;
+    const hasFamilyQuests = Object.keys(familyQuests).length > 0;
     
     const handleComplete = (q) => { const r = completeQuest(q); setLastRewards(r); };
     const handleClose = () => { setShowCompletion(false); setCurrentQuest(null); setLastRewards(null); };
@@ -691,24 +749,51 @@ function HomeScreen() {
                 <div className="flex-1"><h2 className="text-xl font-bold text-slate-800">{activePlayer.username}</h2><LevelProgress xp={activePlayer.xp} level={activePlayer.level}/></div>
                 <SparkCounter amount={activePlayer.sparks}/>
             </div>
+            
+            {hasMultiplePlayers && (
+                <div className="mb-4">
+                    <div className="text-xs font-bold text-slate-500 uppercase mb-2">👨‍👩‍👧‍👦 Switch Player</div>
+                    <PlayerSelector/>
+                </div>
+            )}
+            
             {activePlayer.streak > 0 && <div className="flex justify-center mb-4"><StreakFlame streak={activePlayer.streak}/></div>}
             
             <div className="flex bg-white p-1 rounded-xl mb-4 shadow">
-                <button onClick={() => setMode('adventure')} className={`flex-1 py-3 rounded-xl font-bold text-sm uppercase ${mode === 'adventure' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400'}`}>🎲 Adventure</button>
-                <button onClick={() => setMode('chores')} className={`flex-1 py-3 rounded-xl font-bold text-sm uppercase ${mode === 'chores' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400'}`}>📋 Chores</button>
+                <button onClick={() => setMode('adventure')} className={'flex-1 py-3 rounded-xl font-bold text-sm uppercase ' + (mode === 'adventure' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400')}>🎲 Adventure</button>
+                <button onClick={() => setMode('chores')} className={'flex-1 py-3 rounded-xl font-bold text-sm uppercase ' + (mode === 'chores' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400')}>📋 Chores</button>
             </div>
             
             {mode === 'adventure' && (
-                <div className="card p-6 text-center">
-                    <h3 className="text-lg font-bold text-slate-700 mb-4">🎯 Random Quest</h3>
-                    {!currentQuest && !isSpinning && (
-                        <div><div className="text-6xl mb-4 animate-float">🎰</div><p className="text-slate-500 mb-4">Ready for adventure?</p><button onClick={spinQuest} className="btn-primary text-lg px-8 py-4">Spin! 🎲</button></div>
+                <>
+                    {hasFamilyQuests && familyMode ? (
+                        <FamilyQuestView />
+                    ) : (
+                        <div className="card p-6 text-center">
+                            <h3 className="text-lg font-bold text-slate-700 mb-4">🎯 Random Quest</h3>
+                            {!currentQuest && !isSpinning && !isFamilySpinning && (
+                                <div>
+                                    <div className="text-6xl mb-4 animate-float">🎰</div>
+                                    <p className="text-slate-500 mb-4">Ready for adventure?</p>
+                                    <button onClick={spinQuest} className="btn-primary text-lg px-8 py-4 w-full mb-3">Spin for {activePlayer.username}! 🎲</button>
+                                    {hasMultiplePlayers && <button onClick={spinAllQuests} className="btn-family text-lg px-8 py-4 w-full">👨‍👩‍👧‍👦 Spin for Everyone!</button>}
+                                </div>
+                            )}
+                            {(isSpinning || isFamilySpinning) && (
+                                <div>
+                                    <div className="text-6xl mb-4" style={{animation:'spin-wheel 1.5s ease-out'}}>🎡</div>
+                                    <p className="text-slate-500">{isFamilySpinning ? 'Finding quests for everyone...' : 'Finding quest...'}</p>
+                                </div>
+                            )}
+                            {currentQuest && !isSpinning && !familyMode && (
+                                <div>
+                                    <QuestCard quest={currentQuest} onComplete={handleComplete}/>
+                                    <button onClick={() => setCurrentQuest(null)} className="mt-4 text-sm text-slate-400 hover:text-slate-600">Skip →</button>
+                                </div>
+                            )}
+                        </div>
                     )}
-                    {isSpinning && <div><div className="text-6xl mb-4" style={{animation:'spin-wheel 1.5s ease-out'}}>🎡</div><p className="text-slate-500">Finding quest...</p></div>}
-                    {currentQuest && !isSpinning && (
-                        <div><QuestCard quest={currentQuest} onComplete={handleComplete}/><button onClick={() => setCurrentQuest(null)} className="mt-4 text-sm text-slate-400 hover:text-slate-600">Skip →</button></div>
-                    )}
-                </div>
+                </>
             )}
             {mode === 'chores' && <ChoreList/>}
             {showCompletion && lastRewards && <CompletionModal rewards={lastRewards} onClose={handleClose}/>}
@@ -720,28 +805,26 @@ function ShopScreen() {
     const { activePlayer, buyItem, realRewards, redeemReward } = useGame();
     const [cat, setCat] = useState('all');
     const [notif, setNotif] = useState(null);
-    
     const cats = [{id:'all',label:'All',emoji:'🛒'},{id:'avatar_part',label:'Avatar',emoji:'👤'},{id:'sticker',label:'Stickers',emoji:'⭐'},{id:'real',label:'Rewards',emoji:'🎁'}];
     const items = cat === 'all' ? SHOP_ITEMS : cat === 'real' ? [] : SHOP_ITEMS.filter(i => i.type === cat);
-    
     const handleBuy = (item) => { const r = buyItem(item.id); setNotif(r); setTimeout(() => setNotif(null), 2000); };
     const handleRedeem = (reward) => { const r = redeemReward(reward.id); setNotif(r); setTimeout(() => setNotif(null), 3000); };
     
     return (
         <div className="p-4 pb-24">
             <div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold text-slate-800">🏪 Shop</h2><SparkCounter amount={activePlayer.sparks}/></div>
-            <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">{cats.map(c => <button key={c.id} onClick={() => setCat(c.id)} className={`flex items-center gap-1 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap ${cat === c.id ? 'bg-sky-500 text-white shadow-lg' : 'bg-white text-slate-500 shadow'}`}><span>{c.emoji}</span><span>{c.label}</span></button>)}</div>
+            <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">{cats.map(c => <button key={c.id} onClick={() => setCat(c.id)} className={'flex items-center gap-1 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap ' + (cat === c.id ? 'bg-sky-500 text-white shadow-lg' : 'bg-white text-slate-500 shadow')}><span>{c.emoji}</span><span>{c.label}</span></button>)}</div>
             
             {cat === 'real' && (
                 <div className="space-y-3">
                     {realRewards.length > 0 ? realRewards.map(r => {
                         const can = activePlayer.sparks >= r.cost;
                         return (
-                            <div key={r.id} className={`card p-4 ${!can ? 'opacity-60' : ''}`}>
+                            <div key={r.id} className={'card p-4 ' + (!can ? 'opacity-60' : '')}>
                                 <div className="flex items-center gap-4">
                                     <span className="text-4xl">{r.emoji}</span>
                                     <div className="flex-1"><h3 className="font-bold text-slate-800">{r.name}</h3>{r.description && <p className="text-sm text-slate-500">{r.description}</p>}</div>
-                                    <button onClick={() => handleRedeem(r)} disabled={!can} className={`px-4 py-2 rounded-lg font-bold ${can ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'}`}>⚡ {r.cost}</button>
+                                    <button onClick={() => handleRedeem(r)} disabled={!can} className={'px-4 py-2 rounded-lg font-bold ' + (can ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400')}>⚡ {r.cost}</button>
                                 </div>
                             </div>
                         );
@@ -756,17 +839,17 @@ function ShopScreen() {
                         const can = activePlayer.sparks >= item.price;
                         const rarity = RARITY_CONFIG[item.rarity];
                         return (
-                            <div key={item.id} className={`card p-4 text-center ${rarity.glow} ${!can && !owned ? 'opacity-60' : ''}`}>
+                            <div key={item.id} className={'card p-4 text-center ' + rarity.glow + ' ' + (!can && !owned ? 'opacity-60' : '')}>
                                 <div className="text-4xl mb-2">{item.emoji}</div>
                                 <h3 className="font-bold text-slate-800 text-sm">{item.name}</h3>
-                                <span className={`text-xs font-bold text-${rarity.color}-500 uppercase`}>{rarity.label}</span>
-                                {owned ? <div className="mt-2 py-2 bg-green-100 rounded-lg text-green-700 font-bold text-sm">✓ Owned</div> : <button onClick={() => handleBuy(item)} disabled={!can} className={`mt-2 w-full py-2 rounded-lg font-bold text-sm ${can ? 'bg-sky-500 text-white hover:bg-sky-600' : 'bg-slate-200 text-slate-400'}`}>⚡ {item.price}</button>}
+                                <span className={'text-xs font-bold text-' + rarity.color + '-500 uppercase'}>{rarity.label}</span>
+                                {owned ? <div className="mt-2 py-2 bg-green-100 rounded-lg text-green-700 font-bold text-sm">✓ Owned</div> : <button onClick={() => handleBuy(item)} disabled={!can} className={'mt-2 w-full py-2 rounded-lg font-bold text-sm ' + (can ? 'bg-sky-500 text-white hover:bg-sky-600' : 'bg-slate-200 text-slate-400')}>⚡ {item.price}</button>}
                             </div>
                         );
                     })}
                 </div>
             )}
-            {notif && <div className={`fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50 ${notif.success ? 'bg-green-500' : 'bg-red-500'} text-white`}>{notif.message}</div>}
+            {notif && <div className={'fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50 ' + (notif.success ? 'bg-green-500' : 'bg-red-500') + ' text-white'}>{notif.message}</div>}
         </div>
     );
 }
@@ -775,18 +858,40 @@ function ProfileScreen() {
     const { activePlayer, players, setActivePlayerIndex, equipItem, setCurrentView } = useGame();
     const [showInv, setShowInv] = useState(true);
     const [showPin, setShowPin] = useState(false);
-    
     const owned = SHOP_ITEMS.filter(i => activePlayer.inventory.includes(i.id));
     const avatarItems = owned.filter(i => i.type === 'avatar_part');
     
     return (
         <div className="p-4 pb-24">
-            {players.length > 1 && <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">{players.map((p, i) => <button key={p.id} onClick={() => setActivePlayerIndex(i)} className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap ${i === players.indexOf(activePlayer) ? 'bg-sky-500 text-white shadow-lg' : 'bg-white text-slate-500 shadow'}`}><BlockyAvatar config={p.avatar} size="xs"/><span>{p.username}</span></button>)}</div>}
+            {players.length > 1 && (
+                <div className="mb-4">
+                    <div className="text-xs font-bold text-slate-500 uppercase mb-2">👨‍👩‍👧‍👦 Switch Player</div>
+                    <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+                        {players.map((p, i) => {
+                            const age = calculateAge(p.dob);
+                            return (
+                                <button key={p.id} onClick={() => setActivePlayerIndex(i)} className={'flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap ' + (i === players.indexOf(activePlayer) ? 'bg-sky-500 text-white shadow-lg' : 'bg-white text-slate-500 shadow')}>
+                                    <BlockyAvatar config={p.avatar} size="xs"/>
+                                    <div className="text-left">
+                                        <div>{p.username}</div>
+                                        <div className={'text-xs ' + (i === players.indexOf(activePlayer) ? 'text-sky-100' : 'text-slate-400')}>Age {age}</div>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
             
             <div className="card p-6 mb-4">
                 <div className="flex items-center gap-4">
                     <div className="bg-sky-50 rounded-2xl p-3"><BlockyAvatar config={activePlayer.avatar} size="lg"/></div>
-                    <div className="flex-1"><h2 className="text-2xl font-bold text-slate-800">{activePlayer.username}</h2><div className="flex gap-2 mt-2"><span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">Lvl {activePlayer.level}</span><SparkCounter amount={activePlayer.sparks}/></div><div className="mt-3"><LevelProgress xp={activePlayer.xp} level={activePlayer.level}/></div></div>
+                    <div className="flex-1">
+                        <h2 className="text-2xl font-bold text-slate-800">{activePlayer.username}</h2>
+                        <div className="text-sm text-slate-500 mb-1">Age {calculateAge(activePlayer.dob)}</div>
+                        <div className="flex gap-2 mt-2"><span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">Lvl {activePlayer.level}</span><SparkCounter amount={activePlayer.sparks}/></div>
+                        <div className="mt-3"><LevelProgress xp={activePlayer.xp} level={activePlayer.level}/></div>
+                    </div>
                 </div>
                 {activePlayer.streak > 0 && <div className="mt-4 flex justify-center"><StreakFlame streak={activePlayer.streak}/></div>}
             </div>
@@ -798,14 +903,14 @@ function ProfileScreen() {
             </div>
             
             <div className="flex bg-white rounded-xl p-1 shadow mb-4">
-                <button onClick={() => setShowInv(true)} className={`flex-1 py-2 rounded-lg font-bold text-sm ${showInv ? 'bg-sky-100 text-sky-700' : 'text-slate-400'}`}>🎒 Inventory</button>
-                <button onClick={() => setShowInv(false)} className={`flex-1 py-2 rounded-lg font-bold text-sm ${!showInv ? 'bg-sky-100 text-sky-700' : 'text-slate-400'}`}>📜 History</button>
+                <button onClick={() => setShowInv(true)} className={'flex-1 py-2 rounded-lg font-bold text-sm ' + (showInv ? 'bg-sky-100 text-sky-700' : 'text-slate-400')}>🎒 Inventory</button>
+                <button onClick={() => setShowInv(false)} className={'flex-1 py-2 rounded-lg font-bold text-sm ' + (!showInv ? 'bg-sky-100 text-sky-700' : 'text-slate-400')}>📜 History</button>
             </div>
             
             {showInv ? (
                 avatarItems.length > 0 ? <div className="grid grid-cols-2 gap-3">{avatarItems.map(item => {
                     const eq = activePlayer.avatar[item.slot] === item.id;
-                    return <button key={item.id} onClick={() => equipItem(item.id)} className={`card p-4 text-center ${eq ? 'ring-2 ring-green-400 bg-green-50' : ''}`}><div className="text-3xl mb-2">{item.emoji}</div><div className="font-bold text-sm text-slate-800">{item.name}</div><div className={`text-xs mt-1 ${eq ? 'text-green-600 font-bold' : 'text-slate-400'}`}>{eq ? '✓ Equipped' : 'Tap to equip'}</div></button>;
+                    return <button key={item.id} onClick={() => equipItem(item.id)} className={'card p-4 text-center ' + (eq ? 'ring-2 ring-green-400 bg-green-50' : '')}><div className="text-3xl mb-2">{item.emoji}</div><div className="font-bold text-sm text-slate-800">{item.name}</div><div className={'text-xs mt-1 ' + (eq ? 'text-green-600 font-bold' : 'text-slate-400')}>{eq ? '✓ Equipped' : 'Tap to equip'}</div></button>;
                 })}</div> : <div className="card p-8 text-center"><div className="text-4xl mb-2">🛒</div><p className="text-slate-500">No items yet!</p></div>
             ) : (
                 <div className="space-y-2">
@@ -831,7 +936,7 @@ function BottomNav() {
     return (
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200">
             <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
-                {items.map(i => <button key={i.id} onClick={() => setCurrentView(i.id)} className={`flex flex-col items-center justify-center flex-1 h-full ${currentView === i.id ? 'text-sky-500' : 'text-slate-400'}`}><span className="text-2xl">{i.icon}</span><span className="text-xs font-bold mt-1">{i.label}</span></button>)}
+                {items.map(i => <button key={i.id} onClick={() => setCurrentView(i.id)} className={'flex flex-col items-center justify-center flex-1 h-full ' + (currentView === i.id ? 'text-sky-500' : 'text-slate-400')}><span className="text-2xl">{i.icon}</span><span className="text-xs font-bold mt-1">{i.label}</span></button>)}
             </div>
         </nav>
     );
