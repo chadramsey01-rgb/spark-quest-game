@@ -425,40 +425,51 @@ function PlayerSelector() {
     );
 }
 
-function FamilyQuestCard({ player, questData, onComplete, index }) {
+function FamilyQuestCard({ player, questData, onComplete, index, totalPlayers }) {
     const { quest, completed, rewards } = questData;
     const cat = CATEGORY_CONFIG[quest.category];
     const diff = DIFFICULTY_CONFIG[quest.difficulty];
-    const age = calculateAge(player.dob);
     
     return (
-        <div className={'family-quest-card card p-4 quest-' + quest.category + ' border-l-4 animate-stagger ' + (completed ? 'quest-done' : '')} style={{ animationDelay: (index * 0.1) + 's' }}>
-            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200/50">
-                <div className="bg-white/80 rounded-xl p-1"><BlockyAvatar config={player.avatar} size="xs"/></div>
-                <div className="flex-1">
-                    <h4 className="font-bold text-slate-800">{player.username}</h4>
-                    <span className="text-xs text-slate-500">Age {age} • Lvl {player.level}</span>
+        <div className={'family-quest-card card p-3 quest-' + quest.category + ' border-t-4 animate-bounce-in flex flex-col h-full ' + (completed ? 'quest-done' : '')} style={{ animationDelay: (index * 0.15) + 's' }}>
+            {/* Player Header */}
+            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-200/50">
+                <div className="bg-white/80 rounded-lg p-1">
+                    <BlockyAvatar config={player.avatar} size="xs"/>
                 </div>
-                <SparkCounter amount={player.sparks}/>
+                <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-slate-800 text-sm truncate">{player.username}</h4>
+                    <span className="text-xs text-slate-500">Lvl {player.level}</span>
+                </div>
             </div>
-            <div className="flex items-center gap-2 mb-2">
-                <span className="text-xl">{cat.emoji}</span>
+            
+            {/* Quest Category & Difficulty */}
+            <div className="flex items-center gap-1 mb-2">
+                <span className="text-lg">{cat.emoji}</span>
                 <span className={'text-xs font-bold uppercase text-' + cat.color + '-600'}>{cat.label}</span>
-                <span className={'ml-auto text-xs font-bold px-2 py-1 rounded-full bg-' + diff.color + '-100 text-' + diff.color + '-700'}>{diff.label}</span>
+                <span className={'ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-' + diff.color + '-100 text-' + diff.color + '-700'}>{diff.label}</span>
             </div>
-            <h3 className="text-lg font-bold text-slate-800 mb-3">{quest.text}</h3>
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-yellow-600">⚡ {quest.rewards.sparks}</span>
-                    <span className="text-sm font-bold text-purple-600">✨ {quest.rewards.xp} XP</span>
-                </div>
+            
+            {/* Quest Text - grows to fill space */}
+            <div className="flex-1 mb-3">
+                <h3 className="text-base font-bold text-slate-800 leading-snug">{quest.text}</h3>
+            </div>
+            
+            {/* Rewards */}
+            <div className="flex items-center gap-2 mb-3 text-xs">
+                <span className="font-bold text-yellow-600">⚡ {quest.rewards.sparks}</span>
+                <span className="font-bold text-purple-600">✨ {quest.rewards.xp} XP</span>
+            </div>
+            
+            {/* Action Button */}
+            <div className="mt-auto">
                 {completed ? (
-                    <div className="flex items-center gap-2 bg-green-100 px-4 py-2 rounded-xl">
-                        <span className="text-green-600">✓</span>
+                    <div className="flex items-center justify-center gap-2 bg-green-100 px-3 py-2 rounded-xl w-full">
+                        <span className="text-green-600 text-lg">✓</span>
                         <span className="text-green-700 font-bold text-sm">+{rewards.sparksEarned} ⚡</span>
                     </div>
                 ) : (
-                    <button onClick={() => onComplete(quest, player.id)} className="btn-success text-sm px-4 py-2">Done! ✓</button>
+                    <button onClick={() => onComplete(quest, player.id)} className="btn-success text-sm px-4 py-2 w-full">Done! ✓</button>
                 )}
             </div>
         </div>
@@ -470,26 +481,54 @@ function FamilyQuestView() {
     const allCompleted = Object.values(familyQuests).every(q => q.completed);
     const completedCount = Object.values(familyQuests).filter(q => q.completed).length;
     const totalQuests = Object.keys(familyQuests).length;
+    const playerCount = players.filter(p => familyQuests[p.id]).length;
+    
+    // Determine grid columns based on player count
+    const getGridClass = () => {
+        if (playerCount === 1) return 'grid-cols-1 max-w-sm mx-auto';
+        if (playerCount === 2) return 'grid-cols-2';
+        if (playerCount === 3) return 'grid-cols-3';
+        return 'grid-cols-2 sm:grid-cols-4'; // 4+ players
+    };
     
     return (
         <div className="space-y-4">
-            <div className="card p-4">
+            {/* Progress Header */}
+            <div className="card p-3">
                 <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-slate-700">👨‍👩‍👧‍👦 Family Quest Progress</span>
-                    <span className="font-bold text-sky-600">{completedCount}/{totalQuests}</span>
+                    <span className="font-bold text-slate-700">👨‍👩‍👧‍👦 Family Quest!</span>
+                    <span className="font-bold text-sky-600">{completedCount}/{totalQuests} done</span>
                 </div>
                 <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 transition-all duration-500" style={{width: (totalQuests > 0 ? (completedCount/totalQuests*100) : 0) + '%'}}/>
                 </div>
-                {allCompleted && <div className="text-center mt-3"><span className="text-2xl">🎉</span><span className="text-green-600 font-bold ml-2">Everyone finished!</span></div>}
+                {allCompleted && (
+                    <div className="text-center mt-3 animate-bounce-in">
+                        <span className="text-3xl">🎉</span>
+                        <span className="text-green-600 font-bold ml-2">Everyone finished! Amazing teamwork!</span>
+                    </div>
+                )}
             </div>
-            <div className="space-y-4">
+            
+            {/* Side-by-Side Quest Cards Grid */}
+            <div className={'grid gap-3 ' + getGridClass()}>
                 {players.map((player, index) => {
                     const questData = familyQuests[player.id];
                     if (!questData) return null;
-                    return <FamilyQuestCard key={player.id} player={player} questData={questData} onComplete={completeQuest} index={index}/>;
+                    return (
+                        <FamilyQuestCard 
+                            key={player.id} 
+                            player={player} 
+                            questData={questData} 
+                            onComplete={completeQuest} 
+                            index={index}
+                            totalPlayers={playerCount}
+                        />
+                    );
                 })}
             </div>
+            
+            {/* Action Buttons */}
             <div className="flex gap-2">
                 <button onClick={clearFamilyQuests} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">← Back</button>
                 {allCompleted && <button onClick={spinAllQuests} disabled={isFamilySpinning} className="flex-1 btn-family">Spin Again! 🎲</button>}
@@ -1111,11 +1150,14 @@ function BottomNav() {
 }
 
 function App() {
-    const { players, currentView, isParentMode } = useGame();
+    const { players, currentView, isParentMode, familyMode, familyQuests } = useGame();
+    const hasFamilyQuests = Object.keys(familyQuests).length > 0;
+    const showWideLayout = familyMode && hasFamilyQuests;
+    
     if (players.length === 0 || currentView === 'setup') return <PlayerSetupScreen/>;
     if (isParentMode || currentView === 'parent') return <ParentDashboard/>;
     return (
-        <div className="min-h-screen max-w-lg mx-auto">
+        <div className={'min-h-screen mx-auto ' + (showWideLayout ? 'max-w-4xl' : 'max-w-lg')}>
             {currentView === 'home' && <HomeScreen/>}
             {currentView === 'shop' && <ShopScreen/>}
             {currentView === 'profile' && <ProfileScreen/>}
