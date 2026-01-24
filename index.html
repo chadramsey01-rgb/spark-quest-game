@@ -147,19 +147,142 @@ const QUEST_TEMPLATES = {
 };
 
 const SHOP_ITEMS = [
-    { id: 'hat_1', name: 'Crown', type: 'avatar_part', slot: 'hat', rarity: 'rare', price: 100, emoji: '👑' },
-    { id: 'hat_2', name: 'Wizard Hat', type: 'avatar_part', slot: 'hat', rarity: 'epic', price: 200, emoji: '🧙' },
-    { id: 'hat_3', name: 'Party Hat', type: 'avatar_part', slot: 'hat', rarity: 'common', price: 30, emoji: '🎉' },
-    { id: 'acc_1', name: 'Cool Shades', type: 'avatar_part', slot: 'accessory', rarity: 'common', price: 40, emoji: '😎' },
-    { id: 'acc_2', name: 'Magic Wand', type: 'avatar_part', slot: 'accessory', rarity: 'epic', price: 180, emoji: '✨' },
-    { id: 'acc_3', name: 'Hero Cape', type: 'avatar_part', slot: 'accessory', rarity: 'legendary', price: 500, emoji: '🦸' },
+    // Hats - These render as actual SVG elements on the avatar
+    { id: 'hat_1', name: 'Golden Crown', type: 'avatar_part', slot: 'hat', rarity: 'rare', price: 100, emoji: '👑', color: '#FFD700' },
+    { id: 'hat_2', name: 'Wizard Hat', type: 'avatar_part', slot: 'hat', rarity: 'epic', price: 200, emoji: '🧙', color: '#7C3AED' },
+    { id: 'hat_3', name: 'Party Hat', type: 'avatar_part', slot: 'hat', rarity: 'common', price: 30, emoji: '🎉', color: '#EC4899' },
+    { id: 'hat_4', name: 'Baseball Cap', type: 'avatar_part', slot: 'hat', rarity: 'common', price: 25, emoji: '🧢', color: '#3B82F6' },
+    { id: 'hat_5', name: 'Pirate Hat', type: 'avatar_part', slot: 'hat', rarity: 'rare', price: 120, emoji: '🏴‍☠️', color: '#1F2937' },
+    { id: 'hat_6', name: 'Viking Helmet', type: 'avatar_part', slot: 'hat', rarity: 'epic', price: 250, emoji: '⚔️', color: '#78716C' },
+    // Accessories - Glasses, capes, etc.
+    { id: 'acc_1', name: 'Cool Shades', type: 'avatar_part', slot: 'glasses', rarity: 'common', price: 40, emoji: '😎', color: '#1F2937' },
+    { id: 'acc_2', name: 'Round Glasses', type: 'avatar_part', slot: 'glasses', rarity: 'common', price: 35, emoji: '🤓', color: '#92400E' },
+    { id: 'acc_3', name: 'Star Glasses', type: 'avatar_part', slot: 'glasses', rarity: 'rare', price: 80, emoji: '⭐', color: '#EAB308' },
+    { id: 'acc_4', name: 'Hero Cape', type: 'avatar_part', slot: 'cape', rarity: 'legendary', price: 500, emoji: '🦸', color: '#DC2626' },
+    { id: 'acc_5', name: 'Royal Cape', type: 'avatar_part', slot: 'cape', rarity: 'epic', price: 300, emoji: '👑', color: '#7C3AED' },
+    { id: 'acc_6', name: 'Magic Cape', type: 'avatar_part', slot: 'cape', rarity: 'rare', price: 150, emoji: '✨', color: '#0EA5E9' },
+    // Stickers (collectibles, not worn)
     { id: 'sticker_1', name: 'Gold Star', type: 'sticker', rarity: 'common', price: 15, emoji: '⭐' },
     { id: 'sticker_2', name: 'Rainbow', type: 'sticker', rarity: 'rare', price: 50, emoji: '🌈' },
     { id: 'sticker_3', name: 'Dragon', type: 'sticker', rarity: 'epic', price: 150, emoji: '🐉' },
     { id: 'sticker_4', name: 'Unicorn', type: 'sticker', rarity: 'legendary', price: 300, emoji: '🦄' }
 ];
 
-const DEFAULT_AVATAR = { skinTone: '#FFD5B8', hairStyle: 'spiky', hairColor: '#4A3728', eyeStyle: 'happy', eyeColor: '#4A90D9', outfitColor: '#3B82F6', hat: null, accessory: null };
+// SVG Renderers for Avatar Cosmetics
+const AVATAR_COSMETICS = {
+    hats: {
+        hat_1: (color) => ( // Golden Crown
+            <g key="crown">
+                <path d="M25,32 L30,18 L40,28 L55,12 L70,28 L80,18 L85,32 L85,38 L25,38 Z" fill={color} stroke="#B8860B" strokeWidth="2"/>
+                <circle cx="55" cy="18" r="4" fill="#FF6B6B"/>
+                <circle cx="35" cy="26" r="3" fill="#4ECDC4"/>
+                <circle cx="75" cy="26" r="3" fill="#4ECDC4"/>
+            </g>
+        ),
+        hat_2: (color) => ( // Wizard Hat
+            <g key="wizard">
+                <path d="M55,0 L80,40 L30,40 Z" fill={color} stroke="#5B21B6" strokeWidth="2"/>
+                <ellipse cx="55" cy="40" rx="30" ry="8" fill={color} stroke="#5B21B6" strokeWidth="2"/>
+                <circle cx="55" cy="20" r="4" fill="#FFD700"/>
+                <path d="M40,30 Q55,25 70,30" stroke="#FFD700" strokeWidth="2" fill="none"/>
+            </g>
+        ),
+        hat_3: (color) => ( // Party Hat
+            <g key="party">
+                <path d="M55,5 L75,40 L35,40 Z" fill={color} stroke="#DB2777" strokeWidth="2"/>
+                <circle cx="55" cy="5" r="5" fill="#FFD700"/>
+                <line x1="42" y1="20" x2="45" y2="35" stroke="#FFD700" strokeWidth="2"/>
+                <line x1="55" y1="15" x2="55" y2="32" stroke="#4ECDC4" strokeWidth="2"/>
+                <line x1="68" y1="20" x2="65" y2="35" stroke="#FFD700" strokeWidth="2"/>
+            </g>
+        ),
+        hat_4: (color) => ( // Baseball Cap
+            <g key="cap">
+                <ellipse cx="55" cy="38" rx="28" ry="10" fill={color}/>
+                <path d="M27,38 Q27,20 55,20 Q83,20 83,38" fill={color}/>
+                <path d="M25,40 Q15,42 20,50 Q25,55 45,45" fill={color} stroke={color} strokeWidth="1"/>
+                <path d="M35,32 L75,32" stroke="white" strokeWidth="3" opacity="0.3"/>
+            </g>
+        ),
+        hat_5: (color) => ( // Pirate Hat
+            <g key="pirate">
+                <ellipse cx="55" cy="40" rx="35" ry="8" fill={color}/>
+                <path d="M20,40 Q20,15 55,15 Q90,15 90,40" fill={color}/>
+                <path d="M30,35 Q55,25 80,35" fill={color}/>
+                <circle cx="55" cy="30" r="8" fill="white"/>
+                <path d="M50,27 L52,33 L58,33 L60,27 L55,30 Z" fill={color}/>
+            </g>
+        ),
+        hat_6: (color) => ( // Viking Helmet
+            <g key="viking">
+                <ellipse cx="55" cy="40" rx="30" ry="12" fill={color}/>
+                <path d="M25,40 Q25,20 55,18 Q85,20 85,40" fill={color}/>
+                <path d="M20,35 Q10,20 15,10 Q20,15 25,35" fill="#F5F5DC" stroke="#D4A574" strokeWidth="1"/>
+                <path d="M90,35 Q100,20 95,10 Q90,15 85,35" fill="#F5F5DC" stroke="#D4A574" strokeWidth="1"/>
+                <rect x="40" y="35" width="30" height="8" fill="#A8A29E" rx="2"/>
+            </g>
+        )
+    },
+    glasses: {
+        acc_1: (color) => ( // Cool Shades
+            <g key="shades">
+                <rect x="30" y="50" width="18" height="12" rx="2" fill={color}/>
+                <rect x="62" y="50" width="18" height="12" rx="2" fill={color}/>
+                <path d="M48,54 L62,54" stroke={color} strokeWidth="3"/>
+                <path d="M30,54 L22,52" stroke={color} strokeWidth="2"/>
+                <path d="M80,54 L88,52" stroke={color} strokeWidth="2"/>
+            </g>
+        ),
+        acc_2: (color) => ( // Round Glasses
+            <g key="roundglasses">
+                <circle cx="42" cy="55" r="10" fill="none" stroke={color} strokeWidth="3"/>
+                <circle cx="68" cy="55" r="10" fill="none" stroke={color} strokeWidth="3"/>
+                <path d="M52,55 L58,55" stroke={color} strokeWidth="2"/>
+                <path d="M32,53 L22,50" stroke={color} strokeWidth="2"/>
+                <path d="M78,53 L88,50" stroke={color} strokeWidth="2"/>
+            </g>
+        ),
+        acc_3: (color) => ( // Star Glasses
+            <g key="starglasses">
+                <polygon points="42,45 45,52 52,52 46,57 48,65 42,60 36,65 38,57 32,52 39,52" fill={color}/>
+                <polygon points="68,45 71,52 78,52 72,57 74,65 68,60 62,65 64,57 58,52 65,52" fill={color}/>
+                <path d="M50,55 L60,55" stroke={color} strokeWidth="2"/>
+                <path d="M34,50 L22,48" stroke={color} strokeWidth="2"/>
+                <path d="M76,50 L88,48" stroke={color} strokeWidth="2"/>
+            </g>
+        )
+    },
+    capes: {
+        acc_4: (color) => ( // Hero Cape
+            <g key="herocape">
+                <path d="M30,88 Q20,95 15,130 L40,125 Q35,100 38,88" fill={color}/>
+                <path d="M80,88 Q90,95 95,130 L70,125 Q75,100 72,88" fill={color}/>
+                <path d="M30,88 L38,88" stroke={color} strokeWidth="4"/>
+                <path d="M72,88 L80,88" stroke={color} strokeWidth="4"/>
+            </g>
+        ),
+        acc_5: (color) => ( // Royal Cape (longer, more flowing)
+            <g key="royalcape">
+                <path d="M28,88 Q15,100 10,130 L45,125 Q38,100 38,88" fill={color}/>
+                <path d="M82,88 Q95,100 100,130 L65,125 Q72,100 72,88" fill={color}/>
+                <path d="M15,125 L20,130 L25,125 L30,130 L35,125 L40,130" stroke="#FFD700" strokeWidth="2" fill="none"/>
+                <path d="M70,125 L75,130 L80,130 L85,125 L90,130 L95,125" stroke="#FFD700" strokeWidth="2" fill="none"/>
+            </g>
+        ),
+        acc_6: (color) => ( // Magic Cape (with sparkles)
+            <g key="magiccape">
+                <path d="M30,88 Q18,98 12,130 L42,122 Q36,98 38,88" fill={color}/>
+                <path d="M80,88 Q92,98 98,130 L68,122 Q74,98 72,88" fill={color}/>
+                <circle cx="22" cy="110" r="2" fill="#FFD700"/>
+                <circle cx="30" cy="118" r="1.5" fill="#FFD700"/>
+                <circle cx="88" cy="108" r="2" fill="#FFD700"/>
+                <circle cx="82" cy="120" r="1.5" fill="#FFD700"/>
+            </g>
+        )
+    }
+};
+
+const DEFAULT_AVATAR = { skinTone: '#FFD5B8', hairStyle: 'spiky', hairColor: '#4A3728', eyeStyle: 'happy', eyeColor: '#4A90D9', outfitColor: '#3B82F6', hat: null, glasses: null, cape: null };
 const SKIN_TONES = ['#FFDBAC', '#F5CBA7', '#FFD5B8', '#E8BEAC', '#D4A574', '#C68642', '#8D5524', '#6B4423', '#4A3728', '#3B2F2F'];
 const HAIR_STYLES = ['spiky', 'wavy', 'curly', 'short', 'long', 'ponytail', 'mohawk', 'bald'];
 const HAIR_COLORS = ['#4A3728', '#8B4513', '#2C1810', '#FFD700', '#FF6B35', '#9B59B6', '#3498DB', '#E74C3C'];
@@ -388,24 +511,111 @@ function GameProvider({ children }) {
 }
 
 function BlockyAvatar({ config, size = 'md' }) {
-    const sizes = { xs: 48, sm: 64, md: 96, lg: 128 };
+    const sizes = { xs: 48, sm: 64, md: 96, lg: 128, xl: 160 };
     const w = sizes[size] || 96;
     const c = { ...DEFAULT_AVATAR, ...config };
-    const hairPaths = { spiky: "M30,35 L35,15 L45,30 L55,10 L65,30 L75,15 L80,35", wavy: "M25,40 Q35,20 50,35 Q65,20 80,40", curly: "M25,40 Q30,25 40,35 Q45,20 55,35 Q60,20 70,35 Q75,25 85,40", short: "M30,40 L30,30 L80,30 L80,40", long: "M25,35 L25,80 L35,80 L35,45 L75,45 L75,80 L85,80 L85,35", ponytail: "M30,35 L30,30 L80,30 L80,35 M75,30 L85,50 L75,70", mohawk: "M48,40 L48,5 L62,5 L62,40", bald: "" };
-    const hatItem = c.hat ? SHOP_ITEMS.find(i=>i.id===c.hat) : null;
-    const accItem = c.accessory ? SHOP_ITEMS.find(i=>i.id===c.accessory) : null;
+    
+    // Hair style paths
+    const hairPaths = { 
+        spiky: "M30,35 L35,15 L45,30 L55,10 L65,30 L75,15 L80,35", 
+        wavy: "M25,40 Q35,20 50,35 Q65,20 80,40", 
+        curly: "M25,40 Q30,25 40,35 Q45,20 55,35 Q60,20 70,35 Q75,25 85,40", 
+        short: "M30,40 L30,28 L80,28 L80,40", 
+        long: "M25,35 L25,85 L35,85 L35,45 L75,45 L75,85 L85,85 L85,35", 
+        ponytail: "M30,35 L30,28 L80,28 L80,35 M75,28 Q90,40 85,70 Q80,75 75,70", 
+        mohawk: "M45,40 L45,8 L65,8 L65,40", 
+        bald: "" 
+    };
+    
+    // Get equipped items
+    const hatItem = c.hat ? SHOP_ITEMS.find(i => i.id === c.hat) : null;
+    const glassesItem = c.glasses ? SHOP_ITEMS.find(i => i.id === c.glasses) : null;
+    const capeItem = c.cape ? SHOP_ITEMS.find(i => i.id === c.cape) : null;
+    
+    // Render cosmetic SVG
+    const renderHat = () => {
+        if (!hatItem || !AVATAR_COSMETICS.hats[hatItem.id]) return null;
+        return AVATAR_COSMETICS.hats[hatItem.id](hatItem.color);
+    };
+    
+    const renderGlasses = () => {
+        if (!glassesItem || !AVATAR_COSMETICS.glasses[glassesItem.id]) return null;
+        return AVATAR_COSMETICS.glasses[glassesItem.id](glassesItem.color);
+    };
+    
+    const renderCape = () => {
+        if (!capeItem || !AVATAR_COSMETICS.capes[capeItem.id]) return null;
+        return AVATAR_COSMETICS.capes[capeItem.id](capeItem.color);
+    };
+    
     return (
         <svg width={w} height={w} viewBox="0 0 110 130" style={{display:'block'}}>
+            {/* Background circle */}
             <circle cx="55" cy="65" r="50" fill="#E0F2FE"/>
+            
+            {/* Cape (behind body) */}
+            {renderCape()}
+            
+            {/* Body/Shirt */}
             <rect x="35" y="85" width="40" height="35" rx="5" fill={c.outfitColor}/>
-            <rect x="30" y="30" width="50" height="55" rx="10" fill={c.skinTone}/>
-            {c.hairStyle !== 'bald' && <path d={hairPaths[c.hairStyle] || hairPaths.spiky} fill={c.hairColor}/>}
-            <ellipse cx="42" cy="55" rx="5" ry="6" fill="white"/><ellipse cx="68" cy="55" rx="5" ry="6" fill="white"/>
-            <circle cx="43" cy="56" r="3" fill={c.eyeColor}/><circle cx="69" cy="56" r="3" fill={c.eyeColor}/>
-            <circle cx="44" cy="55" r="1" fill="white"/><circle cx="70" cy="55" r="1" fill="white"/>
-            <path d="M45,70 Q55,78 65,70" stroke="#333" strokeWidth="2" fill="none" strokeLinecap="round"/>
-            {hatItem && <text x="55" y="25" textAnchor="middle" fontSize="24">{hatItem.emoji}</text>}
-            {accItem && <text x="90" y="60" textAnchor="middle" fontSize="20">{accItem.emoji}</text>}
+            
+            {/* Neck */}
+            <rect x="47" y="80" width="16" height="10" fill={c.skinTone}/>
+            
+            {/* Head */}
+            <rect x="30" y="30" width="50" height="55" rx="12" fill={c.skinTone}/>
+            
+            {/* Ears */}
+            <ellipse cx="28" cy="55" rx="5" ry="8" fill={c.skinTone}/>
+            <ellipse cx="82" cy="55" rx="5" ry="8" fill={c.skinTone}/>
+            
+            {/* Hair (behind hat if wearing one) */}
+            {c.hairStyle !== 'bald' && !hatItem && (
+                <path d={hairPaths[c.hairStyle] || hairPaths.spiky} fill={c.hairColor}/>
+            )}
+            {/* Show hair sides even with hat */}
+            {c.hairStyle !== 'bald' && hatItem && c.hairStyle !== 'mohawk' && (
+                <g>
+                    <ellipse cx="28" cy="45" rx="6" ry="10" fill={c.hairColor}/>
+                    <ellipse cx="82" cy="45" rx="6" ry="10" fill={c.hairColor}/>
+                </g>
+            )}
+            
+            {/* Eyes (white part) */}
+            <ellipse cx="42" cy="55" rx="7" ry="8" fill="white"/>
+            <ellipse cx="68" cy="55" rx="7" ry="8" fill="white"/>
+            
+            {/* Eyes (iris) */}
+            <circle cx="43" cy="56" r="4" fill={c.eyeColor}/>
+            <circle cx="69" cy="56" r="4" fill={c.eyeColor}/>
+            
+            {/* Eyes (pupil) */}
+            <circle cx="44" cy="55" r="2" fill="#1F2937"/>
+            <circle cx="70" cy="55" r="2" fill="#1F2937"/>
+            
+            {/* Eye shine */}
+            <circle cx="45" cy="54" r="1" fill="white"/>
+            <circle cx="71" cy="54" r="1" fill="white"/>
+            
+            {/* Eyebrows */}
+            <path d="M35,48 Q42,45 49,48" stroke={c.hairColor} strokeWidth="2" fill="none"/>
+            <path d="M61,48 Q68,45 75,48" stroke={c.hairColor} strokeWidth="2" fill="none"/>
+            
+            {/* Nose */}
+            <ellipse cx="55" cy="62" rx="3" ry="2" fill={c.skinTone} style={{filter: 'brightness(0.9)'}}/>
+            
+            {/* Mouth (happy smile) */}
+            <path d="M45,72 Q55,80 65,72" stroke="#1F2937" strokeWidth="2" fill="none" strokeLinecap="round"/>
+            
+            {/* Cheek blush */}
+            <ellipse cx="35" cy="68" rx="5" ry="3" fill="#FFB6C1" opacity="0.5"/>
+            <ellipse cx="75" cy="68" rx="5" ry="3" fill="#FFB6C1" opacity="0.5"/>
+            
+            {/* Glasses (on face) */}
+            {renderGlasses()}
+            
+            {/* Hat (on top) */}
+            {renderHat()}
         </svg>
     );
 }
@@ -1170,16 +1380,67 @@ function ShopScreen() {
     const { activePlayer, buyItem, realRewards, redeemReward } = useGame();
     const [cat, setCat] = useState('all');
     const [notif, setNotif] = useState(null);
-    const cats = [{id:'all',label:'All',emoji:'🛒'},{id:'avatar_part',label:'Avatar',emoji:'👤'},{id:'sticker',label:'Stickers',emoji:'⭐'},{id:'real',label:'Rewards',emoji:'🎁'}];
-    const items = cat === 'all' ? SHOP_ITEMS : cat === 'real' ? [] : SHOP_ITEMS.filter(i => i.type === cat);
+    const cats = [
+        {id:'all',label:'All',emoji:'🛒'},
+        {id:'hats',label:'Hats',emoji:'👒'},
+        {id:'glasses',label:'Glasses',emoji:'👓'},
+        {id:'capes',label:'Capes',emoji:'🦸'},
+        {id:'sticker',label:'Stickers',emoji:'⭐'},
+        {id:'real',label:'Rewards',emoji:'🎁'}
+    ];
+    
+    const getFilteredItems = () => {
+        if (cat === 'all') return SHOP_ITEMS;
+        if (cat === 'real') return [];
+        if (cat === 'sticker') return SHOP_ITEMS.filter(i => i.type === 'sticker');
+        if (cat === 'hats') return SHOP_ITEMS.filter(i => i.slot === 'hat');
+        if (cat === 'glasses') return SHOP_ITEMS.filter(i => i.slot === 'glasses');
+        if (cat === 'capes') return SHOP_ITEMS.filter(i => i.slot === 'cape');
+        return SHOP_ITEMS;
+    };
+    
+    const items = getFilteredItems();
     const handleBuy = (item) => { const r = buyItem(item.id); setNotif(r); setTimeout(() => setNotif(null), 2000); };
     const handleRedeem = (reward) => { const r = redeemReward(reward.id); setNotif(r); setTimeout(() => setNotif(null), 3000); };
     
+    // Render item preview - shows avatar with this item equipped
+    const renderItemPreview = (item) => {
+        if (item.type === 'sticker') {
+            return <div className="text-4xl">{item.emoji}</div>;
+        }
+        const previewConfig = { 
+            ...DEFAULT_AVATAR, 
+            skinTone: activePlayer.avatar.skinTone,
+            hairStyle: activePlayer.avatar.hairStyle,
+            hairColor: activePlayer.avatar.hairColor,
+            outfitColor: activePlayer.avatar.outfitColor,
+            [item.slot]: item.id 
+        };
+        return <BlockyAvatar config={previewConfig} size="sm"/>;
+    };
+    
     return (
         <div className="p-4 pb-24">
-            <div className="flex items-center justify-between mb-4"><h2 className="text-2xl font-bold text-slate-800">🏪 Shop</h2><SparkCounter amount={activePlayer.sparks}/></div>
-            <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">{cats.map(c => <button key={c.id} onClick={() => setCat(c.id)} className={'flex items-center gap-1 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap ' + (cat === c.id ? 'bg-sky-500 text-white shadow-lg' : 'bg-white text-slate-500 shadow')}><span>{c.emoji}</span><span>{c.label}</span></button>)}</div>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-slate-800">🏪 Shop</h2>
+                <SparkCounter amount={activePlayer.sparks}/>
+            </div>
             
+            {/* Category Filter */}
+            <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">
+                {cats.map(c => (
+                    <button 
+                        key={c.id} 
+                        onClick={() => setCat(c.id)} 
+                        className={'flex items-center gap-1 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap ' + (cat === c.id ? 'bg-sky-500 text-white shadow-lg' : 'bg-white text-slate-500 shadow')}
+                    >
+                        <span>{c.emoji}</span>
+                        <span>{c.label}</span>
+                    </button>
+                ))}
+            </div>
+            
+            {/* Real Rewards */}
             {cat === 'real' && (
                 <div className="space-y-3">
                     {realRewards.length > 0 ? realRewards.map(r => {
@@ -1188,33 +1449,83 @@ function ShopScreen() {
                             <div key={r.id} className={'card p-4 ' + (!can ? 'opacity-60' : '')}>
                                 <div className="flex items-center gap-4">
                                     <span className="text-4xl">{r.emoji}</span>
-                                    <div className="flex-1"><h3 className="font-bold text-slate-800">{r.name}</h3>{r.description && <p className="text-sm text-slate-500">{r.description}</p>}</div>
-                                    <button onClick={() => handleRedeem(r)} disabled={!can} className={'px-4 py-2 rounded-lg font-bold ' + (can ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400')}>⚡ {r.cost}</button>
+                                    <div className="flex-1">
+                                        <h3 className="font-bold text-slate-800">{r.name}</h3>
+                                        {r.description && <p className="text-sm text-slate-500">{r.description}</p>}
+                                    </div>
+                                    <button 
+                                        onClick={() => handleRedeem(r)} 
+                                        disabled={!can} 
+                                        className={'px-4 py-2 rounded-lg font-bold ' + (can ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400')}
+                                    >
+                                        ⚡ {r.cost}
+                                    </button>
                                 </div>
                             </div>
                         );
-                    }) : <div className="card p-8 text-center"><div className="text-4xl mb-2">🎁</div><p className="text-slate-500">No rewards yet!</p></div>}
+                    }) : (
+                        <div className="card p-8 text-center">
+                            <div className="text-4xl mb-2">🎁</div>
+                            <p className="text-slate-500">No rewards yet!</p>
+                            <p className="text-xs text-slate-400 mt-1">Parents can add real rewards in Parent Mode</p>
+                        </div>
+                    )}
                 </div>
             )}
             
+            {/* Shop Items */}
             {cat !== 'real' && (
                 <div className="grid grid-cols-2 gap-3">
                     {items.map(item => {
                         const owned = activePlayer.inventory.includes(item.id);
                         const can = activePlayer.sparks >= item.price;
                         const rarity = RARITY_CONFIG[item.rarity];
+                        const isEquipped = item.type === 'avatar_part' && activePlayer.avatar[item.slot] === item.id;
+                        
                         return (
-                            <div key={item.id} className={'card p-4 text-center ' + rarity.glow + ' ' + (!can && !owned ? 'opacity-60' : '')}>
-                                <div className="text-4xl mb-2">{item.emoji}</div>
+                            <div 
+                                key={item.id} 
+                                className={'card p-3 text-center transition-all ' + rarity.glow + ' ' + (!can && !owned ? 'opacity-60' : '')}
+                            >
+                                {/* Item Preview */}
+                                <div className="flex justify-center mb-2">
+                                    {renderItemPreview(item)}
+                                </div>
+                                
+                                {/* Item Info */}
                                 <h3 className="font-bold text-slate-800 text-sm">{item.name}</h3>
-                                <span className={'text-xs font-bold text-' + rarity.color + '-500 uppercase'}>{rarity.label}</span>
-                                {owned ? <div className="mt-2 py-2 bg-green-100 rounded-lg text-green-700 font-bold text-sm">✓ Owned</div> : <button onClick={() => handleBuy(item)} disabled={!can} className={'mt-2 w-full py-2 rounded-lg font-bold text-sm ' + (can ? 'bg-sky-500 text-white hover:bg-sky-600' : 'bg-slate-200 text-slate-400')}>⚡ {item.price}</button>}
+                                <div className="flex items-center justify-center gap-2 mt-1">
+                                    <span className={'text-xs font-bold text-' + rarity.color + '-500 uppercase'}>{rarity.label}</span>
+                                    {item.type === 'avatar_part' && (
+                                        <span className="text-xs text-slate-400 capitalize">• {item.slot}</span>
+                                    )}
+                                </div>
+                                
+                                {/* Action Button */}
+                                {owned ? (
+                                    <div className={'mt-2 py-2 rounded-lg font-bold text-sm ' + (isEquipped ? 'bg-green-500 text-white' : 'bg-green-100 text-green-700')}>
+                                        {isEquipped ? '✓ Wearing' : '✓ Owned'}
+                                    </div>
+                                ) : (
+                                    <button 
+                                        onClick={() => handleBuy(item)} 
+                                        disabled={!can} 
+                                        className={'mt-2 w-full py-2 rounded-lg font-bold text-sm ' + (can ? 'bg-sky-500 text-white hover:bg-sky-600' : 'bg-slate-200 text-slate-400')}
+                                    >
+                                        ⚡ {item.price}
+                                    </button>
+                                )}
                             </div>
                         );
                     })}
                 </div>
             )}
-            {notif && <div className={'fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50 ' + (notif.success ? 'bg-green-500' : 'bg-red-500') + ' text-white'}>{notif.message}</div>}
+            
+            {notif && (
+                <div className={'fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50 ' + (notif.success ? 'bg-green-500' : 'bg-red-500') + ' text-white'}>
+                    {notif.message}
+                </div>
+            )}
         </div>
     );
 }
@@ -1223,8 +1534,34 @@ function ProfileScreen() {
     const { activePlayer, players, setActivePlayerIndex, equipItem, setCurrentView } = useGame();
     const [showInv, setShowInv] = useState(true);
     const [showPin, setShowPin] = useState(false);
+    const [invCategory, setInvCategory] = useState('all');
     const owned = SHOP_ITEMS.filter(i => activePlayer.inventory.includes(i.id));
     const avatarItems = owned.filter(i => i.type === 'avatar_part');
+    
+    // Group items by slot
+    const hats = avatarItems.filter(i => i.slot === 'hat');
+    const glasses = avatarItems.filter(i => i.slot === 'glasses');
+    const capes = avatarItems.filter(i => i.slot === 'cape');
+    const stickers = owned.filter(i => i.type === 'sticker');
+    
+    const getFilteredItems = () => {
+        if (invCategory === 'all') return avatarItems;
+        if (invCategory === 'hats') return hats;
+        if (invCategory === 'glasses') return glasses;
+        if (invCategory === 'capes') return capes;
+        return avatarItems;
+    };
+    
+    const renderItemPreview = (item) => {
+        // Create a mini avatar preview showing just this item
+        const previewConfig = { 
+            ...DEFAULT_AVATAR, 
+            skinTone: activePlayer.avatar.skinTone,
+            hairColor: activePlayer.avatar.hairColor,
+            [item.slot]: item.id 
+        };
+        return <BlockyAvatar config={previewConfig} size="sm"/>;
+    };
     
     return (
         <div className="p-4 pb-24">
@@ -1259,6 +1596,27 @@ function ProfileScreen() {
                     </div>
                 </div>
                 {activePlayer.streak > 0 && <div className="mt-4 flex justify-center"><StreakFlame streak={activePlayer.streak}/></div>}
+                
+                {/* Currently Equipped Summary */}
+                {(activePlayer.avatar.hat || activePlayer.avatar.glasses || activePlayer.avatar.cape) && (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                        <div className="text-xs font-bold text-slate-500 uppercase mb-2">Currently Wearing</div>
+                        <div className="flex gap-2 flex-wrap">
+                            {activePlayer.avatar.hat && (() => {
+                                const item = SHOP_ITEMS.find(i => i.id === activePlayer.avatar.hat);
+                                return item ? <span className="bg-sky-100 text-sky-700 px-2 py-1 rounded-full text-xs font-bold">{item.emoji} {item.name}</span> : null;
+                            })()}
+                            {activePlayer.avatar.glasses && (() => {
+                                const item = SHOP_ITEMS.find(i => i.id === activePlayer.avatar.glasses);
+                                return item ? <span className="bg-sky-100 text-sky-700 px-2 py-1 rounded-full text-xs font-bold">{item.emoji} {item.name}</span> : null;
+                            })()}
+                            {activePlayer.avatar.cape && (() => {
+                                const item = SHOP_ITEMS.find(i => i.id === activePlayer.avatar.cape);
+                                return item ? <span className="bg-sky-100 text-sky-700 px-2 py-1 rounded-full text-xs font-bold">{item.emoji} {item.name}</span> : null;
+                            })()}
+                        </div>
+                    </div>
+                )}
             </div>
             
             <div className="grid grid-cols-3 gap-3 mb-4">
@@ -1273,10 +1631,59 @@ function ProfileScreen() {
             </div>
             
             {showInv ? (
-                avatarItems.length > 0 ? <div className="grid grid-cols-2 gap-3">{avatarItems.map(item => {
-                    const eq = activePlayer.avatar[item.slot] === item.id;
-                    return <button key={item.id} onClick={() => equipItem(item.id)} className={'card p-4 text-center ' + (eq ? 'ring-2 ring-green-400 bg-green-50' : '')}><div className="text-3xl mb-2">{item.emoji}</div><div className="font-bold text-sm text-slate-800">{item.name}</div><div className={'text-xs mt-1 ' + (eq ? 'text-green-600 font-bold' : 'text-slate-400')}>{eq ? '✓ Equipped' : 'Tap to equip'}</div></button>;
-                })}</div> : <div className="card p-8 text-center"><div className="text-4xl mb-2">🛒</div><p className="text-slate-500">No items yet!</p></div>
+                avatarItems.length > 0 ? (
+                    <div>
+                        {/* Category Filter */}
+                        <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">
+                            <button onClick={() => setInvCategory('all')} className={'px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap ' + (invCategory === 'all' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600')}>All ({avatarItems.length})</button>
+                            {hats.length > 0 && <button onClick={() => setInvCategory('hats')} className={'px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap ' + (invCategory === 'hats' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600')}>👒 Hats ({hats.length})</button>}
+                            {glasses.length > 0 && <button onClick={() => setInvCategory('glasses')} className={'px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap ' + (invCategory === 'glasses' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600')}>👓 Glasses ({glasses.length})</button>}
+                            {capes.length > 0 && <button onClick={() => setInvCategory('capes')} className={'px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap ' + (invCategory === 'capes' ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600')}>🦸 Capes ({capes.length})</button>}
+                        </div>
+                        
+                        {/* Item Grid */}
+                        <div className="grid grid-cols-2 gap-3">
+                            {getFilteredItems().map(item => {
+                                const eq = activePlayer.avatar[item.slot] === item.id;
+                                const rarity = RARITY_CONFIG[item.rarity];
+                                return (
+                                    <button 
+                                        key={item.id} 
+                                        onClick={() => equipItem(item.id)} 
+                                        className={'card p-3 text-center transition-all ' + (eq ? 'ring-2 ring-green-400 bg-green-50' : 'hover:shadow-lg') + ' ' + rarity.glow}
+                                    >
+                                        <div className="flex justify-center mb-2">
+                                            {renderItemPreview(item)}
+                                        </div>
+                                        <div className="font-bold text-sm text-slate-800">{item.name}</div>
+                                        <div className={'text-xs font-bold text-' + rarity.color + '-500 uppercase'}>{rarity.label}</div>
+                                        <div className={'text-xs mt-2 py-1 px-2 rounded-full inline-block ' + (eq ? 'bg-green-500 text-white' : 'bg-slate-100 text-slate-500')}>
+                                            {eq ? '✓ Equipped' : 'Tap to equip'}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        
+                        {/* Unequip buttons */}
+                        {(activePlayer.avatar.hat || activePlayer.avatar.glasses || activePlayer.avatar.cape) && (
+                            <div className="mt-4 pt-4 border-t border-slate-200">
+                                <div className="text-xs font-bold text-slate-500 uppercase mb-2">Quick Unequip</div>
+                                <div className="flex gap-2 flex-wrap">
+                                    {activePlayer.avatar.hat && <button onClick={() => equipItem(activePlayer.avatar.hat)} className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs font-bold">Remove Hat</button>}
+                                    {activePlayer.avatar.glasses && <button onClick={() => equipItem(activePlayer.avatar.glasses)} className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs font-bold">Remove Glasses</button>}
+                                    {activePlayer.avatar.cape && <button onClick={() => equipItem(activePlayer.avatar.cape)} className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs font-bold">Remove Cape</button>}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="card p-8 text-center">
+                        <div className="text-4xl mb-2">🛒</div>
+                        <p className="text-slate-500 mb-2">No items yet!</p>
+                        <p className="text-sm text-slate-400">Visit the Shop to buy cool gear!</p>
+                    </div>
+                )
             ) : (
                 <div className="space-y-2">
                     {(activePlayer.completedQuests || []).slice(0, 10).map((q, i) => <div key={i} className="card p-3 flex items-center justify-between"><div className="flex items-center gap-2"><span>{CATEGORY_CONFIG[q.category]?.emoji || '✨'}</span><span className="text-sm text-slate-600">Quest done</span></div><span className="text-xs text-slate-400">{new Date(q.timestamp).toLocaleDateString()}</span></div>)}
