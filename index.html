@@ -92,6 +92,23 @@ const DAILY_CHALLENGE_TEMPLATES = [
     { id: 'streak_keeper', name: 'Streak Keeper', description: 'Keep your streak alive!', type: 'maintain_streak', bonusSparks: 10, bonusXp: 20, emoji: '🔥' }
 ];
 
+const BONUS_REWARD_TEMPLATES = [
+    { name: 'Screen Time', emoji: '📺' },
+    { name: 'Extra Screen Time', emoji: '🎮' },
+    { name: 'Movie Night Pick', emoji: '🍿' },
+    { name: 'Stay Up Late', emoji: '🌙' },
+    { name: 'Dessert', emoji: '🍦' },
+    { name: 'Pick Dinner', emoji: '🍕' },
+    { name: 'Trip to Park', emoji: '🛝' },
+    { name: 'Friend Sleepover', emoji: '🏠' },
+    { name: 'Yes Day', emoji: '✨' },
+    { name: 'Gift Card', emoji: '💳' },
+    { name: 'New Toy', emoji: '🧸' },
+    { name: 'Special Outing', emoji: '🎢' },
+    { name: 'Allowance Bonus', emoji: '💰' },
+    { name: 'Skip a Chore', emoji: '🎟️' },
+];
+
 const WORD_BANKS = {
     number_small: ['3', '4', '5', '6', '7', '8'], number_large: ['10', '12', '15', '20'],
     time_short: ['10 seconds', '15 seconds', '20 seconds', '30 seconds'], time_long: ['1 minute', '2 minutes', '3 minutes'],
@@ -207,7 +224,17 @@ function GameProvider({ children }) {
     const updatePlayer = useCallback((id, updates) => { setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p)); }, []);
     
     const addChore = useCallback((playerId, data) => {
-        const chore = { id: 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5), name: data.name, sparks: data.sparks || 5, xp: data.xp || 10, emoji: data.emoji || '✅', recurrence: data.recurrence || 'daily', lastCompleted: null, completedDates: [] };
+        const chore = { 
+            id: 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5), 
+            name: data.name, 
+            sparks: data.sparks || 5, 
+            xp: data.xp || 10, 
+            emoji: data.emoji || '✅', 
+            recurrence: data.recurrence || 'daily', 
+            bonusReward: data.bonusReward || null, // { name: 'Screen Time', emoji: '📺' }
+            lastCompleted: null, 
+            completedDates: [] 
+        };
         setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, chores: [...(p.chores || []), chore] } : p));
         showNotif('Added "' + chore.name + '"!'); return chore;
     }, [showNotif]);
@@ -237,8 +264,8 @@ function GameProvider({ children }) {
         let updatedChores = (targetPlayer.chores || []).map(c => c.id === choreId ? { ...c, lastCompleted: today, completedDates: [...(c.completedDates || []), today] } : c);
         if (chore.recurrence === 'once') updatedChores = updatedChores.filter(c => c.id !== choreId);
         
-        updatePlayer(targetPlayer.id, { sparks: targetPlayer.sparks + sparksEarned, xp: newXp, level: LEVEL_CONFIG.getLevel(newXp), streak, lastPlayedDate: today, chores: updatedChores, choreHistory: [{ choreId, choreName: chore.name, timestamp: Date.now(), sparks: sparksEarned, xp: xpEarned }, ...(targetPlayer.choreHistory || []).slice(0, 99)] });
-        return { sparksEarned, xpEarned, streakBonus: bonus > 0 };
+        updatePlayer(targetPlayer.id, { sparks: targetPlayer.sparks + sparksEarned, xp: newXp, level: LEVEL_CONFIG.getLevel(newXp), streak, lastPlayedDate: today, chores: updatedChores, choreHistory: [{ choreId, choreName: chore.name, timestamp: Date.now(), sparks: sparksEarned, xp: xpEarned, bonusReward: chore.bonusReward }, ...(targetPlayer.choreHistory || []).slice(0, 99)] });
+        return { sparksEarned, xpEarned, streakBonus: bonus > 0, bonusReward: chore.bonusReward };
     }, [activePlayer, players, updatePlayer, showNotif]);
     
     const getTodayChores = useCallback((playerId = null) => {
@@ -674,9 +701,14 @@ function ChoreList() {
     const totalCount = chores.length;
     
     const handleComplete = (choreId) => {
+        const chore = chores.find(c => c.id === choreId);
         const result = completeChore(choreId);
         if (result) {
-            showNotif(`+${result.sparksEarned} ⚡ ${result.streakBonus ? '(Streak Bonus!)' : ''}`);
+            if (chore?.bonusReward) {
+                showNotif(`+${result.sparksEarned} ⚡ + ${chore.bonusReward.emoji} ${chore.bonusReward.name}!`);
+            } else {
+                showNotif(`+${result.sparksEarned} ⚡ ${result.streakBonus ? '(Streak Bonus!)' : ''}`);
+            }
         }
     };
     
@@ -715,36 +747,50 @@ function ChoreList() {
                 {chores.map((chore, index) => (
                     <div 
                         key={chore.id} 
-                        className={'chore-item card p-4 flex items-center gap-3 animate-stagger ' + (chore.isCompleted ? 'completed' : '')}
+                        className={'chore-item card p-4 animate-stagger ' + (chore.isCompleted ? 'completed' : '')}
                         style={{ animationDelay: (index * 0.05) + 's' }}
                     >
-                        <button 
-                            onClick={() => !chore.isCompleted && handleComplete(chore.id)}
-                            className={'chore-checkbox ' + (chore.isCompleted ? 'checked' : '')}
-                            disabled={chore.isCompleted}
-                        >
-                            {chore.isCompleted && <span className="text-white text-lg">✓</span>}
-                        </button>
-                        
-                        <span className="text-2xl">{chore.emoji}</span>
-                        
-                        <div className="flex-1">
-                            <h4 className={'font-bold ' + (chore.isCompleted ? 'text-slate-400 line-through' : 'text-slate-800')}>
-                                {chore.name}
-                            </h4>
-                            <div className="flex gap-2 text-xs">
-                                <span className={chore.isCompleted ? 'text-slate-300' : 'text-yellow-600'}>⚡ {chore.sparks}</span>
-                                <span className={chore.isCompleted ? 'text-slate-300' : 'text-purple-600'}>✨ {chore.xp} XP</span>
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => !chore.isCompleted && handleComplete(chore.id)}
+                                className={'chore-checkbox ' + (chore.isCompleted ? 'checked' : '')}
+                                disabled={chore.isCompleted}
+                            >
+                                {chore.isCompleted && <span className="text-white text-lg">✓</span>}
+                            </button>
+                            
+                            <span className="text-2xl">{chore.emoji}</span>
+                            
+                            <div className="flex-1">
+                                <h4 className={'font-bold ' + (chore.isCompleted ? 'text-slate-400 line-through' : 'text-slate-800')}>
+                                    {chore.name}
+                                </h4>
+                                <div className="flex gap-2 text-xs">
+                                    <span className={chore.isCompleted ? 'text-slate-300' : 'text-yellow-600'}>⚡ {chore.sparks}</span>
+                                    <span className={chore.isCompleted ? 'text-slate-300' : 'text-purple-600'}>✨ {chore.xp} XP</span>
+                                </div>
                             </div>
+                            
+                            {!chore.isCompleted && (
+                                <button 
+                                    onClick={() => handleComplete(chore.id)} 
+                                    className="btn-success text-sm px-3 py-2"
+                                >
+                                    Done!
+                                </button>
+                            )}
                         </div>
                         
-                        {!chore.isCompleted && (
-                            <button 
-                                onClick={() => handleComplete(chore.id)} 
-                                className="btn-success text-sm px-3 py-2"
-                            >
-                                Done!
-                            </button>
+                        {/* Bonus Reward Display */}
+                        {chore.bonusReward && (
+                            <div className={'mt-3 ml-10 rounded-xl p-2 flex items-center gap-2 ' + (chore.isCompleted ? 'bg-slate-100' : 'bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-300 animate-pulse-glow')}>
+                                <span className="text-xl">{chore.bonusReward.emoji}</span>
+                                <div>
+                                    <span className={'text-xs font-bold uppercase ' + (chore.isCompleted ? 'text-slate-400' : 'text-amber-600')}>Bonus Reward:</span>
+                                    <p className={'font-bold text-sm ' + (chore.isCompleted ? 'text-slate-400 line-through' : 'text-amber-800')}>{chore.bonusReward.name}</p>
+                                </div>
+                                {chore.isCompleted && <span className="ml-auto text-green-500 font-bold">✓ Earned!</span>}
+                            </div>
                         )}
                     </div>
                 ))}
@@ -759,13 +805,35 @@ function ParentDashboard() {
     const [tab, setTab] = useState('chores');
     const [showAddChore, setShowAddChore] = useState(false);
     const [showAddReward, setShowAddReward] = useState(false);
-    const [newChore, setNewChore] = useState({ name: '', sparks: 10, xp: 20, emoji: '✅', recurrence: 'daily' });
+    const [newChore, setNewChore] = useState({ name: '', sparks: 10, xp: 20, emoji: '✅', recurrence: 'daily', bonusReward: null });
+    const [showBonusReward, setShowBonusReward] = useState(false);
     const [newReward, setNewReward] = useState({ name: '', cost: 100, emoji: '🎁', description: '' });
     
+    const BONUS_REWARD_PRESETS = [
+        { name: '30 min Screen Time', emoji: '📺' },
+        { name: '1 Hour Screen Time', emoji: '🎮' },
+        { name: 'Pick Dinner', emoji: '🍕' },
+        { name: 'Stay Up Late', emoji: '🌙' },
+        { name: 'Movie Night Pick', emoji: '🎬' },
+        { name: 'Ice Cream Trip', emoji: '🍦' },
+        { name: '$5 Gift Card', emoji: '💳' },
+        { name: 'Yes Day Activity', emoji: '🎉' },
+        { name: 'Friend Sleepover', emoji: '🛏️' },
+        { name: 'New Book/Toy', emoji: '🎁' },
+    ];
+    
     const player = players.find(p => p.id === selectedPlayer);
-    const handleAddChore = () => { if (!newChore.name.trim()) return; addChore(selectedPlayer, newChore); setNewChore({ name: '', sparks: 10, xp: 20, emoji: '✅', recurrence: 'daily' }); setShowAddChore(false); };
+    const handleAddChore = () => { 
+        if (!newChore.name.trim()) return; 
+        addChore(selectedPlayer, newChore); 
+        setNewChore({ name: '', sparks: 10, xp: 20, emoji: '✅', recurrence: 'daily', bonusReward: null }); 
+        setShowBonusReward(false);
+        setShowAddChore(false); 
+    };
     const handleAddReward = () => { if (!newReward.name.trim()) return; addRealReward(newReward); setNewReward({ name: '', cost: 100, emoji: '🎁', description: '' }); setShowAddReward(false); };
-    const selectTemplate = (t) => setNewChore({ name: t.name, sparks: t.sparks, xp: t.xp, emoji: t.emoji, recurrence: 'daily' });
+    const selectTemplate = (t) => setNewChore({ ...newChore, name: t.name, sparks: t.sparks, xp: t.xp, emoji: t.emoji });
+    const selectBonusPreset = (preset) => setNewChore({ ...newChore, bonusReward: { name: preset.name, emoji: preset.emoji } });
+    const clearBonusReward = () => { setNewChore({ ...newChore, bonusReward: null }); setShowBonusReward(false); };
     
     return (
         <div className="p-4 pb-8 min-h-screen">
@@ -811,10 +879,25 @@ function ParentDashboard() {
                             <button onClick={() => setShowAddChore(true)} className="w-full btn-success mb-4">+ Add Chore</button>
                             <div className="space-y-2">
                                 {(player.chores || []).map(c => (
-                                    <div key={c.id} className="card p-3 flex items-center gap-3">
-                                        <span className="text-2xl">{c.emoji}</span>
-                                        <div className="flex-1"><h4 className="font-bold text-slate-800">{c.name}</h4><div className="flex gap-2 text-xs"><span className="text-yellow-600">⚡ {c.sparks}</span><span className="text-purple-600">✨ {c.xp}</span><span className="text-slate-400 capitalize">• {c.recurrence}</span></div></div>
-                                        <button onClick={() => removeChore(player.id, c.id)} className="text-red-400 hover:text-red-600 p-2">🗑️</button>
+                                    <div key={c.id} className="card p-3">
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-2xl">{c.emoji}</span>
+                                            <div className="flex-1">
+                                                <h4 className="font-bold text-slate-800">{c.name}</h4>
+                                                <div className="flex flex-wrap gap-2 text-xs">
+                                                    <span className="text-yellow-600">⚡ {c.sparks}</span>
+                                                    <span className="text-purple-600">✨ {c.xp}</span>
+                                                    <span className="text-slate-400 capitalize">• {c.recurrence}</span>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => removeChore(player.id, c.id)} className="text-red-400 hover:text-red-600 p-2">🗑️</button>
+                                        </div>
+                                        {c.bonusReward && (
+                                            <div className="mt-2 ml-10 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg px-3 py-1.5 inline-flex items-center gap-2">
+                                                <span className="text-sm">{c.bonusReward.emoji}</span>
+                                                <span className="text-xs font-bold text-amber-700">+ {c.bonusReward.name}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                                 {(!player.chores || player.chores.length === 0) && <div className="card p-6 text-center text-slate-400">No chores yet</div>}
@@ -857,21 +940,96 @@ function ParentDashboard() {
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
                     <div className="card p-6 w-full max-w-md my-8 animate-bounce-in">
                         <h2 className="text-xl font-bold text-slate-800 mb-4">Add Chore</h2>
+                        
+                        {/* Quick Add Templates */}
                         <div className="mb-4">
                             <label className="text-sm font-bold text-slate-600 mb-2 block">Quick Add:</label>
                             <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                                 {CHORE_TEMPLATES.map((t, i) => <button key={i} onClick={() => selectTemplate(t)} className="px-3 py-1 bg-slate-100 rounded-full text-sm hover:bg-slate-200 flex items-center gap-1"><span>{t.emoji}</span><span>{t.name}</span></button>)}
                             </div>
                         </div>
+                        
                         <div className="space-y-3">
-                            <div><label className="text-sm font-bold text-slate-600 mb-1 block">Name</label><input type="text" value={newChore.name} onChange={(e) => setNewChore({...newChore, name: e.target.value})} placeholder="e.g., Make bed" className="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-purple-400 focus:outline-none"/></div>
+                            {/* Chore Name */}
+                            <div>
+                                <label className="text-sm font-bold text-slate-600 mb-1 block">Name</label>
+                                <input type="text" value={newChore.name} onChange={(e) => setNewChore({...newChore, name: e.target.value})} placeholder="e.g., Make bed" className="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-purple-400 focus:outline-none"/>
+                            </div>
+                            
+                            {/* Sparks & XP */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div><label className="text-sm font-bold text-slate-600 mb-1 block">⚡ Sparks</label><input type="number" value={newChore.sparks} onChange={(e) => setNewChore({...newChore, sparks: parseInt(e.target.value)||0})} className="w-full p-3 border-2 border-slate-200 rounded-xl" min="1"/></div>
                                 <div><label className="text-sm font-bold text-slate-600 mb-1 block">✨ XP</label><input type="number" value={newChore.xp} onChange={(e) => setNewChore({...newChore, xp: parseInt(e.target.value)||0})} className="w-full p-3 border-2 border-slate-200 rounded-xl" min="1"/></div>
                             </div>
-                            <div><label className="text-sm font-bold text-slate-600 mb-1 block">Recurrence</label><div className="flex gap-2">{RECURRENCE_OPTIONS.map(o => <button key={o.id} onClick={() => setNewChore({...newChore, recurrence: o.id})} className={'flex-1 py-2 rounded-lg font-bold text-sm ' + (newChore.recurrence === o.id ? 'bg-purple-500 text-white' : 'bg-slate-100 text-slate-600')}>{o.emoji} {o.label}</button>)}</div></div>
+                            
+                            {/* Recurrence */}
+                            <div>
+                                <label className="text-sm font-bold text-slate-600 mb-1 block">Recurrence</label>
+                                <div className="flex gap-2">{RECURRENCE_OPTIONS.map(o => <button key={o.id} onClick={() => setNewChore({...newChore, recurrence: o.id})} className={'flex-1 py-2 rounded-lg font-bold text-sm ' + (newChore.recurrence === o.id ? 'bg-purple-500 text-white' : 'bg-slate-100 text-slate-600')}>{o.emoji} {o.label}</button>)}</div>
+                            </div>
+                            
+                            {/* Bonus Reward Section */}
+                            <div className="border-t border-slate-200 pt-3 mt-3">
+                                <label className="text-sm font-bold text-slate-600 mb-2 block">🎁 Bonus Reward (Optional)</label>
+                                <p className="text-xs text-slate-400 mb-2">Add a special real-world reward for completing this chore</p>
+                                
+                                {newChore.bonusReward ? (
+                                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-2xl">{newChore.bonusReward.emoji}</span>
+                                                <span className="font-bold text-amber-800">{newChore.bonusReward.name}</span>
+                                            </div>
+                                            <button onClick={clearBonusReward} className="text-amber-600 hover:text-amber-800 text-sm font-bold">✕ Remove</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {!showBonusReward ? (
+                                            <button onClick={() => setShowBonusReward(true)} className="w-full py-3 border-2 border-dashed border-slate-300 rounded-xl text-slate-500 hover:border-purple-400 hover:text-purple-600 font-bold text-sm">
+                                                + Add Bonus Reward
+                                            </button>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {/* Preset Rewards */}
+                                                <div>
+                                                    <label className="text-xs font-bold text-slate-500 mb-2 block">Quick Pick:</label>
+                                                    <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                                                        {BONUS_REWARD_PRESETS.map((preset, i) => (
+                                                            <button 
+                                                                key={i} 
+                                                                onClick={() => selectBonusPreset(preset)} 
+                                                                className="px-3 py-1 bg-amber-100 hover:bg-amber-200 rounded-full text-sm flex items-center gap-1 text-amber-800"
+                                                            >
+                                                                <span>{preset.emoji}</span>
+                                                                <span>{preset.name}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                
+                                                {/* Custom Reward */}
+                                                <div className="flex gap-2">
+                                                    <input 
+                                                        type="text" 
+                                                        value={newChore.bonusReward?.name || ''} 
+                                                        onChange={(e) => setNewChore({...newChore, bonusReward: { name: e.target.value, emoji: newChore.bonusReward?.emoji || '🎁' }})} 
+                                                        placeholder="Or type custom reward..." 
+                                                        className="flex-1 p-2 border-2 border-slate-200 rounded-lg text-sm focus:border-purple-400 focus:outline-none"
+                                                    />
+                                                    <button onClick={() => setShowBonusReward(false)} className="px-3 py-2 text-slate-400 hover:text-slate-600 text-sm">Cancel</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                         </div>
-                        <div className="flex gap-2 mt-6"><button onClick={() => setShowAddChore(false)} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">Cancel</button><button onClick={handleAddChore} className="flex-1 btn-success">Add</button></div>
+                        
+                        <div className="flex gap-2 mt-6">
+                            <button onClick={() => { setShowAddChore(false); setShowBonusReward(false); setNewChore({ name: '', sparks: 10, xp: 20, emoji: '✅', recurrence: 'daily', bonusReward: null }); }} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">Cancel</button>
+                            <button onClick={handleAddChore} className="flex-1 btn-success">Add Chore</button>
+                        </div>
                     </div>
                 </div>
             )}
