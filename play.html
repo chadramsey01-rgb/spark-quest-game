@@ -1504,52 +1504,58 @@ function PlayApp() {
     }, []);
 
     const loadData = async (uid) => {
-        console.log('Loading data for uid:', uid);
-        try {
-            // Get user email for Firestore path
-            const userEmail = auth.currentUser?.email;
-            if (!userEmail) {
-                console.error('No user email found');
-                setLoading(false);
-                return;
-            }
-            console.log('Loading data for email:', userEmail);
-            console.log('Auth current user:', auth.currentUser);
-            console.log('Token email should be:', auth.currentUser?.email);
-            
-            // Try to read the document
-            const docRef = db.collection('parents').doc(userEmail);
-            console.log('Attempting to read document at path:', docRef.path);
-            
-            const doc = await docRef.get();
-            console.log('Firestore doc exists:', doc.exists);
-            if (doc.exists) {
-                const d = doc.data();
-                console.log('Raw data from Firestore:', d);
-                console.log('Data loaded, kids count:', d.kids?.length || 0);
-                console.log('Kids array:', d.kids);
-                setKids(d.kids || []);
-                setRewards(d.rewards || []);
-                if (d.kids?.length > 0) {
-                    console.log('Setting selected kid to:', d.kids[0]);
-                    setSelectedKid(d.kids[0]);
+        console.log('Loading data...');
+        console.log('UID:', uid);
+        const userEmail = auth.currentUser?.email;
+        console.log('Email:', userEmail);
+        
+        // Try multiple possible document paths
+        const pathsToTry = [
+            userEmail,  // parents/{email}
+            uid,        // parents/{uid}
+        ];
+        
+        for (const docId of pathsToTry) {
+            if (!docId) continue;
+            try {
+                console.log('Trying path: parents/' + docId);
+                const doc = await db.collection('parents').doc(docId).get();
+                if (doc.exists) {
+                    const d = doc.data();
+                    console.log('SUCCESS! Found data at parents/' + docId);
+                    console.log('Kids count:', d.kids?.length || 0);
+                    setKids(d.kids || []);
+                    setRewards(d.rewards || []);
+                    if (d.kids?.length > 0) setSelectedKid(d.kids[0]);
+                    setLoading(false);
+                    return; // Found it, stop trying
+                } else {
+                    console.log('No document at parents/' + docId);
                 }
-            } else {
-                console.log('No document found for this user at path:', docRef.path);
+            } catch (e) { 
+                console.log('Permission denied for parents/' + docId + ':', e.message);
             }
-        } catch (e) { 
-            console.error('Load error:', e);
-            console.error('Error code:', e.code);
-            console.error('Error message:', e.message);
         }
+        
+        console.log('Could not find data at any path');
         setLoading(false);
     };
 
     const saveData = async (updates) => {
+        // Use same path that works for reading
         const userEmail = auth.currentUser?.email;
-        if (userEmail) {
-            try { await db.collection('parents').doc(userEmail).update(updates); }
-            catch (e) { console.error('Save error:', e); }
+        const uid = auth.currentUser?.uid;
+        
+        // Try email first, then uid
+        for (const docId of [userEmail, uid]) {
+            if (!docId) continue;
+            try {
+                await db.collection('parents').doc(docId).update(updates);
+                console.log('Saved to parents/' + docId);
+                return;
+            } catch (e) { 
+                console.log('Could not save to parents/' + docId);
+            }
         }
     };
 
