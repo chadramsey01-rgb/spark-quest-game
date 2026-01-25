@@ -1514,19 +1514,34 @@ function PlayApp() {
                 return;
             }
             console.log('Loading data for email:', userEmail);
+            console.log('Auth current user:', auth.currentUser);
+            console.log('Token email should be:', auth.currentUser?.email);
             
-            const doc = await db.collection('parents').doc(userEmail).get();
+            // Try to read the document
+            const docRef = db.collection('parents').doc(userEmail);
+            console.log('Attempting to read document at path:', docRef.path);
+            
+            const doc = await docRef.get();
             console.log('Firestore doc exists:', doc.exists);
             if (doc.exists) {
                 const d = doc.data();
+                console.log('Raw data from Firestore:', d);
                 console.log('Data loaded, kids count:', d.kids?.length || 0);
+                console.log('Kids array:', d.kids);
                 setKids(d.kids || []);
                 setRewards(d.rewards || []);
-                if (d.kids?.length > 0) setSelectedKid(d.kids[0]);
+                if (d.kids?.length > 0) {
+                    console.log('Setting selected kid to:', d.kids[0]);
+                    setSelectedKid(d.kids[0]);
+                }
             } else {
-                console.log('No document found for this user');
+                console.log('No document found for this user at path:', docRef.path);
             }
-        } catch (e) { console.error('Load error:', e); }
+        } catch (e) { 
+            console.error('Load error:', e);
+            console.error('Error code:', e.code);
+            console.error('Error message:', e.message);
+        }
         setLoading(false);
     };
 
