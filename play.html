@@ -645,6 +645,227 @@ function BlockyAvatar({ config, size = 'md', showEffects = true }) {
 }
 
 // ============================================================================
+// UI COMPONENTS
+// ============================================================================
+
+function SparkCounter({ amount, size = 'md' }) {
+    const sizes = { sm: 'text-sm px-2 py-1', md: 'text-base px-3 py-1.5', lg: 'text-lg px-4 py-2' };
+    return (
+        <div className={`spark-counter ${sizes[size]}`}>
+            <span className="animate-sparkle">⚡</span>
+            <span>{amount || 0}</span>
+        </div>
+    );
+}
+
+function LevelProgress({ xp, level }) {
+    const progress = (xp || 0) % 100;
+    const toNext = 100 - progress;
+    return (
+        <div className="flex items-center gap-3">
+            <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold whitespace-nowrap">Lvl {level}</span>
+            <div className="flex-1">
+                <div className="h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500" style={{ width: progress + '%' }}/>
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">{toNext} XP to next</p>
+            </div>
+        </div>
+    );
+}
+
+function StreakFlame({ streak }) {
+    if (!streak || streak <= 0) return null;
+    return (
+        <div className="flex items-center gap-1.5 bg-gradient-to-r from-orange-100 to-red-100 px-4 py-2 rounded-full border border-orange-200">
+            <span className="text-xl animate-sparkle">🔥</span>
+            <span className="text-orange-700 font-bold">{streak} day streak!</span>
+        </div>
+    );
+}
+
+function QuestCard({ quest, onComplete, playerName }) {
+    const cat = CATEGORY_CONFIG[quest.category];
+    const diff = DIFFICULTY_CONFIG[quest.difficulty];
+    return (
+        <div className={`card card-elevated p-5 quest-${quest.category} border-l-4 animate-bounce-in`}>
+            {playerName && <div className="text-xs font-bold text-slate-500 mb-2 uppercase">Quest for {playerName}</div>}
+            <div className="flex items-center gap-2 mb-3">
+                <span className="text-2xl">{cat.emoji}</span>
+                <span className="text-xs font-bold uppercase text-slate-600">{cat.label}</span>
+                <span className="ml-auto text-xs font-bold px-2 py-1 rounded-full bg-white/60">{diff.label}</span>
+            </div>
+            <h3 className="text-lg font-bold text-slate-800 mb-4 leading-snug">{quest.text}</h3>
+            <div className="flex items-center justify-between">
+                <div className="flex gap-3">
+                    <span className="text-sm font-bold text-yellow-600">⚡ {quest.rewards.sparks}</span>
+                    <span className="text-sm font-bold text-purple-600">✨ {quest.rewards.xp} XP</span>
+                </div>
+                <button onClick={() => onComplete(quest)} className="btn-success text-sm px-4 py-2">Done! ✓</button>
+            </div>
+        </div>
+    );
+}
+
+function CompletionModal({ rewards, onClose, item }) {
+    const confetti = Array.from({ length: 40 }, (_, i) => ({ 
+        id: i, 
+        left: Math.random() * 100, 
+        delay: Math.random() * 0.5, 
+        color: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#DDA0DD'][i % 6] 
+    }));
+    return (
+        <div className="modal-overlay">
+            {confetti.map(p => (
+                <div key={p.id} className="confetti" style={{ left: p.left + '%', backgroundColor: p.color, animationDelay: p.delay + 's', borderRadius: Math.random() > 0.5 ? '50%' : '2px' }}/>
+            ))}
+            <div className="card card-elevated p-8 text-center max-w-sm w-full animate-bounce-in">
+                <div className="text-6xl mb-4">{item ? '🎁' : '🎉'}</div>
+                <h2 className="font-display text-2xl font-bold text-slate-800 mb-2">{item ? 'Item Unlocked!' : 'Awesome Job!'}</h2>
+                {item ? (
+                    <div className={`rounded-2xl p-6 mb-4 ${RARITY_CONFIG[item.rarity].glow}`} style={{ background: 'linear-gradient(135deg, #f3e8ff, #fce7f3)' }}>
+                        <div className="w-24 h-24 mx-auto mb-3 bg-white rounded-xl flex items-center justify-center shadow-inner">
+                            {item.emoji ? <span className="text-5xl">{item.emoji}</span> : <BlockyAvatar config={{ [item.slot]: item.id }} size="lg" />}
+                        </div>
+                        <div className="font-bold text-slate-800 text-lg">{item.name}</div>
+                        <span className={`text-sm font-bold uppercase text-${RARITY_CONFIG[item.rarity].color}-500`}>{RARITY_CONFIG[item.rarity].label}</span>
+                    </div>
+                ) : (
+                    <div className="bg-gradient-to-r from-yellow-100 to-purple-100 rounded-2xl p-5 mb-4">
+                        <div className="flex justify-center gap-8">
+                            <div>
+                                <div className="text-3xl font-bold text-yellow-600">+{rewards?.sparksEarned || 0}</div>
+                                <div className="text-sm text-slate-500">Sparks</div>
+                            </div>
+                            <div>
+                                <div className="text-3xl font-bold text-purple-600">+{rewards?.xpEarned || 0}</div>
+                                <div className="text-sm text-slate-500">XP</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {rewards?.streakBonus && <div className="bg-orange-100 rounded-xl p-2 mb-4"><span className="text-orange-700 font-bold text-sm">🔥 Streak Bonus Applied!</span></div>}
+                <button onClick={onClose} className="btn-primary w-full text-lg">Awesome! 🚀</button>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// LUCKY BLOCK COMPONENT
+// ============================================================================
+
+function LuckyBlock({ kid, onClaim }) {
+    const [timeRemaining, setTimeRemaining] = useState(0);
+    const [isReady, setIsReady] = useState(false);
+    const [isOpening, setIsOpening] = useState(false);
+    const [reward, setReward] = useState(null);
+    
+    useEffect(() => {
+        const checkReady = () => {
+            const lastClaim = kid.lastLuckyBlockClaim;
+            if (!lastClaim) { 
+                setIsReady(true); 
+                setTimeRemaining(0); 
+                return; 
+            }
+            const lastClaimDate = new Date(lastClaim).toDateString();
+            const today = new Date().toDateString();
+            if (lastClaimDate !== today) { 
+                setIsReady(true); 
+                setTimeRemaining(0); 
+            } else { 
+                setIsReady(false); 
+                // Calculate time until midnight
+                const now = new Date();
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0, 0, 0, 0);
+                setTimeRemaining(tomorrow - now);
+            }
+        };
+        checkReady();
+        const interval = setInterval(() => {
+            if (!isReady) {
+                const now = new Date();
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0, 0, 0, 0);
+                const remaining = tomorrow - now;
+                setTimeRemaining(remaining);
+                if (remaining <= 0) setIsReady(true);
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [kid.lastLuckyBlockClaim, isReady]);
+    
+    const formatTime = (ms) => {
+        const hours = Math.floor(ms / (1000 * 60 * 60));
+        const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+    
+    const handleOpen = () => {
+        if (!isReady || isOpening) return;
+        setIsOpening(true);
+        
+        setTimeout(() => {
+            const roll = Math.random();
+            let rewardData;
+            if (roll < 0.12) {
+                const item = rollForItem('rare', kid.inventory || []);
+                if (item) {
+                    rewardData = { type: 'item', item };
+                } else {
+                    rewardData = { type: 'sparks', amount: Math.floor(Math.random() * 20) + 10 };
+                }
+            } else {
+                const amounts = [5, 10, 15, 20, 25, 30, 50];
+                const weights = [20, 25, 22, 18, 10, 4, 1];
+                let r = Math.random() * 100;
+                let amount = 10;
+                for (let i = 0; i < amounts.length; i++) { 
+                    r -= weights[i]; 
+                    if (r <= 0) { amount = amounts[i]; break; } 
+                }
+                rewardData = { type: 'sparks', amount };
+            }
+            setReward(rewardData);
+            onClaim(rewardData);
+            setIsOpening(false);
+        }, 1500);
+    };
+    
+    return (
+        <>
+            <div className={`lucky-block p-4 ${isReady ? 'ready' : ''}`} onClick={isReady ? handleOpen : undefined}>
+                <div className="relative z-10 text-center">
+                    <div className={`text-4xl mb-2 ${isOpening ? 'animate-shake' : isReady ? 'animate-float' : ''}`}>
+                        {isOpening ? '📦' : isReady ? '🎁' : '⏰'}
+                    </div>
+                    <div className="font-bold text-amber-900 text-sm">
+                        {isOpening ? 'Opening...' : isReady ? 'Daily Reward Ready!' : 'Next reward in:'}
+                    </div>
+                    {!isReady && !isOpening && (
+                        <div className="font-mono text-amber-800 text-lg font-bold mt-1">{formatTime(timeRemaining)}</div>
+                    )}
+                    {isReady && !isOpening && <div className="text-xs text-amber-700 mt-1">Tap to open!</div>}
+                </div>
+            </div>
+            
+            {reward && (
+                <CompletionModal 
+                    rewards={reward.type === 'sparks' ? { sparksEarned: reward.amount, xpEarned: 0 } : null}
+                    item={reward.type === 'item' ? reward.item : null}
+                    onClose={() => { setReward(null); setIsReady(false); }}
+                />
+            )}
+        </>
+    );
+}
+
+// ============================================================================
 // MYSTERY BOX MODAL
 // ============================================================================
 
