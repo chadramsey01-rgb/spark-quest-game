@@ -1395,10 +1395,45 @@ function ProfileScreen({ kid, onEquipItem, onUpdateAvatar }) {
 
 
 // ============================================================================
+// ERROR BOUNDARY
+// ============================================================================
+
+class ErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+    componentDidCatch(error, info) {
+        console.error('Spark Quest Error:', error, info);
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #e0f2fe 0%, #fae8ff 100%)' }}>
+                    <div style={{ background: 'white', borderRadius: '1.5rem', padding: '2rem', maxWidth: '400px', textAlign: 'center', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>😵</div>
+                        <h2 style={{ fontFamily: 'Fredoka, sans-serif', fontSize: '1.5rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>Oops! Something went wrong</h2>
+                        <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Try refreshing the page.</p>
+                        <button onClick={() => window.location.reload()} style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white', fontWeight: 'bold', padding: '0.75rem 1.5rem', borderRadius: '1rem', border: 'none', cursor: 'pointer' }}>
+                            Refresh Page
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
+// ============================================================================
 // MAIN APP COMPONENT
 // ============================================================================
 
 function PlayApp() {
+    console.log('PlayApp component mounting...');
     const [loading, setLoading] = useState(true);
     const [kids, setKids] = useState([]);
     const [rewards, setRewards] = useState([]);
@@ -1407,18 +1442,29 @@ function PlayApp() {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
+        console.log('Setting up auth listener...');
         const unsub = auth.onAuthStateChanged(u => {
-            if (u) { setUser(u); loadData(u.uid); }
-            else { window.location.href = 'login.html'; }
+            console.log('Auth state changed:', u ? u.uid : 'no user');
+            if (u) { 
+                setUser(u); 
+                loadData(u.uid); 
+            } else { 
+                // Check if login.html exists, otherwise show message
+                setLoading(false);
+                setUser(null);
+            }
         });
         return () => unsub();
     }, []);
 
     const loadData = async (uid) => {
+        console.log('Loading data for uid:', uid);
         try {
             const doc = await db.collection('parents').doc(uid).get();
+            console.log('Firestore doc exists:', doc.exists);
             if (doc.exists) {
                 const d = doc.data();
+                console.log('Data loaded, kids count:', d.kids?.length || 0);
                 setKids(d.kids || []);
                 setRewards(d.rewards || []);
                 if (d.kids?.length > 0) setSelectedKid(d.kids[0]);
@@ -1560,6 +1606,7 @@ function PlayApp() {
     };
 
     // Loading state
+    console.log('Render state - loading:', loading, 'user:', !!user, 'kids:', kids.length);
     if (loading) {
         return (
             <div className="loading-screen">
@@ -1569,7 +1616,25 @@ function PlayApp() {
         );
     }
 
+    // Not logged in state
+    if (!user) {
+        console.log('No user, showing login prompt');
+        return (
+            <div className="min-h-screen flex items-center justify-center p-4">
+                <div className="card p-8 text-center max-w-sm">
+                    <div className="text-6xl mb-4">🔐</div>
+                    <h2 className="font-display text-xl font-bold text-slate-800 mb-2">Please Sign In</h2>
+                    <p className="text-slate-500 mb-6">You need to be signed in to play Spark Quest.</p>
+                    <a href="index.html" className="btn-primary inline-flex items-center gap-2">
+                        Go to Home →
+                    </a>
+                </div>
+            </div>
+        );
+    }
+
     // No kids state
+    console.log('User authenticated, checking kids...');
     if (kids.length === 0) {
         return (
             <div className="min-h-screen flex items-center justify-center p-4">
@@ -1659,9 +1724,24 @@ function PlayApp() {
     );
 }
 
+// Global error handler
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+    console.error('Global error:', msg, 'at line', lineNo);
+    document.getElementById('root').innerHTML = '<div style="padding: 2rem; text-align: center; font-family: sans-serif;"><h2>⚠️ Error Loading</h2><p>Check the browser console for details.</p><p style="color: red; font-size: 12px;">' + msg + '</p><button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; cursor: pointer;">Reload</button></div>';
+    return false;
+};
+
+console.log('Spark Quest initializing...');
+
 // Render the app
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<PlayApp />);
+try {
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<ErrorBoundary><PlayApp /></ErrorBoundary>);
+    console.log('App rendered successfully');
+} catch (e) {
+    console.error('Failed to render app:', e);
+    document.getElementById('root').innerHTML = '<div style="padding: 2rem; text-align: center;"><h2>Failed to load</h2><p>' + e.message + '</p></div>';
+}
     </script>
 </body>
 </html>
