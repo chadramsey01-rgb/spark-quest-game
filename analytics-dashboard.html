@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard | Spark Quest ⚡</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script>
+        // Firebase Configuration - Spark Quest Project
+        const firebaseConfig = {
+            apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk",
+            authDomain: "spark-quest.firebaseapp.com",
+            projectId: "spark-quest",
+            storageBucket: "spark-quest.firebasestorage.app",
+            messagingSenderId: "113841238943",
+            appId: "1:113841238943:web:fd6b69669fb891afcd43aa",
+            measurementId: "G-9VQJ7CT98X"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-card-hover: #1a1a25;
+            --border: #2a2a3a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --accent-spark: #fbbf24;
+            --accent-quest: #3b82f6;
+            --accent-chore: #22c55e;
+            --accent-xp: #a855f7;
+            --accent-streak: #f97316;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(ellipse at 20% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 100%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+        }
+        
+        .mono { font-family: 'Space Mono', monospace; }
+        
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: #3a3a4a;
+        }
+        
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .stat-card.spark::before { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+        .stat-card.quest::before { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .stat-card.chore::before { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
+        .stat-card.xp::before { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
+        .stat-card.streak::before { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+        
+        .stat-card.spark .stat-value { color: var(--accent-spark); }
+        .stat-card.quest .stat-value { color: var(--accent-quest); }
+        .stat-card.chore .stat-value { color: var(--accent-chore); }
+        .stat-card.xp .stat-value { color: var(--accent-xp); }
+        .stat-card.streak .stat-value { color: var(--accent-streak); }
+        
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .trend-up { color: #22c55e; }
+        .trend-down { color: #ef4444; }
+        .trend-neutral { color: var(--text-secondary); }
+        
+        .activity-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--border);
+        }
+        
+        .activity-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .activity-dot.quest { background: var(--accent-quest); }
+        .activity-dot.chore { background: var(--accent-chore); }
+        .activity-dot.purchase { background: var(--accent-spark); }
+        .activity-dot.levelup { background: var(--accent-xp); }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .chart-bar {
+            transition: height 0.5s ease, background 0.3s ease;
+            border-radius: 4px 4px 0 0;
+        }
+        
+        .chart-bar:hover { filter: brightness(1.2); }
+        
+        .player-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover { background: #4a4a5a; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-in { animation: fadeIn 0.4s ease forwards; }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent-quest);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .category-blaze { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+        .category-flow { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+        .category-terra { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+        .category-breeze { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+const { useState, useEffect, useMemo, useCallback } = React;
+
+// ============================================
+// ANALYTICS CALCULATIONS
+// ============================================
+
+function calculateAnalytics(kids, rewards) {
+    if (!kids || kids.length === 0) return null;
+    
+    const now = Date.now();
+    const today = new Date().toDateString();
+    const dayMs = 24 * 60 * 60 * 1000;
+    
+    let totalSparks = 0;
+    let totalXp = 0;
+    let totalQuestsCompleted = 0;
+    let totalChoresCompleted = 0;
+    let totalPurchases = 0;
+    let maxStreak = 0;
+    let activeTodayCount = 0;
+    let totalActiveChores = 0;
+    
+    const allActivities = [];
+    const questsByDay = {};
+    const choresByDay = {};
+    const questsByCategory = { blaze: 0, flow: 0, terra: 0, breeze: 0 };
+    const playerStats = [];
+    
+    kids.forEach(kid => {
+        totalSparks += kid.sparks || 0;
+        totalXp += kid.xp || 0;
+        totalQuestsCompleted += (kid.completedQuests || []).length;
+        totalChoresCompleted += (kid.choreHistory || []).length;
+        totalPurchases += (kid.inventory || []).length;
+        totalActiveChores += (kid.chores || []).length;
+        maxStreak = Math.max(maxStreak, kid.streak || 0);
+        
+        if (kid.lastPlayedDate === today) {
+            activeTodayCount++;
+        }
+        
+        // Collect quest activities
+        (kid.completedQuests || []).forEach(q => {
+            const date = new Date(q.timestamp).toDateString();
+            questsByDay[date] = (questsByDay[date] || 0) + 1;
+            
+            if (q.category && questsByCategory.hasOwnProperty(q.category)) {
+                questsByCategory[q.category]++;
+            }
+            
+            if (now - q.timestamp < 7 * dayMs) {
+                allActivities.push({
+                    type: 'quest',
+                    player: kid.name,
+                    playerId: kid.id,
+                    category: q.category,
+                    timestamp: q.timestamp,
+                    label: `Completed a ${q.category || 'random'} quest`
+                });
+            }
+        });
+        
+        // Collect chore activities
+        (kid.choreHistory || []).forEach(c => {
+            const date = new Date(c.timestamp).toDateString();
+            choresByDay[date] = (choresByDay[date] || 0) + 1;
+            
+            if (now - c.timestamp < 7 * dayMs) {
+                allActivities.push({
+                    type: 'chore',
+                    player: kid.name,
+                    playerId: kid.id,
+                    sparks: c.sparks,
+                    timestamp: c.timestamp,
+                    label: c.choreName || 'Completed a chore'
+                });
+            }
+        });
+        
+        // Calculate player-specific stats
+        const recentQuests = (kid.completedQuests || []).filter(q => now - q.timestamp < 7 * dayMs).length;
+        const recentChores = (kid.choreHistory || []).filter(c => now - c.timestamp < 7 * dayMs).length;
+        const level = Math.floor((kid.xp || 0) / 100) + 1;
+        
+        // Calculate age from DOB
+        let age = null;
+        if (kid.dob) {
+            const birth = new Date(kid.dob);
+            const ageDate = new Date(now - birth.getTime());
+            age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        }
+        
+        playerStats.push({
+            id: kid.id,
+            name: kid.name,
+            avatar: kid.avatar,
+            age,
+            level,
+            sparks: kid.sparks || 0,
+            xp: kid.xp || 0,
+            streak: kid.streak || 0,
+            totalQuests: (kid.completedQuests || []).length,
+            totalChores: (kid.choreHistory || []).length,
+            activeChores: (kid.chores || []).length,
+            recentQuests,
+            recentChores,
+            lastActive: kid.lastPlayedDate,
+            isActiveToday: kid.lastPlayedDate === today,
+            inventory: kid.inventory || []
+        });
+    });
+    
+    // Sort activities by time (newest first)
+    allActivities.sort((a, b) => b.timestamp - a.timestamp);
+    
+    // Build 7-day chart data
+    const chartData = [];
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(now - i * dayMs);
+        const dateStr = date.toDateString();
+        const dayLabel = i === 0 ? 'Today' : i === 1 ? 'Yesterday' : date.toLocaleDateString('en-US', { weekday: 'short' });
+        
+        chartData.push({
+            day: dayLabel,
+            date: dateStr,
+            quests: questsByDay[dateStr] || 0,
+            chores: choresByDay[dateStr] || 0
+        });
+    }
+    
+    // Calculate trends (compare last 3 days to previous 3 days)
+    const last3DaysQuests = chartData.slice(-3).reduce((s, d) => s + d.quests, 0);
+    const prev3DaysQuests = chartData.slice(0, 3).reduce((s, d) => s + d.quests, 0);
+    const questTrend = prev3DaysQuests === 0 ? (last3DaysQuests > 0 ? 100 : 0) : Math.round(((last3DaysQuests - prev3DaysQuests) / prev3DaysQuests) * 100);
+    
+    const last3DaysChores = chartData.slice(-3).reduce((s, d) => s + d.chores, 0);
+    const prev3DaysChores = chartData.slice(0, 3).reduce((s, d) => s + d.chores, 0);
+    const choreTrend = prev3DaysChores === 0 ? (last3DaysChores > 0 ? 100 : 0) : Math.round(((last3DaysChores - prev3DaysChores) / prev3DaysChores) * 100);
+    
+    // Estimate session duration from activity clustering
+    let sessionEstimate = 'N/A';
+    const todayActivities = allActivities.filter(a => new Date(a.timestamp).toDateString() === today);
+    if (todayActivities.length >= 2) {
+        const span = todayActivities[0].timestamp - todayActivities[todayActivities.length - 1].timestamp;
+        const mins = Math.round(span / 60000);
+        sessionEstimate = mins > 0 ? `~${mins} min` : '< 1 min';
+    } else if (todayActivities.length === 1) {
+        sessionEstimate = '< 5 min';
+    }
+    
+    return {
+        summary: {
+            totalPlayers: kids.length,
+            activeTodayCount,
+            totalSparks,
+            totalXp,
+            totalQuestsCompleted,
+            totalChoresCompleted,
+            totalPurchases,
+            totalActiveChores,
+            maxStreak,
+            sessionEstimate,
+            questTrend,
+            choreTrend
+        },
+        questsByCategory,
+        chartData,
+        recentActivities: allActivities.slice(0, 30),
+        playerStats,
+        realRewardsCount: (rewards || []).length
+    };
+}
+
+// ============================================
+// COMPONENTS
+// ============================================
+
+function StatCard({ label, value, icon, trend, type, subtitle }) {
+    const trendClass = trend > 0 ? 'trend-up' : trend < 0 ? 'trend-down' : 'trend-neutral';
+    const trendIcon = trend > 0 ? '↑' : trend < 0 ? '↓' : '→';
+    
+    return (
+        <div className={`card stat-card ${type} p-5`}>
+            <div className="flex items-start justify-between mb-3">
+                <span className="text-2xl">{icon}</span>
+                {trend !== undefined && (
+                    <span className={`mono text-sm font-bold ${trendClass}`}>
+                        {trendIcon} {Math.abs(trend)}%
+                    </span>
+                )}
+            </div>
+            <div className="stat-value mb-1">{typeof value === 'number' ? value.toLocaleString() : value}</div>
+            <div className="text-sm text-[var(--text-secondary)] font-medium">{label}</div>
+            {subtitle && <div className="text-xs text-[var(--text-secondary)] mt-1 opacity-70">{subtitle}</div>}
+        </div>
+    );
+}
+
+function ActivityChart({ data }) {
+    const maxValue = Math.max(...data.flatMap(d => [d.quests, d.chores]), 1);
+    
+    return (
+        <div className="card p-5">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">Activity This Week</h3>
+                <div className="flex items-center gap-4 text-sm">
+                    <span className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-sm" style={{background: 'linear-gradient(135deg, #3b82f6, #2563eb)'}}></span>
+                        Quests
+                    </span>
+                    <span className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-sm" style={{background: 'linear-gradient(135deg, #22c55e, #16a34a)'}}></span>
+                        Chores
+                    </span>
+                </div>
+            </div>
+            
+            <div className="flex items-end justify-between gap-2 h-40">
+                {data.map((d, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <div className="w-full flex items-end justify-center gap-1 h-32">
+                            <div 
+                                className="chart-bar w-5"
+                                style={{
+                                    height: `${Math.max((d.quests / maxValue) * 100, 0)}%`,
+                                    background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                                    minHeight: d.quests > 0 ? '8px' : '0'
+                                }}
+                                title={`${d.quests} quests`}
+                            />
+                            <div 
+                                className="chart-bar w-5"
+                                style={{
+                                    height: `${Math.max((d.chores / maxValue) * 100, 0)}%`,
+                                    background: 'linear-gradient(135deg, #22c55e, #16a34a)',
+                                    minHeight: d.chores > 0 ? '8px' : '0'
+                                }}
+                                title={`${d.chores} chores`}
+                            />
+                        </div>
+                        <span className="text-xs text-[var(--text-secondary)] font-medium">{d.day}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function CategoryBreakdown({ questsByCategory }) {
+    const categories = [
+        { id: 'blaze', label: 'Blaze', emoji: '🔥', color: '#fbbf24' },
+        { id: 'flow', label: 'Flow', emoji: '🎨', color: '#3b82f6' },
+        { id: 'terra', label: 'Terra', emoji: '🌿', color: '#22c55e' },
+        { id: 'breeze', label: 'Breeze', emoji: '💨', color: '#a855f7' }
+    ];
+    
+    const total = Object.values(questsByCategory).reduce((a, b) => a + b, 0) || 1;
+    
+    return (
+        <div className="card p-5">
+            <h3 className="font-semibold text-lg mb-4">Quest Categories</h3>
+            <div className="space-y-3">
+                {categories.map(cat => {
+                    const count = questsByCategory[cat.id] || 0;
+                    const pct = Math.round((count / total) * 100);
+                    return (
+                        <div key={cat.id}>
+                            <div className="flex items-center justify-between mb-1">
+                                <span className="flex items-center gap-2 text-sm">
+                                    <span>{cat.emoji}</span>
+                                    <span>{cat.label}</span>
+                                </span>
+                                <span className="mono text-sm" style={{color: cat.color}}>{count}</span>
+                            </div>
+                            <div className="progress-bar">
+                                <div 
+                                    className="progress-fill" 
+                                    style={{ width: `${pct}%`, background: cat.color }}
+                                />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function ActivityFeed({ activities }) {
+    const formatTime = (ts) => {
+        const diff = Date.now() - ts;
+        const mins = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        
+        if (mins < 1) return 'Just now';
+        if (mins < 60) return `${mins}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        return `${days}d ago`;
+    };
+    
+    const getCategoryClass = (category) => {
+        const classes = {
+            blaze: 'category-blaze',
+            flow: 'category-flow',
+            terra: 'category-terra',
+            breeze: 'category-breeze'
+        };
+        return classes[category] || '';
+    };
+    
+    if (activities.length === 0) {
+        return (
+            <div className="card p-5">
+                <h3 className="font-semibold text-lg mb-4">Recent Activity</h3>
+                <div className="text-center py-8">
+                    <span className="text-4xl mb-3 block">📭</span>
+                    <p className="text-[var(--text-secondary)]">No recent activity</p>
+                </div>
+            </div>
+        );
+    }
+    
+    return (
+        <div className="card p-5">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">Recent Activity</h3>
+                <div className="flex items-center gap-2">
+                    <span className="pulse-dot"></span>
+                    <span className="text-sm text-[var(--text-secondary)]">Live</span>
+                </div>
+            </div>
+            
+            <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-thin">
+                {activities.map((a, i) => (
+                    <div key={i} className="activity-item flex items-center gap-3 animate-in" style={{animationDelay: `${i * 30}ms`}}>
+                        <div className={`activity-dot ${a.type}`}></div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium truncate">{a.label}</span>
+                                {a.category && (
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${getCategoryClass(a.category)}`}>
+                                        {a.category}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="text-xs text-[var(--text-secondary)]">{a.player}</div>
+                        </div>
+                        <div className="text-xs text-[var(--text-secondary)] mono">{formatTime(a.timestamp)}</div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function PlayerLeaderboard({ players }) {
+    const [sortBy, setSortBy] = useState('sparks');
+    
+    const sorted = useMemo(() => {
+        return [...players].sort((a, b) => {
+            switch (sortBy) {
+                case 'sparks': return b.sparks - a.sparks;
+                case 'xp': return b.xp - a.xp;
+                case 'quests': return b.totalQuests - a.totalQuests;
+                case 'chores': return b.totalChores - a.totalChores;
+                case 'streak': return b.streak - a.streak;
+                default: return 0;
+            }
+        });
+    }, [players, sortBy]);
+    
+    const getAvatarColor = (avatar) => {
+        if (!avatar) return '#3b82f6';
+        return avatar.outfitColor || '#3b82f6';
+    };
+    
+    return (
+        <div className="card p-5">
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-lg">Player Stats</h3>
+                <select 
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-transparent border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--accent-quest)]"
+                >
+                    <option value="sparks">⚡ Sparks</option>
+                    <option value="xp">✨ XP</option>
+                    <option value="quests">🎯 Quests</option>
+                    <option value="chores">📋 Chores</option>
+                    <option value="streak">🔥 Streak</option>
+                </select>
+            </div>
+            
+            <div className="space-y-3">
+                {sorted.map((p, i) => (
+                    <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.04)] transition-colors">
+                        <div className="text-lg font-bold text-[var(--text-secondary)] w-6">{i + 1}</div>
+                        <div 
+                            className="player-avatar"
+                            style={{ background: getAvatarColor(p.avatar) }}
+                        >
+                            {(p.name || 'P')[0].toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                <span className="font-semibold truncate">{p.name}</span>
+                                {p.isActiveToday && (
+                                    <span className="w-2 h-2 rounded-full bg-green-500" title="Active today"></span>
+                                )}
+                            </div>
+                            <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
+                                <span>Lvl {p.level}</span>
+                                {p.age && <span>Age {p.age}</span>}
+                                {p.streak > 0 && <span className="text-orange-400">🔥 {p.streak}</span>}
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <div className="font-bold mono text-[var(--accent-spark)]">⚡ {p.sparks.toLocaleString()}</div>
+                            <div className="text-xs text-[var(--text-secondary)]">{p.totalQuests} quests • {p.totalChores} chores</div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function EngagementMetrics({ summary, realRewardsCount }) {
+    const choresPerDay = summary.totalChoresCompleted > 0 
+        ? (summary.totalChoresCompleted / 7).toFixed(1) 
+        : '0';
+    const questsPerDay = summary.totalQuestsCompleted > 0 
+        ? (summary.totalQuestsCompleted / 7).toFixed(1) 
+        : '0';
+    
+    return (
+        <div className="card p-5">
+            <h3 className="font-semibold text-lg mb-4">Engagement Insights</h3>
+            
+            <div className="space-y-4">
+                <div>
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-[var(--text-secondary)]">Avg. Quests/Day</span>
+                        <span className="font-bold mono">{questsPerDay}</span>
+                    </div>
+                    <div className="progress-bar">
+                        <div 
+                            className="progress-fill" 
+                            style={{
+                                width: `${Math.min(parseFloat(questsPerDay) * 20, 100)}%`,
+                                background: 'linear-gradient(135deg, #3b82f6, #2563eb)'
+                            }}
+                        />
+                    </div>
+                </div>
+                
+                <div>
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-[var(--text-secondary)]">Avg. Chores/Day</span>
+                        <span className="font-bold mono">{choresPerDay}</span>
+                    </div>
+                    <div className="progress-bar">
+                        <div 
+                            className="progress-fill" 
+                            style={{
+                                width: `${Math.min(parseFloat(choresPerDay) * 20, 100)}%`,
+                                background: 'linear-gradient(135deg, #22c55e, #16a34a)'
+                            }}
+                        />
+                    </div>
+                </div>
+                
+                <div className="pt-3 border-t border-[var(--border)]">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <div className="text-2xl font-bold text-[var(--accent-xp)]">{summary.totalXp.toLocaleString()}</div>
+                            <div className="text-xs text-[var(--text-secondary)]">Total XP Earned</div>
+                        </div>
+                        <div>
+                            <div className="text-2xl font-bold text-[var(--accent-streak)]">{summary.maxStreak}</div>
+                            <div className="text-xs text-[var(--text-secondary)]">Best Streak 🔥</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-[var(--border)]">
+                    <div>
+                        <div className="text-lg font-bold text-[var(--text-primary)]">{summary.totalActiveChores}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Active Chores</div>
+                    </div>
+                    <div>
+                        <div className="text-lg font-bold text-[var(--text-primary)]">{realRewardsCount}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Real Rewards</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function LoginScreen({ onLogin }) {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+        } catch (err) {
+            setError(err.message);
+            setLoading(false);
+        }
+    };
+    
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="card p-8 max-w-md w-full">
+                <div className="text-center mb-6">
+                    <span className="text-5xl mb-4 block">📊</span>
+                    <h1 className="text-2xl font-bold mb-2">Spark Quest Analytics</h1>
+                    <p className="text-[var(--text-secondary)]">Sign in to view your family's dashboard</p>
+                </div>
+                
+                <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                        <label className="text-sm text-[var(--text-secondary)] mb-1 block">Email</label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full bg-[var(--bg-dark)] border border-[var(--border)] rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--accent-quest)]"
+                            placeholder="parent@email.com"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="text-sm text-[var(--text-secondary)] mb-1 block">Password</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-[var(--bg-dark)] border border-[var(--border)] rounded-xl px-4 py-3 focus:outline-none focus:border-[var(--accent-quest)]"
+                            placeholder="••••••••"
+                            required
+                        />
+                    </div>
+                    
+                    {error && (
+                        <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl p-3 text-sm">
+                            {error}
+                        </div>
+                    )}
+                    
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary w-full flex items-center justify-center gap-2"
+                    >
+                        {loading ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                Signing in...
+                            </>
+                        ) : (
+                            <>Sign In →</>
+                        )}
+                    </button>
+                </form>
+                
+                <div className="mt-6 text-center">
+                    <a href="login.html" className="text-sm text-[var(--accent-quest)] hover:underline">
+                        Back to Spark Quest
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function NoDataState() {
+    return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+            <div className="card p-10 max-w-md text-center">
+                <div className="text-6xl mb-4">👶</div>
+                <h2 className="text-2xl font-bold mb-2">No Players Yet</h2>
+                <p className="text-[var(--text-secondary)] mb-6">
+                    Add some kids in the Parent Hub to start tracking their progress!
+                </p>
+                <a href="parent-hub.html" className="btn-primary inline-flex items-center gap-2">
+                    Go to Parent Hub →
+                </a>
+            </div>
+        </div>
+    );
+}
+
+// ============================================
+// MAIN DASHBOARD
+// ============================================
+
+function Dashboard() {
+    const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [kids, setKids] = useState([]);
+    const [rewards, setRewards] = useState([]);
+    const [lastUpdate, setLastUpdate] = useState(null);
+    const [analytics, setAnalytics] = useState(null);
+    
+    // Auth listener
+    useEffect(() => {
+        const unsub = auth.onAuthStateChanged(u => {
+            setUser(u);
+            if (!u) setLoading(false);
+        });
+        return () => unsub();
+    }, []);
+    
+    // Real-time Firestore listener
+    useEffect(() => {
+        if (!user) return;
+        
+        console.log('Setting up Firestore listener for:', user.uid);
+        
+        const unsub = db.collection('parents').doc(user.uid).onSnapshot(
+            (doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    console.log('Data received:', data.kids?.length || 0, 'kids');
+                    setKids(data.kids || []);
+                    setRewards(data.rewards || []);
+                    setLastUpdate(new Date());
+                } else {
+                    console.log('No document found');
+                    setKids([]);
+                    setRewards([]);
+                }
+                setLoading(false);
+            },
+            (error) => {
+                console.error('Firestore error:', error);
+                setLoading(false);
+            }
+        );
+        
+        return () => unsub();
+    }, [user]);
+    
+    // Calculate analytics when data changes
+    useEffect(() => {
+        if (kids.length > 0) {
+            const computed = calculateAnalytics(kids, rewards);
+            setAnalytics(computed);
+        } else {
+            setAnalytics(null);
+        }
+    }, [kids, rewards]);
+    
+    const handleSignOut = () => {
+        auth.signOut();
+    };
+    
+    // Loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="loading-spinner mx-auto mb-4"></div>
+                    <p className="text-[var(--text-secondary)]">Loading analytics...</p>
+                </div>
+            </div>
+        );
+    }
+    
+    // Not logged in
+    if (!user) {
+        return <LoginScreen />;
+    }
+    
+    // No data
+    if (!analytics) {
+        return <NoDataState />;
+    }
+    
+    const { summary, questsByCategory, chartData, recentActivities, playerStats, realRewardsCount } = analytics;
+    
+    return (
+        <div className="min-h-screen p-4 md:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
+                            <span>⚡</span>
+                            <span>Spark Quest Analytics</span>
+                        </h1>
+                        <p className="text-[var(--text-secondary)] mt-1">
+                            Real-time family engagement dashboard
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+                            <span className="pulse-dot"></span>
+                            <span>Live • {lastUpdate?.toLocaleTimeString()}</span>
+                        </div>
+                        <a href="parent-hub.html" className="px-4 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-card)] transition-colors text-sm font-medium">
+                            Parent Hub →
+                        </a>
+                        <button 
+                            onClick={handleSignOut}
+                            className="px-4 py-2 rounded-lg border border-[var(--border)] hover:bg-[var(--bg-card)] transition-colors text-sm font-medium text-red-400"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
+                </header>
+                
+                {/* Key Metrics Grid */}
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                    <StatCard 
+                        label="Total Players"
+                        value={summary.totalPlayers}
+                        icon="👨‍👩‍👧‍👦"
+                        type="quest"
+                        subtitle={`${summary.activeTodayCount} active today`}
+                    />
+                    <StatCard 
+                        label="Quests Completed"
+                        value={summary.totalQuestsCompleted}
+                        icon="🎯"
+                        trend={summary.questTrend}
+                        type="quest"
+                    />
+                    <StatCard 
+                        label="Chores Done"
+                        value={summary.totalChoresCompleted}
+                        icon="✅"
+                        trend={summary.choreTrend}
+                        type="chore"
+                    />
+                    <StatCard 
+                        label="Total Sparks"
+                        value={summary.totalSparks}
+                        icon="⚡"
+                        type="spark"
+                    />
+                    <StatCard 
+                        label="Best Streak"
+                        value={`${summary.maxStreak} days`}
+                        icon="🔥"
+                        type="streak"
+                    />
+                </div>
+                
+                {/* Secondary Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div className="card p-4 flex items-center gap-3">
+                        <div className="text-2xl">⏱️</div>
+                        <div>
+                            <div className="font-bold">{summary.sessionEstimate}</div>
+                            <div className="text-xs text-[var(--text-secondary)]">Est. Session</div>
+                        </div>
+                    </div>
+                    <div className="card p-4 flex items-center gap-3">
+                        <div className="text-2xl">✨</div>
+                        <div>
+                            <div className="font-bold">{summary.totalXp.toLocaleString()}</div>
+                            <div className="text-xs text-[var(--text-secondary)]">Total XP</div>
+                        </div>
+                    </div>
+                    <div className="card p-4 flex items-center gap-3">
+                        <div className="text-2xl">🛍️</div>
+                        <div>
+                            <div className="font-bold">{summary.totalPurchases}</div>
+                            <div className="text-xs text-[var(--text-secondary)]">Items Owned</div>
+                        </div>
+                    </div>
+                    <div className="card p-4 flex items-center gap-3">
+                        <div className="text-2xl">📋</div>
+                        <div>
+                            <div className="font-bold">{summary.totalActiveChores}</div>
+                            <div className="text-xs text-[var(--text-secondary)]">Active Chores</div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Main Content Grid */}
+                <div className="grid lg:grid-cols-3 gap-6">
+                    {/* Left Column - Chart + Players */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <ActivityChart data={chartData} />
+                        <PlayerLeaderboard players={playerStats} />
+                    </div>
+                    
+                    {/* Right Column - Activity + Insights */}
+                    <div className="space-y-6">
+                        <ActivityFeed activities={recentActivities} />
+                        <CategoryBreakdown questsByCategory={questsByCategory} />
+                        <EngagementMetrics summary={summary} realRewardsCount={realRewardsCount} />
+                    </div>
+                </div>
+                
+                {/* Footer */}
+                <footer className="mt-8 pt-6 border-t border-[var(--border)] text-center">
+                    <p className="text-sm text-[var(--text-secondary)]">
+                        📊 Real-time data from Firebase • Updates automatically
+                    </p>
+                </footer>
+            </div>
+        </div>
+    );
+}
+
+// Mount
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<Dashboard />);
+    </script>
+</body>
+</html>
