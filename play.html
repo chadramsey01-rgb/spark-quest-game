@@ -1503,59 +1503,32 @@ function PlayApp() {
         return () => unsub();
     }, []);
 
-    const loadData = async (uid) => {
-        console.log('Loading data...');
-        console.log('UID:', uid);
-        const userEmail = auth.currentUser?.email;
-        console.log('Email:', userEmail);
-        
-        // Try multiple possible document paths
-        const pathsToTry = [
-            userEmail,  // parents/{email}
-            uid,        // parents/{uid}
-        ];
-        
-        for (const docId of pathsToTry) {
-            if (!docId) continue;
-            try {
-                console.log('Trying path: parents/' + docId);
-                const doc = await db.collection('parents').doc(docId).get();
-                if (doc.exists) {
-                    const d = doc.data();
-                    console.log('SUCCESS! Found data at parents/' + docId);
-                    console.log('Kids count:', d.kids?.length || 0);
-                    setKids(d.kids || []);
-                    setRewards(d.rewards || []);
-                    if (d.kids?.length > 0) setSelectedKid(d.kids[0]);
-                    setLoading(false);
-                    return; // Found it, stop trying
-                } else {
-                    console.log('No document at parents/' + docId);
-                }
-            } catch (e) { 
-                console.log('Permission denied for parents/' + docId + ':', e.message);
+    const loadData = async (userId) => {
+        console.log('Loading data for userId:', userId);
+        try {
+            const userDoc = await db.collection('parents').doc(userId).get();
+            
+            if (userDoc.exists) {
+                const data = userDoc.data();
+                console.log('Data loaded, kids count:', data.kids?.length || 0);
+                setKids(data.kids || []);
+                setRewards(data.rewards || []);
+                if (data.kids?.length > 0) setSelectedKid(data.kids[0]);
+            } else {
+                console.log('No document found for userId:', userId);
             }
+        } catch (error) {
+            console.error('Error loading data:', error);
         }
-        
-        console.log('Could not find data at any path');
         setLoading(false);
     };
 
     const saveData = async (updates) => {
-        // Use same path that works for reading
-        const userEmail = auth.currentUser?.email;
-        const uid = auth.currentUser?.uid;
-        
-        // Try email first, then uid
-        for (const docId of [userEmail, uid]) {
-            if (!docId) continue;
-            try {
-                await db.collection('parents').doc(docId).update(updates);
-                console.log('Saved to parents/' + docId);
-                return;
-            } catch (e) { 
-                console.log('Could not save to parents/' + docId);
-            }
+        if (!user) return;
+        try {
+            await db.collection('parents').doc(user.uid).update(updates);
+        } catch (error) {
+            console.error('Error saving data:', error);
         }
     };
 
