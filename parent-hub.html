@@ -1342,7 +1342,7 @@ function RewardsList({ rewards, onAddReward, onEditReward, onDeleteReward }) {
 // =====================================================
 // DASHBOARD OVERVIEW COMPONENT
 // =====================================================
-function DashboardOverview({ kids, rewards }) {
+function DashboardOverview({ kids, rewards, playingKids, togglePlayingKid }) {
     const totalSparks = kids.reduce((sum, k) => sum + (k.sparks || 0), 0);
     const totalXp = kids.reduce((sum, k) => sum + (k.xp || 0), 0);
     const totalChores = kids.reduce((sum, k) => sum + (k.chores?.length || 0), 0);
@@ -1752,7 +1752,7 @@ function ParentHub() {
             {/* Main Content */}
             <main className="max-w-6xl mx-auto px-4 py-6">
                 {activeTab === 'dashboard' && (
-                    <DashboardOverview kids={kids} rewards={rewards} />
+                    <DashboardOverview kids={kids} rewards={rewards} playingKids={playingKids} togglePlayingKid={togglePlayingKid} />
                 )}
                 
                 {activeTab === 'kids' && (
