@@ -1376,15 +1376,42 @@ function DashboardOverview({ kids, rewards }) {
             {/* Kids Summary */}
             {kids.length > 0 && (
                 <div className="card p-5">
-                    <h3 className="font-display font-bold text-slate-800 mb-4">Children Overview</h3>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-display font-bold text-slate-800">Children Overview</h3>
+                        <div className="text-xs text-slate-500">
+                            {playingKids.length === 0 ? (
+                                <span className="text-amber-600 font-bold">Select who's playing</span>
+                            ) : (
+                                <span className="text-green-600 font-bold">{playingKids.length} ready to play</span>
+                            )}
+                        </div>
+                    </div>
                     <div className="space-y-3">
                         {kids.map(kid => {
                             const level = Math.floor((kid.xp || 0) / 100) + 1;
                             const progress = (kid.xp || 0) % 100;
                             const age = calculateAge(kid.dob);
+                            const isPlaying = playingKids.includes(kid.id);
                             
                             return (
-                                <div key={kid.id} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl">
+                                <div 
+                                    key={kid.id} 
+                                    onClick={() => togglePlayingKid(kid.id)}
+                                    className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all ${
+                                        isPlaying 
+                                            ? 'bg-green-50 ring-2 ring-green-400' 
+                                            : 'bg-slate-50 hover:bg-slate-100'
+                                    }`}
+                                >
+                                    {/* Play Checkbox */}
+                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                        isPlaying 
+                                            ? 'bg-green-500 border-green-500 text-white' 
+                                            : 'border-slate-300'
+                                    }`}>
+                                        {isPlaying && <span className="text-sm">✓</span>}
+                                    </div>
+                                    
                                     <BlockyAvatar config={kid.avatar} size="sm" />
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-1">
@@ -1408,6 +1435,7 @@ function DashboardOverview({ kids, rewards }) {
                             );
                         })}
                     </div>
+                    <p className="text-xs text-slate-400 mt-3 text-center">Tap to select who's playing today</p>
                 </div>
             )}
             
@@ -1437,6 +1465,29 @@ function ParentHub() {
     const [rewards, setRewards] = useState([]);
     const [selectedKid, setSelectedKid] = useState(null);
     const [notification, setNotification] = useState(null);
+    const [playingKids, setPlayingKids] = useState([]); // Kids selected to play
+    
+    // When kids load, select all by default for playing
+    useEffect(() => {
+        if (kids.length > 0 && playingKids.length === 0) {
+            setPlayingKids(kids.map(k => k.id));
+        }
+    }, [kids]);
+    
+    // Toggle a kid for playing
+    const togglePlayingKid = (kidId) => {
+        setPlayingKids(prev => 
+            prev.includes(kidId) 
+                ? prev.filter(id => id !== kidId)
+                : [...prev, kidId]
+        );
+    };
+    
+    // Get the play URL with selected kids
+    const getPlayUrl = () => {
+        if (playingKids.length === 0) return null;
+        return `play.html?kids=${playingKids.join(',')}`;
+    };
     
     // Auth state listener
     useEffect(() => {
@@ -1788,12 +1839,20 @@ function ParentHub() {
             </nav>
             
             {/* Play Button - Opens Game */}
-            <a
-                href="play.html"
-                className="hidden lg:flex fixed bottom-6 right-6 btn btn-success text-lg py-4 px-6 shadow-xl hover:shadow-2xl animate-pulse-glow"
-            >
-                🎮 Let Kids Play
-            </a>
+            {kids.length > 0 && (
+                playingKids.length > 0 ? (
+                    <a
+                        href={getPlayUrl()}
+                        className="hidden lg:flex fixed bottom-6 right-6 btn btn-success text-lg py-4 px-6 shadow-xl hover:shadow-2xl animate-pulse-glow"
+                    >
+                        🎮 Let Kids Play {playingKids.length > 1 ? `(${playingKids.length})` : ''}
+                    </a>
+                ) : (
+                    <div className="hidden lg:flex fixed bottom-6 right-6 bg-slate-300 text-slate-500 text-lg py-4 px-6 rounded-2xl font-bold shadow-xl cursor-not-allowed">
+                        🎮 Select Kids First
+                    </div>
+                )
+            )}
             
             {/* Notification */}
             {notification && (
