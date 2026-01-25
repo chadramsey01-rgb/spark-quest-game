@@ -1506,7 +1506,16 @@ function PlayApp() {
     const loadData = async (uid) => {
         console.log('Loading data for uid:', uid);
         try {
-            const doc = await db.collection('parents').doc(uid).get();
+            // Get user email for Firestore path
+            const userEmail = auth.currentUser?.email;
+            if (!userEmail) {
+                console.error('No user email found');
+                setLoading(false);
+                return;
+            }
+            console.log('Loading data for email:', userEmail);
+            
+            const doc = await db.collection('parents').doc(userEmail).get();
             console.log('Firestore doc exists:', doc.exists);
             if (doc.exists) {
                 const d = doc.data();
@@ -1514,14 +1523,17 @@ function PlayApp() {
                 setKids(d.kids || []);
                 setRewards(d.rewards || []);
                 if (d.kids?.length > 0) setSelectedKid(d.kids[0]);
+            } else {
+                console.log('No document found for this user');
             }
         } catch (e) { console.error('Load error:', e); }
         setLoading(false);
     };
 
     const saveData = async (updates) => {
-        if (user) {
-            try { await db.collection('parents').doc(user.uid).update(updates); }
+        const userEmail = auth.currentUser?.email;
+        if (userEmail) {
+            try { await db.collection('parents').doc(userEmail).update(updates); }
             catch (e) { console.error('Save error:', e); }
         }
     };
@@ -1770,13 +1782,6 @@ function PlayApp() {
     );
 }
 
-// Global error handler
-window.onerror = function(msg, url, lineNo, columnNo, error) {
-    console.error('Global error:', msg, 'at line', lineNo);
-    document.getElementById('root').innerHTML = '<div style="padding: 2rem; text-align: center; font-family: sans-serif;"><h2>⚠️ Error Loading</h2><p>Check the browser console for details.</p><p style="color: red; font-size: 12px;">' + msg + '</p><button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; cursor: pointer;">Reload</button></div>';
-    return false;
-};
-
 console.log('Spark Quest initializing...');
 
 // Render the app
@@ -1786,7 +1791,6 @@ try {
     console.log('App rendered successfully');
 } catch (e) {
     console.error('Failed to render app:', e);
-    document.getElementById('root').innerHTML = '<div style="padding: 2rem; text-align: center;"><h2>Failed to load</h2><p>' + e.message + '</p></div>';
 }
     </script>
 </body>
