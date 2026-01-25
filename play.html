@@ -16,288 +16,1387 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script>
         const firebaseConfig = {
-  apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk",
-  authDomain: "spark-quest.firebaseapp.com",
-  projectId: "spark-quest",
-  storageBucket: "spark-quest.firebasestorage.app",
-  messagingSenderId: "113841238943",
-  appId: "1:113841238943:web:fd6b69669fb891afcd43aa",
-  measurementId: "G-9VQJ7CT98X"
-};
+            apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk",
+            authDomain: "spark-quest.firebaseapp.com",
+            projectId: "spark-quest",
+            storageBucket: "spark-quest.firebasestorage.app",
+            messagingSenderId: "113841238943",
+            appId: "1:113841238943:web:fd6b69669fb891afcd43aa",
+            measurementId: "G-9VQJ7CT98X"
+        };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
     </script>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Nunito', sans-serif; background: linear-gradient(135deg, #e0f2fe 0%, #fae8ff 100%); min-height: 100vh; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Nunito', sans-serif; background: linear-gradient(135deg, #e0f2fe 0%, #fae8ff 50%, #fef3c7 100%); min-height: 100vh; margin: 0; }
         .font-display { font-family: 'Fredoka', sans-serif; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes bounce-in { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
         @keyframes spin-wheel { 0% { transform: rotate(0deg); } 100% { transform: rotate(1800deg); } }
         @keyframes confetti-fall { 0% { transform: translateY(-100%) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(250,204,21,0.5); } 50% { box-shadow: 0 0 20px rgba(250,204,21,0.8); } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px rgba(250,204,21,0.5); } 50% { box-shadow: 0 0 25px rgba(250,204,21,0.9), 0 0 50px rgba(250,204,21,0.4); } }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0) rotate(0); } 25% { transform: translateX(-5px) rotate(-5deg); } 75% { transform: translateX(5px) rotate(5deg); } }
+        @keyframes sparkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.2); } }
+        @keyframes rainbow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+        @keyframes chest-glow { 0%, 100% { box-shadow: 0 0 20px rgba(250,204,21,0.5); } 50% { box-shadow: 0 0 40px rgba(250,204,21,0.9); } }
+        @keyframes item-pop { 0% { transform: scale(0) rotate(-180deg); opacity: 0; } 60% { transform: scale(1.3) rotate(10deg); } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+        
         .animate-float { animation: float 3s ease-in-out infinite; }
         .animate-bounce-in { animation: bounce-in 0.5s ease-out forwards; }
         .animate-spin-wheel { animation: spin-wheel 2s cubic-bezier(0.17, 0.67, 0.12, 0.99) forwards; }
+        .animate-shake { animation: shake 0.5s ease-in-out infinite; }
+        .animate-sparkle { animation: sparkle 1.5s ease-in-out infinite; }
+        .animate-rainbow { animation: rainbow 3s linear infinite; }
+        .animate-chest-glow { animation: chest-glow 1.5s ease-in-out infinite; }
+        .animate-item-pop { animation: item-pop 0.6s ease-out forwards; }
+        
         .card { background: white; border-radius: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-bottom: 4px solid #e2e8f0; }
+        .card-elevated { box-shadow: 0 10px 40px rgba(0,0,0,0.12); }
         .quest-blaze { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: #f59e0b; }
         .quest-flow { background: linear-gradient(135deg, #dbeafe, #bfdbfe); border-color: #3b82f6; }
         .quest-terra { background: linear-gradient(135deg, #dcfce7, #bbf7d0); border-color: #22c55e; }
         .quest-breeze { background: linear-gradient(135deg, #f3e8ff, #e9d5ff); border-color: #a855f7; }
-        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; font-weight: 700; padding: 0.875rem 1.75rem; border-radius: 1rem; box-shadow: 0 4px 14px rgba(59,130,246,0.4); border: none; cursor: pointer; }
-        .btn-success { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; font-weight: 700; padding: 0.875rem 1.75rem; border-radius: 1rem; border: none; cursor: pointer; }
-        .btn-spark { background: linear-gradient(135deg, #FACC15, #F59E0B); color: #78350F; font-weight: 700; padding: 1rem 2rem; border-radius: 1rem; font-size: 1.125rem; border: none; cursor: pointer; }
+        
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; font-weight: 700; padding: 0.875rem 1.75rem; border-radius: 1rem; box-shadow: 0 4px 14px rgba(59,130,246,0.4); border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.5); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-success { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; font-weight: 700; padding: 0.875rem 1.75rem; border-radius: 1rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-spark { background: linear-gradient(135deg, #FACC15, #F59E0B); color: #78350F; font-weight: 700; padding: 1rem 2rem; border-radius: 1rem; font-size: 1.125rem; border: none; cursor: pointer; box-shadow: 0 4px 14px rgba(250,204,21,0.4); transition: all 0.2s; }
+        .btn-spark:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(250,204,21,0.5); }
+        .btn-family { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; font-weight: 700; padding: 0.875rem 1.75rem; border-radius: 1rem; box-shadow: 0 4px 14px rgba(139,92,246,0.4); border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-mystery { background: linear-gradient(135deg, #ec4899, #be185d); color: white; font-weight: 700; border-radius: 1rem; border: none; cursor: pointer; }
+        
         .spark-counter { background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 700; color: #92400e; display: inline-flex; align-items: center; gap: 0.375rem; }
-        .chore-checkbox { width: 32px; height: 32px; border: 3px solid #d1d5db; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        
+        .chore-checkbox { width: 32px; height: 32px; border: 3px solid #d1d5db; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
         .chore-checkbox.checked { background: linear-gradient(135deg, #22c55e, #16a34a); border-color: #16a34a; color: white; }
         .chore-item.completed { opacity: 0.6; background: #f0fdf4; }
+        
         .glow-common { box-shadow: 0 0 10px rgba(148,163,184,0.5); }
-        .glow-rare { box-shadow: 0 0 15px rgba(59,130,246,0.6); }
-        .glow-epic { box-shadow: 0 0 20px rgba(168,85,247,0.7); }
-        .glow-legendary { box-shadow: 0 0 25px rgba(250,204,21,0.8); animation: pulse-glow 2s infinite; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; height: 100%; color: #94a3b8; cursor: pointer; }
+        .glow-uncommon { box-shadow: 0 0 12px rgba(34,197,94,0.6); }
+        .glow-rare { box-shadow: 0 0 15px rgba(59,130,246,0.7); }
+        .glow-epic { box-shadow: 0 0 20px rgba(168,85,247,0.8); }
+        .glow-legendary { box-shadow: 0 0 25px rgba(250,204,21,0.9); animation: pulse-glow 2s infinite; }
+        .glow-mythic { box-shadow: 0 0 30px rgba(236,72,153,1), 0 0 60px rgba(168,85,247,0.5); animation: pulse-glow 1.5s infinite, rainbow 3s linear infinite; }
+        
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; height: 100%; color: #94a3b8; cursor: pointer; transition: all 0.2s; }
         .nav-item.active { color: #3b82f6; }
+        
         .loading-screen { position: fixed; inset: 0; background: linear-gradient(135deg, #e0f2fe, #fae8ff); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
         .loading-spinner { width: 48px; height: 48px; border: 4px solid #E2E8F0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; }
-        .confetti { position: fixed; width: 10px; height: 10px; top: -20px; animation: confetti-fall 3s ease-in forwards; }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 1rem; backdrop-filter: blur(4px); overflow-y: auto; }
+        .confetti { position: fixed; width: 10px; height: 10px; top: -20px; animation: confetti-fall 3s ease-in forwards; pointer-events: none; z-index: 101; }
+        
+        .lucky-block { background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 1rem; position: relative; overflow: hidden; cursor: pointer; transition: all 0.3s; }
+        .lucky-block.ready { animation: chest-glow 2s infinite; }
+        .lucky-block.ready:hover { transform: scale(1.05); }
+        .lucky-block:not(.ready) { opacity: 0.7; cursor: default; }
+        
+        .mystery-box { transition: all 0.3s; cursor: pointer; }
+        .mystery-box:hover { transform: scale(1.05); }
+        
+        .family-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
     </style>
 </head>
 <body>
     <div id="root"></div>
     <script type="text/babel">
-const { useState, useEffect } = React;
+const { useState, useEffect, useCallback, useMemo } = React;
 
-const CATEGORY_CONFIG = { blaze: { emoji: '🔥', label: 'Blaze' }, flow: { emoji: '🎨', label: 'Flow' }, terra: { emoji: '🌿', label: 'Terra' }, breeze: { emoji: '💨', label: 'Breeze' } };
-const DIFFICULTY_CONFIG = { Easy: { sparks: 5, xp: 10, label: '⭐ Easy' }, Medium: { sparks: 10, xp: 20, label: '⭐⭐ Medium' }, Hard: { sparks: 20, xp: 40, label: '⭐⭐⭐ Hard' }, Epic: { sparks: 50, xp: 100, label: '🏆 EPIC' } };
-const RARITY_CONFIG = { common: { label: 'Common', glow: 'glow-common' }, rare: { label: 'Rare', glow: 'glow-rare' }, epic: { label: 'Epic', glow: 'glow-epic' }, legendary: { label: 'Legendary', glow: 'glow-legendary' } };
-const SHOP_ITEMS = [
-    { id: 'hat_1', name: 'Crown', type: 'avatar_part', slot: 'hat', rarity: 'rare', price: 100, emoji: '👑' },
-    { id: 'hat_2', name: 'Wizard Hat', type: 'avatar_part', slot: 'hat', rarity: 'epic', price: 200, emoji: '🧙' },
-    { id: 'hat_3', name: 'Party Hat', type: 'avatar_part', slot: 'hat', rarity: 'common', price: 30, emoji: '🎉' },
-    { id: 'acc_1', name: 'Cool Shades', type: 'avatar_part', slot: 'accessory', rarity: 'common', price: 40, emoji: '😎' },
-    { id: 'acc_2', name: 'Magic Wand', type: 'avatar_part', slot: 'accessory', rarity: 'epic', price: 180, emoji: '✨' },
-    { id: 'acc_3', name: 'Hero Cape', type: 'avatar_part', slot: 'accessory', rarity: 'legendary', price: 500, emoji: '🦸' },
-    { id: 'sticker_1', name: 'Gold Star', type: 'sticker', rarity: 'common', price: 15, emoji: '⭐' },
-    { id: 'sticker_2', name: 'Rainbow', type: 'sticker', rarity: 'rare', price: 50, emoji: '🌈' },
-    { id: 'sticker_3', name: 'Dragon', type: 'sticker', rarity: 'epic', price: 150, emoji: '🐉' },
-    { id: 'sticker_4', name: 'Unicorn', type: 'sticker', rarity: 'legendary', price: 300, emoji: '🦄' }
-];
-const WORD_BANKS = { number_small: ['3','4','5','6'], number_large: ['10','12','15'], exercise_easy: ['jumping jacks','hops','spins','claps'], animal: ['dragon','unicorn','dinosaur','superhero'], color: ['red','blue','green','yellow'], location: ['kitchen','living room','bedroom'] };
-const QUEST_TEMPLATES = {
-    blaze: { Easy: [{text:"Do [number_small] [exercise_easy]!",minAge:4}], Medium: [{text:"Do [number_large] [exercise_easy]!",minAge:6}], Hard: [{text:"Do 20 jumping jacks and 10 squats!",minAge:9}], Epic: [{text:"EPIC: 50 exercises!",minAge:10}] },
-    flow: { Easy: [{text:"Draw a [animal]!",minAge:4}], Medium: [{text:"Write about a [animal]!",minAge:7}], Hard: [{text:"Create a comic!",minAge:8}], Epic: [{text:"EPIC: Illustrated story!",minAge:9}] },
-    terra: { Easy: [{text:"Find something [color]!",minAge:4}], Medium: [{text:"Clean up the [location]!",minAge:5}], Hard: [{text:"Organize a drawer!",minAge:8}], Epic: [{text:"EPIC: Clean a room!",minAge:10}] },
-    breeze: { Easy: [{text:"Give a high five!",minAge:4}], Medium: [{text:"Help someone!",minAge:5}], Hard: [{text:"Teach something!",minAge:8}], Epic: [{text:"EPIC: Complete a puzzle!",minAge:9}] }
+// ============================================================================
+// CONFIGURATION DATA
+// ============================================================================
+
+const CATEGORY_CONFIG = {
+    blaze: { emoji: '🔥', label: 'Blaze', color: 'amber' },
+    flow: { emoji: '🎨', label: 'Flow', color: 'blue' },
+    terra: { emoji: '🌿', label: 'Terra', color: 'green' },
+    breeze: { emoji: '💨', label: 'Breeze', color: 'purple' }
 };
-const DEFAULT_AVATAR = { skinTone: '#FFD5B8', hairStyle: 'spiky', hairColor: '#4A3728', eyeColor: '#4A90D9', outfitColor: '#3B82F6' };
 
-function calculateAge(dob) { if (!dob) return 8; const b = new Date(dob), t = new Date(); let a = t.getFullYear() - b.getFullYear(); if (t.getMonth() < b.getMonth() || (t.getMonth() === b.getMonth() && t.getDate() < b.getDate())) a--; return Math.max(4, Math.min(13, a)); }
-function getTodayString() { return new Date().toDateString(); }
-function fillTemplate(t) { return t.replace(/\[(\w+)\]/g, (m, k) => { const b = WORD_BANKS[k]; return b ? b[Math.floor(Math.random() * b.length)] : m; }); }
-function generateQuest(age = 8) {
-    const diffs = age >= 10 ? ['Easy','Medium','Hard','Epic'] : age >= 8 ? ['Easy','Medium','Hard'] : ['Easy','Medium'];
-    const cats = ['blaze','flow','terra','breeze'], cat = cats[Math.floor(Math.random() * cats.length)];
-    const diff = diffs[Math.floor(Math.random() * diffs.length)];
-    const tmpls = QUEST_TEMPLATES[cat][diff].filter(t => (t.minAge || 4) <= age);
-    const tmpl = tmpls[Math.floor(Math.random() * tmpls.length)] || {text:"Do something fun!"};
-    const r = DIFFICULTY_CONFIG[diff];
-    return { id: 'q_' + Date.now(), text: fillTemplate(tmpl.text), category: cat, difficulty: diff, rewards: { sparks: r.sparks, xp: r.xp } };
+const DIFFICULTY_CONFIG = {
+    Easy: { sparks: 5, xp: 10, label: '⭐ Easy', color: 'green' },
+    Medium: { sparks: 10, xp: 20, label: '⭐⭐ Medium', color: 'blue' },
+    Hard: { sparks: 20, xp: 40, label: '⭐⭐⭐ Hard', color: 'purple' },
+    Epic: { sparks: 50, xp: 100, label: '🏆 EPIC', color: 'yellow' }
+};
+
+const RARITY_CONFIG = {
+    common: { label: 'Common', color: 'slate', glow: 'glow-common', chance: 50 },
+    uncommon: { label: 'Uncommon', color: 'green', glow: 'glow-uncommon', chance: 25 },
+    rare: { label: 'Rare', color: 'blue', glow: 'glow-rare', chance: 15 },
+    epic: { label: 'Epic', color: 'purple', glow: 'glow-epic', chance: 7 },
+    legendary: { label: 'Legendary', color: 'yellow', glow: 'glow-legendary', chance: 2.5 },
+    mythic: { label: 'Mythic', color: 'pink', glow: 'glow-mythic', chance: 0.5 }
+};
+
+
+// ============================================================================
+// EXPANDED SHOP ITEMS (50+ items with proper SVG identifiers)
+// ============================================================================
+
+const SHOP_ITEMS = [
+    // === HATS (18 items) ===
+    { id: 'hat_cap_red', name: 'Red Cap', type: 'hat', slot: 'hat', rarity: 'common', price: 25, svgType: 'cap', color: '#EF4444' },
+    { id: 'hat_cap_blue', name: 'Blue Cap', type: 'hat', slot: 'hat', rarity: 'common', price: 25, svgType: 'cap', color: '#3B82F6' },
+    { id: 'hat_beanie', name: 'Cozy Beanie', type: 'hat', slot: 'hat', rarity: 'common', price: 35, svgType: 'beanie', color: '#8B5CF6' },
+    { id: 'hat_party', name: 'Party Hat', type: 'hat', slot: 'hat', rarity: 'common', price: 30, svgType: 'party', color: '#EC4899' },
+    { id: 'hat_crown_silver', name: 'Silver Crown', type: 'hat', slot: 'hat', rarity: 'uncommon', price: 75, svgType: 'crown', color: '#94A3B8' },
+    { id: 'hat_wizard', name: 'Wizard Hat', type: 'hat', slot: 'hat', rarity: 'rare', price: 150, svgType: 'wizard', color: '#6366F1' },
+    { id: 'hat_pirate', name: 'Pirate Hat', type: 'hat', slot: 'hat', rarity: 'rare', price: 175, svgType: 'pirate', color: '#1F2937' },
+    { id: 'hat_crown_gold', name: 'Golden Crown', type: 'hat', slot: 'hat', rarity: 'rare', price: 200, svgType: 'crown', color: '#FACC15' },
+    { id: 'hat_ninja', name: 'Ninja Headband', type: 'hat', slot: 'hat', rarity: 'rare', price: 180, svgType: 'ninja', color: '#EF4444' },
+    { id: 'hat_astronaut', name: 'Space Helmet', type: 'hat', slot: 'hat', rarity: 'epic', price: 350, svgType: 'astronaut', color: '#F8FAFC' },
+    { id: 'hat_viking', name: 'Viking Helm', type: 'hat', slot: 'hat', rarity: 'epic', price: 400, svgType: 'viking', color: '#78716C' },
+    { id: 'hat_cat_ears', name: 'Cat Ears', type: 'hat', slot: 'hat', rarity: 'uncommon', price: 85, svgType: 'cat_ears', color: '#FCA5A5' },
+    { id: 'hat_bunny_ears', name: 'Bunny Ears', type: 'hat', slot: 'hat', rarity: 'uncommon', price: 85, svgType: 'bunny_ears', color: '#FBCFE8' },
+    { id: 'hat_dino', name: 'Dino Spikes', type: 'hat', slot: 'hat', rarity: 'rare', price: 160, svgType: 'dino', color: '#22C55E' },
+    { id: 'hat_flower', name: 'Flower Crown', type: 'hat', slot: 'hat', rarity: 'uncommon', price: 90, svgType: 'flower', color: '#F472B6' },
+    { id: 'hat_halo', name: 'Angel Halo', type: 'hat', slot: 'hat', rarity: 'legendary', price: 600, svgType: 'halo', color: '#FEF08A' },
+    { id: 'hat_horns', name: 'Devil Horns', type: 'hat', slot: 'hat', rarity: 'epic', price: 380, svgType: 'horns', color: '#DC2626' },
+    { id: 'hat_rainbow', name: 'Rainbow Crown', type: 'hat', slot: 'hat', rarity: 'mythic', price: 1500, svgType: 'rainbow_crown', color: 'rainbow' },
+
+    // === GLASSES (12 items) ===
+    { id: 'glasses_round', name: 'Round Glasses', type: 'glasses', slot: 'glasses', rarity: 'common', price: 30, svgType: 'round', color: '#1F2937' },
+    { id: 'glasses_cool', name: 'Cool Shades', type: 'glasses', slot: 'glasses', rarity: 'common', price: 40, svgType: 'shades', color: '#1F2937' },
+    { id: 'glasses_star', name: 'Star Glasses', type: 'glasses', slot: 'glasses', rarity: 'uncommon', price: 70, svgType: 'star', color: '#FACC15' },
+    { id: 'glasses_heart', name: 'Heart Glasses', type: 'glasses', slot: 'glasses', rarity: 'uncommon', price: 70, svgType: 'heart', color: '#EC4899' },
+    { id: 'glasses_vr', name: 'VR Headset', type: 'glasses', slot: 'glasses', rarity: 'rare', price: 200, svgType: 'vr', color: '#3B82F6' },
+    { id: 'glasses_monocle', name: 'Fancy Monocle', type: 'glasses', slot: 'glasses', rarity: 'rare', price: 175, svgType: 'monocle', color: '#A16207' },
+    { id: 'glasses_cyber', name: 'Cyber Visor', type: 'glasses', slot: 'glasses', rarity: 'epic', price: 320, svgType: 'cyber', color: '#06B6D4' },
+    { id: 'glasses_3d', name: '3D Glasses', type: 'glasses', slot: 'glasses', rarity: 'common', price: 35, svgType: '3d', color: '#EF4444' },
+    { id: 'mask_hero', name: 'Hero Mask', type: 'glasses', slot: 'glasses', rarity: 'rare', price: 190, svgType: 'hero_mask', color: '#DC2626' },
+    { id: 'mask_ninja', name: 'Ninja Mask', type: 'glasses', slot: 'glasses', rarity: 'epic', price: 280, svgType: 'ninja_mask', color: '#1F2937' },
+    { id: 'eyepatch', name: 'Pirate Eyepatch', type: 'glasses', slot: 'glasses', rarity: 'uncommon', price: 65, svgType: 'eyepatch', color: '#1F2937' },
+    { id: 'glasses_prism', name: 'Prism Glasses', type: 'glasses', slot: 'glasses', rarity: 'legendary', price: 550, svgType: 'prism', color: 'rainbow' },
+
+    // === ACCESSORIES (15 items) ===
+    { id: 'acc_cape_red', name: 'Red Cape', type: 'accessory', slot: 'accessory', rarity: 'uncommon', price: 80, svgType: 'cape', color: '#EF4444' },
+    { id: 'acc_cape_blue', name: 'Blue Cape', type: 'accessory', slot: 'accessory', rarity: 'uncommon', price: 80, svgType: 'cape', color: '#3B82F6' },
+    { id: 'acc_wings_angel', name: 'Angel Wings', type: 'accessory', slot: 'accessory', rarity: 'epic', price: 400, svgType: 'wings_angel', color: '#F8FAFC' },
+    { id: 'acc_wings_bat', name: 'Bat Wings', type: 'accessory', slot: 'accessory', rarity: 'epic', price: 380, svgType: 'wings_bat', color: '#4B5563' },
+    { id: 'acc_wings_fairy', name: 'Fairy Wings', type: 'accessory', slot: 'accessory', rarity: 'rare', price: 250, svgType: 'wings_fairy', color: '#A78BFA' },
+    { id: 'acc_shield', name: 'Knight Shield', type: 'accessory', slot: 'accessory', rarity: 'rare', price: 220, svgType: 'shield', color: '#6B7280' },
+    { id: 'acc_sword', name: 'Toy Sword', type: 'accessory', slot: 'accessory', rarity: 'uncommon', price: 95, svgType: 'sword', color: '#9CA3AF' },
+    { id: 'acc_wand', name: 'Magic Wand', type: 'accessory', slot: 'accessory', rarity: 'rare', price: 180, svgType: 'wand', color: '#A855F7' },
+    { id: 'acc_bow', name: 'Bow & Arrow', type: 'accessory', slot: 'accessory', rarity: 'rare', price: 200, svgType: 'bow', color: '#92400E' },
+    { id: 'acc_pet_cat', name: 'Pet Kitty', type: 'accessory', slot: 'pet', rarity: 'epic', price: 450, svgType: 'pet_cat', color: '#FB923C' },
+    { id: 'acc_pet_dog', name: 'Pet Puppy', type: 'accessory', slot: 'pet', rarity: 'epic', price: 450, svgType: 'pet_dog', color: '#A16207' },
+    { id: 'acc_pet_dragon', name: 'Baby Dragon', type: 'accessory', slot: 'pet', rarity: 'legendary', price: 800, svgType: 'pet_dragon', color: '#7C3AED' },
+    { id: 'acc_jetpack', name: 'Jetpack', type: 'accessory', slot: 'accessory', rarity: 'legendary', price: 750, svgType: 'jetpack', color: '#F97316' },
+    { id: 'acc_wings_rainbow', name: 'Rainbow Wings', type: 'accessory', slot: 'accessory', rarity: 'mythic', price: 1800, svgType: 'wings_rainbow', color: 'rainbow' },
+    { id: 'acc_aura_flame', name: 'Flame Aura', type: 'accessory', slot: 'aura', rarity: 'legendary', price: 900, svgType: 'aura_flame', color: '#F97316' },
+
+    // === OUTFITS (10 items) ===
+    { id: 'outfit_star', name: 'Star Shirt', type: 'outfit', slot: 'outfit', rarity: 'common', price: 45, svgType: 'shirt_star', color: '#FACC15' },
+    { id: 'outfit_heart', name: 'Heart Shirt', type: 'outfit', slot: 'outfit', rarity: 'common', price: 45, svgType: 'shirt_heart', color: '#EC4899' },
+    { id: 'outfit_hoodie', name: 'Cool Hoodie', type: 'outfit', slot: 'outfit', rarity: 'uncommon', price: 85, svgType: 'hoodie', color: '#6366F1' },
+    { id: 'outfit_jersey', name: 'Sports Jersey', type: 'outfit', slot: 'outfit', rarity: 'uncommon', price: 90, svgType: 'jersey', color: '#22C55E' },
+    { id: 'outfit_armor', name: 'Knight Armor', type: 'outfit', slot: 'outfit', rarity: 'rare', price: 220, svgType: 'armor', color: '#9CA3AF' },
+    { id: 'outfit_robe', name: 'Wizard Robe', type: 'outfit', slot: 'outfit', rarity: 'rare', price: 200, svgType: 'robe', color: '#7C3AED' },
+    { id: 'outfit_space', name: 'Space Suit', type: 'outfit', slot: 'outfit', rarity: 'epic', price: 380, svgType: 'spacesuit', color: '#F8FAFC' },
+    { id: 'outfit_ninja', name: 'Ninja Outfit', type: 'outfit', slot: 'outfit', rarity: 'rare', price: 190, svgType: 'ninja_outfit', color: '#1F2937' },
+    { id: 'outfit_hero', name: 'Hero Suit', type: 'outfit', slot: 'outfit', rarity: 'epic', price: 350, svgType: 'hero_suit', color: '#DC2626' },
+    { id: 'outfit_rainbow', name: 'Rainbow Outfit', type: 'outfit', slot: 'outfit', rarity: 'mythic', price: 2000, svgType: 'rainbow_outfit', color: 'rainbow' },
+
+    // === STICKERS (10 items) ===
+    { id: 'sticker_star', name: 'Gold Star', type: 'sticker', rarity: 'common', price: 15, emoji: '⭐' },
+    { id: 'sticker_heart', name: 'Heart', type: 'sticker', rarity: 'common', price: 15, emoji: '❤️' },
+    { id: 'sticker_fire', name: 'Fire', type: 'sticker', rarity: 'common', price: 20, emoji: '🔥' },
+    { id: 'sticker_rainbow', name: 'Rainbow', type: 'sticker', rarity: 'uncommon', price: 50, emoji: '🌈' },
+    { id: 'sticker_rocket', name: 'Rocket', type: 'sticker', rarity: 'uncommon', price: 55, emoji: '🚀' },
+    { id: 'sticker_trophy', name: 'Trophy', type: 'sticker', rarity: 'rare', price: 100, emoji: '🏆' },
+    { id: 'sticker_dragon', name: 'Dragon', type: 'sticker', rarity: 'rare', price: 120, emoji: '🐉' },
+    { id: 'sticker_unicorn', name: 'Unicorn', type: 'sticker', rarity: 'epic', price: 200, emoji: '🦄' },
+    { id: 'sticker_crown', name: 'Crown', type: 'sticker', rarity: 'epic', price: 180, emoji: '👑' },
+    { id: 'sticker_galaxy', name: 'Galaxy', type: 'sticker', rarity: 'legendary', price: 450, emoji: '🌌' },
+
+    // === BACKGROUNDS (8 items) ===
+    { id: 'bg_sky', name: 'Sky Blue', type: 'background', slot: 'background', rarity: 'common', price: 50, color: '#7DD3FC' },
+    { id: 'bg_sunset', name: 'Sunset', type: 'background', slot: 'background', rarity: 'uncommon', price: 80, color: '#FB923C' },
+    { id: 'bg_forest', name: 'Forest', type: 'background', slot: 'background', rarity: 'uncommon', price: 80, color: '#4ADE80' },
+    { id: 'bg_night', name: 'Night Sky', type: 'background', slot: 'background', rarity: 'rare', price: 150, color: '#1E3A5F' },
+    { id: 'bg_galaxy', name: 'Galaxy', type: 'background', slot: 'background', rarity: 'epic', price: 300, color: '#4C1D95' },
+    { id: 'bg_lava', name: 'Lava', type: 'background', slot: 'background', rarity: 'epic', price: 320, color: '#DC2626' },
+    { id: 'bg_rainbow', name: 'Rainbow', type: 'background', slot: 'background', rarity: 'legendary', price: 500, color: 'rainbow' },
+    { id: 'bg_void', name: 'The Void', type: 'background', slot: 'background', rarity: 'mythic', price: 1200, color: '#000000' }
+];
+
+// === MYSTERY BOXES ===
+const MYSTERY_BOXES = [
+    { id: 'box_bronze', name: 'Bronze Box', price: 50, emoji: '📦', color: '#CD7F32', gradient: 'from-amber-600 to-amber-800', minSparks: 5, maxSparks: 25, itemChance: 0.25, maxRarity: 'uncommon' },
+    { id: 'box_silver', name: 'Silver Box', price: 150, emoji: '🎁', color: '#C0C0C0', gradient: 'from-slate-300 to-slate-500', minSparks: 20, maxSparks: 60, itemChance: 0.40, maxRarity: 'rare' },
+    { id: 'box_gold', name: 'Gold Box', price: 400, emoji: '✨', color: '#FFD700', gradient: 'from-yellow-400 to-yellow-600', minSparks: 50, maxSparks: 150, itemChance: 0.55, maxRarity: 'epic' },
+    { id: 'box_diamond', name: 'Diamond Box', price: 1000, emoji: '💎', color: '#B9F2FF', gradient: 'from-cyan-300 to-blue-500', minSparks: 100, maxSparks: 400, itemChance: 0.70, maxRarity: 'legendary' },
+    { id: 'box_cosmic', name: 'Cosmic Box', price: 2500, emoji: '🌟', color: '#FF00FF', gradient: 'from-purple-500 to-pink-500', minSparks: 300, maxSparks: 1000, itemChance: 0.85, maxRarity: 'mythic' }
+];
+
+// === AVATAR CONFIG ===
+const DEFAULT_AVATAR = { skinTone: '#FFD5B8', hairStyle: 'spiky', hairColor: '#4A3728', eyeColor: '#4A90D9', outfitColor: '#3B82F6', hat: null, glasses: null, accessory: null, pet: null, outfit: null, background: null, aura: null };
+const SKIN_TONES = ['#FFDBAC', '#F5CBA7', '#FFD5B8', '#E8BEAC', '#D4A574', '#C68642', '#8D5524', '#6B4423', '#4A3728', '#3B2F2F'];
+const HAIR_STYLES = ['spiky', 'wavy', 'curly', 'short', 'long', 'ponytail', 'mohawk', 'bald'];
+const HAIR_COLORS = ['#4A3728', '#8B4513', '#2C1810', '#FFD700', '#FF6B35', '#9B59B6', '#3498DB', '#E74C3C', '#1ABC9C', '#E91E63'];
+const EYE_COLORS = ['#4A90D9', '#2ECC71', '#8E44AD', '#E74C3C', '#F39C12', '#1ABC9C', '#34495E', '#E91E63'];
+const OUTFIT_COLORS = ['#3B82F6', '#EF4444', '#22C55E', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'];
+
+
+// === QUEST TEMPLATES ===
+const WORD_BANKS = {
+    number_small: ['3', '4', '5', '6', '7', '8'],
+    number_large: ['10', '12', '15', '20'],
+    time_short: ['10 seconds', '15 seconds', '20 seconds', '30 seconds'],
+    time_long: ['1 minute', '2 minutes', '3 minutes'],
+    exercise_easy: ['jumping jacks', 'hops', 'spins', 'claps', 'toe touches'],
+    exercise_hard: ['push-ups', 'squats', 'burpees', 'lunges'],
+    animal: ['dragon', 'unicorn', 'robot', 'dinosaur', 'superhero', 'cat', 'dog', 'bunny', 'owl', 'lion'],
+    color: ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink'],
+    location: ['kitchen', 'living room', 'bedroom', 'backyard'],
+    room: ['your room', 'the bathroom', 'the kitchen'],
+    creative: ['your dream house', 'an alien planet', 'yourself as a superhero', 'a magical creature'],
+    letter: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'M', 'P', 'S', 'T']
+};
+
+const QUEST_TEMPLATES = {
+    blaze: {
+        Easy: [
+            { text: "Do [number_small] [exercise_easy]!", minAge: 4 },
+            { text: "Jump up and down [number_small] times!", minAge: 4 },
+            { text: "Run to the [location] and back!", minAge: 5 },
+            { text: "Spin around [number_small] times!", minAge: 4 },
+            { text: "Dance for [time_short]!", minAge: 4 },
+            { text: "Hop on one foot [number_small] times!", minAge: 5 }
+        ],
+        Medium: [
+            { text: "Do [number_large] [exercise_easy]!", minAge: 6 },
+            { text: "Hold a superhero pose for [time_short]!", minAge: 6 },
+            { text: "Create a [number_small]-move dance!", minAge: 6 },
+            { text: "Do a silly walk around the [location]!", minAge: 5 },
+            { text: "Balance on one foot for [time_short]!", minAge: 6 }
+        ],
+        Hard: [
+            { text: "Complete [number_large] [exercise_hard]!", minAge: 9 },
+            { text: "Do a fitness circuit: [number_small] jumps, [number_small] squats, [number_small] spins!", minAge: 8 },
+            { text: "Hold a plank for [time_short]!", minAge: 8 },
+            { text: "Do [number_large] jumping jacks without stopping!", minAge: 8 }
+        ],
+        Epic: [
+            { text: "EPIC: Complete 50 total exercises of your choice!", minAge: 10 },
+            { text: "EPIC: Create and perform a 2-minute workout routine!", minAge: 10 }
+        ]
+    },
+    flow: {
+        Easy: [
+            { text: "Draw a [animal]!", minAge: 4 },
+            { text: "Draw [creative]!", minAge: 4 },
+            { text: "Build something with [number_small] toys!", minAge: 4 },
+            { text: "Color a picture for [time_long]!", minAge: 4 },
+            { text: "Make a funny face and hold it!", minAge: 4 }
+        ],
+        Medium: [
+            { text: "Draw a [animal] doing [exercise_easy]!", minAge: 5 },
+            { text: "Write a short story about a [animal]!", minAge: 7 },
+            { text: "Make up a song about [color] things!", minAge: 5 },
+            { text: "Build a tower using only [color] items!", minAge: 5 },
+            { text: "Create a [animal] out of household items!", minAge: 6 }
+        ],
+        Hard: [
+            { text: "Create a comic strip with [number_small] panels!", minAge: 8 },
+            { text: "Write a poem with [number_small] lines!", minAge: 9 },
+            { text: "Design your own superhero with a backstory!", minAge: 8 },
+            { text: "Create a board game with simple rules!", minAge: 9 }
+        ],
+        Epic: [
+            { text: "EPIC: Create a complete illustrated story!", minAge: 9 },
+            { text: "EPIC: Build an amazing fort or creation!", minAge: 8 }
+        ]
+    },
+    terra: {
+        Easy: [
+            { text: "Find something [color]!", minAge: 4 },
+            { text: "Put away [number_small] toys!", minAge: 4 },
+            { text: "Water a plant!", minAge: 4 },
+            { text: "Throw away [number_small] pieces of trash!", minAge: 4 },
+            { text: "Put your shoes where they belong!", minAge: 4 }
+        ],
+        Medium: [
+            { text: "Clean up the [location]!", minAge: 5 },
+            { text: "Find [number_small] things that start with [letter]!", minAge: 6 },
+            { text: "Make your bed perfectly!", minAge: 6 },
+            { text: "Help set the table for a meal!", minAge: 5 },
+            { text: "Sort your toys by color or type!", minAge: 5 }
+        ],
+        Hard: [
+            { text: "Deep clean [room]!", minAge: 8 },
+            { text: "Organize a drawer or closet!", minAge: 8 },
+            { text: "Help with the dishes!", minAge: 8 },
+            { text: "Fold and put away your clean clothes!", minAge: 8 }
+        ],
+        Epic: [
+            { text: "EPIC: Clean and organize an entire room!", minAge: 10 },
+            { text: "EPIC: Help prepare a meal from start to finish!", minAge: 10 }
+        ]
+    },
+    breeze: {
+        Easy: [
+            { text: "Give someone a high five!", minAge: 4 },
+            { text: "Take [number_small] deep breaths!", minAge: 4 },
+            { text: "Say something nice to someone!", minAge: 4 },
+            { text: "Give someone a hug!", minAge: 4 },
+            { text: "Smile at yourself in the mirror!", minAge: 4 }
+        ],
+        Medium: [
+            { text: "Read for [time_long]!", minAge: 6 },
+            { text: "Help someone with something!", minAge: 5 },
+            { text: "Do a random act of kindness!", minAge: 6 },
+            { text: "Tell a family member why you appreciate them!", minAge: 5 },
+            { text: "Sit quietly and think happy thoughts for [time_short]!", minAge: 5 }
+        ],
+        Hard: [
+            { text: "Read a whole chapter of a book!", minAge: 8 },
+            { text: "Teach someone something you know!", minAge: 8 },
+            { text: "Write a thank-you note to someone!", minAge: 8 },
+            { text: "Help a sibling or friend with their problem!", minAge: 8 }
+        ],
+        Epic: [
+            { text: "EPIC: Complete a 100+ piece puzzle!", minAge: 9 },
+            { text: "EPIC: Plan and do something special for a family member!", minAge: 9 }
+        ]
+    }
+};
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+function calculateAge(dob) {
+    if (!dob) return 8;
+    const birth = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+    return Math.max(4, Math.min(13, age));
 }
 
-function BlockyAvatar({ config, size = 'md' }) {
-    const sizes = { xs: 40, sm: 56, md: 80, lg: 120 }, w = sizes[size] || 80;
+function getTodayString() { return new Date().toDateString(); }
+
+function fillTemplate(template) {
+    return template.replace(/\[(\w+)\]/g, (match, key) => {
+        const bank = WORD_BANKS[key];
+        return bank ? bank[Math.floor(Math.random() * bank.length)] : match;
+    });
+}
+
+function generateQuest(age = 8) {
+    const clampedAge = Math.max(4, Math.min(13, age));
+    let difficulties = ['Easy', 'Medium'];
+    if (clampedAge >= 8) difficulties.push('Hard');
+    if (clampedAge >= 10) difficulties.push('Epic');
+    
+    const weights = { Easy: clampedAge < 7 ? 55 : 30, Medium: clampedAge < 7 ? 40 : 45, Hard: 20, Epic: 5 };
+    const totalWeight = difficulties.reduce((sum, d) => sum + (weights[d] || 0), 0);
+    let random = Math.random() * totalWeight;
+    let difficulty = difficulties[0];
+    for (const d of difficulties) {
+        random -= weights[d] || 0;
+        if (random <= 0) { difficulty = d; break; }
+    }
+    
+    const categories = ['blaze', 'flow', 'terra', 'breeze'];
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    const templates = (QUEST_TEMPLATES[category][difficulty] || QUEST_TEMPLATES[category]['Easy']).filter(t => (t.minAge || 4) <= clampedAge);
+    const template = templates[Math.floor(Math.random() * templates.length)] || { text: "Do something fun!", minAge: 4 };
+    const rewards = DIFFICULTY_CONFIG[difficulty] || DIFFICULTY_CONFIG['Easy'];
+    
+    return {
+        id: 'quest_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+        text: fillTemplate(template.text),
+        category,
+        difficulty,
+        rewards: { sparks: rewards.sparks, xp: rewards.xp }
+    };
+}
+
+function getTimeUntilReset() {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    return tomorrow - now;
+}
+
+function formatTimeRemaining(ms) {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function rollForItem(maxRarity, ownedItems = []) {
+    const rarityOrder = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'];
+    const maxIndex = rarityOrder.indexOf(maxRarity);
+    const availableRarities = rarityOrder.slice(0, maxIndex + 1);
+    
+    const roll = Math.random() * 100;
+    let cumulative = 0;
+    let selectedRarity = 'common';
+    
+    for (const rarity of [...availableRarities].reverse()) {
+        cumulative += RARITY_CONFIG[rarity].chance;
+        if (roll < cumulative) {
+            selectedRarity = rarity;
+            break;
+        }
+    }
+    
+    const eligibleItems = SHOP_ITEMS.filter(item => 
+        item.rarity === selectedRarity && 
+        item.type !== 'sticker' && 
+        !ownedItems.includes(item.id)
+    );
+    
+    if (eligibleItems.length === 0) {
+        // Try lower rarity if no items available
+        const lowerRarities = availableRarities.slice(0, availableRarities.indexOf(selectedRarity));
+        for (const rarity of [...lowerRarities].reverse()) {
+            const items = SHOP_ITEMS.filter(item => 
+                item.rarity === rarity && 
+                item.type !== 'sticker' && 
+                !ownedItems.includes(item.id)
+            );
+            if (items.length > 0) {
+                return items[Math.floor(Math.random() * items.length)];
+            }
+        }
+        return null;
+    }
+    
+    return eligibleItems[Math.floor(Math.random() * eligibleItems.length)];
+}
+
+
+// ============================================================================
+// AVATAR COMPONENT (Full SVG rendering)
+// ============================================================================
+
+function BlockyAvatar({ config, size = 'md', showEffects = true }) {
+    const sizes = { xs: 48, sm: 64, md: 96, lg: 128, xl: 160 };
+    const w = sizes[size] || 96;
     const c = { ...DEFAULT_AVATAR, ...config };
-    const hairPaths = { spiky: "M30,35 L35,15 L45,30 L55,10 L65,30 L75,15 L80,35", wavy: "M25,40 Q35,20 50,35 Q65,20 80,40", short: "M30,40 L30,30 L80,30 L80,40", bald: "" };
+    
     const hatItem = c.hat ? SHOP_ITEMS.find(i => i.id === c.hat) : null;
+    const glassesItem = c.glasses ? SHOP_ITEMS.find(i => i.id === c.glasses) : null;
+    const accessoryItem = c.accessory ? SHOP_ITEMS.find(i => i.id === c.accessory) : null;
+    const petItem = c.pet ? SHOP_ITEMS.find(i => i.id === c.pet) : null;
+    const outfitItem = c.outfit ? SHOP_ITEMS.find(i => i.id === c.outfit) : null;
+    const bgItem = c.background ? SHOP_ITEMS.find(i => i.id === c.background) : null;
+    const auraItem = c.aura ? SHOP_ITEMS.find(i => i.id === c.aura) : null;
+    
+    const hairPaths = {
+        spiky: "M30,35 L35,15 L45,30 L55,10 L65,30 L75,15 L80,35 Z",
+        wavy: "M25,38 Q35,18 50,33 Q65,18 85,38 L85,42 L25,42 Z",
+        curly: "M25,42 C25,20 35,25 40,20 C45,15 50,25 55,15 C60,25 65,15 70,20 C75,25 85,20 85,42 Z",
+        short: "M28,40 L28,28 Q55,20 82,28 L82,40 Z",
+        long: "M25,35 L25,90 Q30,95 35,90 L35,44 L75,44 L75,90 Q80,95 85,90 L85,35 Q55,22 25,35 Z",
+        ponytail: "M28,40 L28,28 Q55,20 82,28 L82,40 M75,28 Q95,40 88,70 Q82,85 75,72",
+        mohawk: "M45,42 L45,2 Q55,-3 65,2 L65,42 Z",
+        bald: ""
+    };
+
+    let bgFill = bgItem ? bgItem.color : '#E0F2FE';
+    if (bgFill === 'rainbow') bgFill = 'url(#rainbowGrad)';
+    else if (bgItem?.id === 'bg_galaxy') bgFill = 'url(#galaxyGrad)';
+    else if (bgItem?.id === 'bg_void') bgFill = 'url(#voidGrad)';
+
+    const outfitColor = outfitItem ? (outfitItem.color === 'rainbow' ? 'url(#rainbowGrad)' : outfitItem.color) : c.outfitColor;
+    
     return (
-        <svg width={w} height={w} viewBox="0 0 110 130" style={{display:'block'}}>
-            <circle cx="55" cy="65" r="50" fill="#E0F2FE"/>
-            <rect x="35" y="85" width="40" height="35" rx="5" fill={c.outfitColor}/>
-            <rect x="30" y="30" width="50" height="55" rx="10" fill={c.skinTone}/>
-            {c.hairStyle !== 'bald' && <path d={hairPaths[c.hairStyle] || hairPaths.spiky} fill={c.hairColor}/>}
-            <ellipse cx="42" cy="55" rx="5" ry="6" fill="white"/><ellipse cx="68" cy="55" rx="5" ry="6" fill="white"/>
-            <circle cx="43" cy="56" r="3" fill={c.eyeColor}/><circle cx="69" cy="56" r="3" fill={c.eyeColor}/>
-            <path d="M45,70 Q55,78 65,70" stroke="#333" strokeWidth="2" fill="none"/>
-            {hatItem && <text x="55" y="25" textAnchor="middle" fontSize="24">{hatItem.emoji}</text>}
+        <svg width={w} height={w} viewBox="0 0 110 130" style={{ display: 'block' }}>
+            <defs>
+                <linearGradient id="rainbowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FF6B6B" />
+                    <stop offset="20%" stopColor="#FFE66D" />
+                    <stop offset="40%" stopColor="#4ECDC4" />
+                    <stop offset="60%" stopColor="#45B7D1" />
+                    <stop offset="80%" stopColor="#96CEB4" />
+                    <stop offset="100%" stopColor="#DDA0DD" />
+                </linearGradient>
+                <radialGradient id="galaxyGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#6B21A8" />
+                    <stop offset="50%" stopColor="#1E1B4B" />
+                    <stop offset="100%" stopColor="#0F0A1E" />
+                </radialGradient>
+                <radialGradient id="voidGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#1a1a2e" />
+                    <stop offset="100%" stopColor="#000000" />
+                </radialGradient>
+                <filter id="glow"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            
+            {/* Aura Effect */}
+            {auraItem && showEffects && (
+                <g className="animate-sparkle">
+                    <ellipse cx="55" cy="70" rx="52" ry="58" fill="none" stroke={auraItem.color} strokeWidth="3" opacity="0.5" filter="url(#glow)" />
+                    <ellipse cx="55" cy="70" rx="48" ry="54" fill="none" stroke={auraItem.color} strokeWidth="2" opacity="0.3" />
+                </g>
+            )}
+            
+            {/* Background Circle */}
+            <circle cx="55" cy="65" r="50" fill={bgFill} />
+            {bgItem?.id === 'bg_galaxy' && (
+                <g><circle cx="35" cy="45" r="1" fill="white" opacity="0.8"/><circle cx="70" cy="35" r="0.8" fill="white" opacity="0.6"/><circle cx="80" cy="60" r="1.2" fill="white" opacity="0.7"/><circle cx="25" cy="75" r="0.6" fill="white" opacity="0.5"/></g>
+            )}
+            
+            {/* Wings/Cape (behind body) */}
+            {accessoryItem?.svgType === 'cape' && (
+                <path d="M28,88 Q15,100 20,125 L42,118 L42,88 M82,88 Q95,100 90,125 L68,118 L68,88" fill={accessoryItem.color} opacity="0.9" />
+            )}
+            {accessoryItem?.svgType === 'wings_angel' && (
+                <g><ellipse cx="12" cy="72" rx="18" ry="28" fill="white" opacity="0.9"/><ellipse cx="98" cy="72" rx="18" ry="28" fill="white" opacity="0.9"/><ellipse cx="16" cy="72" rx="12" ry="20" fill="#F0F9FF"/><ellipse cx="94" cy="72" rx="12" ry="20" fill="#F0F9FF"/></g>
+            )}
+            {accessoryItem?.svgType === 'wings_bat' && (
+                <g><path d="M2,52 Q-2,70 8,88 L18,76 L24,88 L30,72" fill={accessoryItem.color}/><path d="M108,52 Q112,70 102,88 L92,76 L86,88 L80,72" fill={accessoryItem.color}/></g>
+            )}
+            {accessoryItem?.svgType === 'wings_fairy' && (
+                <g opacity="0.75"><ellipse cx="15" cy="68" rx="16" ry="24" fill={accessoryItem.color}/><ellipse cx="95" cy="68" rx="16" ry="24" fill={accessoryItem.color}/><ellipse cx="20" cy="88" rx="10" ry="16" fill={accessoryItem.color} opacity="0.7"/><ellipse cx="90" cy="88" rx="10" ry="16" fill={accessoryItem.color} opacity="0.7"/></g>
+            )}
+            {accessoryItem?.svgType === 'wings_rainbow' && (
+                <g className="animate-rainbow"><ellipse cx="12" cy="68" rx="18" ry="30" fill="url(#rainbowGrad)" opacity="0.8"/><ellipse cx="98" cy="68" rx="18" ry="30" fill="url(#rainbowGrad)" opacity="0.8"/></g>
+            )}
+            {accessoryItem?.svgType === 'jetpack' && (
+                <g><rect x="22" y="86" width="10" height="24" rx="3" fill="#4B5563"/><rect x="78" y="86" width="10" height="24" rx="3" fill="#4B5563"/><ellipse cx="27" cy="115" rx="5" ry="8" fill="#F97316" opacity="0.8" className="animate-sparkle"/><ellipse cx="83" cy="115" rx="5" ry="8" fill="#F97316" opacity="0.8" className="animate-sparkle"/></g>
+            )}
+            
+            {/* Body/Outfit */}
+            <rect x="35" y="85" width="40" height="35" rx="6" fill={outfitColor} />
+            {outfitItem?.svgType === 'shirt_star' && <polygon points="55,92 58,100 67,100 60,106 63,115 55,110 47,115 50,106 43,100 52,100" fill="#FEF3C7" />}
+            {outfitItem?.svgType === 'shirt_heart' && <path d="M55,115 L45,105 Q40,95 50,95 Q55,95 55,100 Q55,95 60,95 Q70,95 65,105 Z" fill="#FEE2E2" />}
+            {outfitItem?.svgType === 'armor' && <g><rect x="35" y="85" width="40" height="35" rx="3" fill="#6B7280"/><rect x="40" y="90" width="30" height="4" rx="1" fill="#9CA3AF"/><rect x="40" y="98" width="30" height="4" rx="1" fill="#9CA3AF"/><rect x="40" y="106" width="30" height="4" rx="1" fill="#9CA3AF"/></g>}
+            {outfitItem?.svgType === 'hero_suit' && <g><rect x="35" y="85" width="40" height="35" rx="5" fill={outfitItem.color}/><polygon points="55,90 58,98 66,95 60,102 63,112 55,106 47,112 50,102 44,95 52,98" fill="#FACC15"/></g>}
+            {outfitItem?.svgType === 'hoodie' && <g><rect x="35" y="85" width="40" height="35" rx="6" fill={outfitItem.color}/><path d="M42,85 Q55,78 68,85" fill={outfitItem.color}/><ellipse cx="55" cy="100" rx="8" ry="6" fill="rgba(0,0,0,0.15)"/></g>}
+            {outfitItem?.svgType === 'robe' && <g><rect x="33" y="85" width="44" height="38" rx="4" fill={outfitItem.color}/><rect x="52" y="85" width="6" height="38" fill="rgba(255,255,255,0.2)"/><circle cx="55" cy="92" r="3" fill="#FACC15"/></g>}
+            
+            {/* Head */}
+            <rect x="30" y="30" width="50" height="55" rx="12" fill={c.skinTone} />
+            
+            {/* Hair */}
+            {c.hairStyle !== 'bald' && <path d={hairPaths[c.hairStyle] || hairPaths.spiky} fill={c.hairColor} />}
+            
+            {/* Eyes */}
+            <ellipse cx="42" cy="55" rx="6" ry="7" fill="white" />
+            <ellipse cx="68" cy="55" rx="6" ry="7" fill="white" />
+            <circle cx="43" cy="56" r="4" fill={c.eyeColor} />
+            <circle cx="69" cy="56" r="4" fill={c.eyeColor} />
+            <circle cx="44" cy="54" r="1.5" fill="white" />
+            <circle cx="70" cy="54" r="1.5" fill="white" />
+            
+            {/* Mouth */}
+            <path d="M45,72 Q55,80 65,72" stroke="#333" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+            
+            {/* Glasses */}
+            {glassesItem?.svgType === 'round' && <g stroke={glassesItem.color} strokeWidth="2" fill="none"><circle cx="42" cy="55" r="10"/><circle cx="68" cy="55" r="10"/><line x1="52" y1="55" x2="58" y2="55"/></g>}
+            {glassesItem?.svgType === 'shades' && <g><rect x="31" y="48" width="20" height="13" rx="2" fill={glassesItem.color}/><rect x="59" y="48" width="20" height="13" rx="2" fill={glassesItem.color}/><rect x="51" y="52" width="8" height="3" fill={glassesItem.color}/></g>}
+            {glassesItem?.svgType === 'star' && <g fill={glassesItem.color}><polygon points="42,47 44,53 51,53 46,57 48,64 42,59 36,64 38,57 33,53 40,53"/><polygon points="68,47 70,53 77,53 72,57 74,64 68,59 62,64 64,57 59,53 66,53"/><rect x="51" y="53" width="8" height="2"/></g>}
+            {glassesItem?.svgType === 'heart' && <g fill={glassesItem.color}><path d="M42,62 L33,53 Q29,47 37,47 Q42,47 42,51 Q42,47 47,47 Q55,47 51,53 Z"/><path d="M68,62 L59,53 Q55,47 63,47 Q68,47 68,51 Q68,47 73,47 Q81,47 77,53 Z"/><rect x="51" y="52" width="8" height="2"/></g>}
+            {glassesItem?.svgType === 'vr' && <rect x="26" y="45" width="58" height="20" rx="5" fill={glassesItem.color}/>}
+            {glassesItem?.svgType === 'cyber' && <g><rect x="26" y="47" width="58" height="15" rx="3" fill={glassesItem.color} opacity="0.9"/><rect x="29" y="50" width="52" height="9" rx="2" fill="#0F172A" opacity="0.8"/><line x1="32" y1="54" x2="78" y2="54" stroke={glassesItem.color} strokeWidth="1" opacity="0.5"/></g>}
+            {glassesItem?.svgType === 'hero_mask' && <path d="M26,50 Q34,42 55,42 Q76,42 84,50 L80,62 Q68,68 55,68 Q42,68 30,62 Z" fill={glassesItem.color}/>}
+            {glassesItem?.svgType === 'eyepatch' && <g><ellipse cx="42" cy="55" rx="11" ry="11" fill={glassesItem.color}/><line x1="31" y1="44" x2="82" y2="38" stroke={glassesItem.color} strokeWidth="2"/></g>}
+            {glassesItem?.svgType === '3d' && <g><rect x="31" y="48" width="18" height="13" rx="2" fill="#3B82F6"/><rect x="61" y="48" width="18" height="13" rx="2" fill="#EF4444"/><rect x="49" y="52" width="12" height="3" fill="#1F2937"/></g>}
+            {glassesItem?.svgType === 'monocle' && <g><circle cx="68" cy="55" r="11" stroke={glassesItem.color} strokeWidth="2" fill="none"/><line x1="68" y1="66" x2="75" y2="90" stroke={glassesItem.color} strokeWidth="1.5"/></g>}
+            {glassesItem?.svgType === 'prism' && <g className="animate-rainbow"><rect x="31" y="48" width="20" height="13" rx="2" fill="url(#rainbowGrad)" opacity="0.8"/><rect x="59" y="48" width="20" height="13" rx="2" fill="url(#rainbowGrad)" opacity="0.8"/><rect x="51" y="52" width="8" height="3" fill="#F8FAFC"/></g>}
+            
+            {/* Hats */}
+            {hatItem?.svgType === 'cap' && <g><ellipse cx="55" cy="32" rx="30" ry="9" fill={hatItem.color}/><path d="M25,32 Q25,12 55,12 Q85,12 85,32" fill={hatItem.color}/><rect x="75" y="28" width="20" height="6" rx="2" fill={hatItem.color}/></g>}
+            {hatItem?.svgType === 'beanie' && <g><path d="M23,42 Q23,10 55,10 Q87,10 87,42" fill={hatItem.color}/><ellipse cx="55" cy="42" rx="32" ry="6" fill={hatItem.color}/><circle cx="55" cy="6" r="6" fill={hatItem.color}/></g>}
+            {hatItem?.svgType === 'party' && <g><polygon points="55,-2 33,38 77,38" fill={hatItem.color}/><circle cx="55" cy="-2" r="5" fill="#FACC15"/><line x1="40" y1="26" x2="70" y2="26" stroke="#FACC15" strokeWidth="3"/><line x1="44" y1="14" x2="66" y2="14" stroke="#22C55E" strokeWidth="3"/></g>}
+            {hatItem?.svgType === 'crown' && <g><path d="M23,40 L23,18 L35,28 L45,8 L55,24 L65,8 L75,28 L87,18 L87,40 Z" fill={hatItem.color}/><circle cx="45" cy="16" r="4" fill="#EF4444"/><circle cx="55" cy="26" r="4" fill="#3B82F6"/><circle cx="65" cy="16" r="4" fill="#22C55E"/></g>}
+            {hatItem?.svgType === 'wizard' && <g><polygon points="55,-10 28,42 82,42" fill={hatItem.color}/><ellipse cx="55" cy="42" rx="30" ry="7" fill={hatItem.color}/><circle cx="48" cy="18" r="4" fill="#FACC15"/><circle cx="62" cy="8" r="3" fill="#FACC15"/><circle cx="42" cy="32" r="3" fill="#FACC15"/></g>}
+            {hatItem?.svgType === 'pirate' && <g><ellipse cx="55" cy="32" rx="35" ry="12" fill={hatItem.color}/><path d="M20,32 Q20,5 55,0 Q90,5 90,32" fill={hatItem.color}/><circle cx="55" cy="18" r="10" fill="white"/><path d="M50,16 L52,20 L56,16 L54,20 L58,18 L54,21 L58,24 L54,22 L56,26 L52,22 L50,26 L52,22 L48,24 L52,21 L48,18 L52,20 Z" fill="#1F2937"/></g>}
+            {hatItem?.svgType === 'ninja' && <g><rect x="23" y="26" width="64" height="14" fill={hatItem.color}/><rect x="84" y="22" width="22" height="6" fill={hatItem.color} transform="rotate(20 84 25)"/><rect x="84" y="36" width="20" height="5" fill={hatItem.color} transform="rotate(-15 84 38)"/></g>}
+            {hatItem?.svgType === 'astronaut' && <g><ellipse cx="55" cy="52" rx="38" ry="42" fill="none" stroke={hatItem.color} strokeWidth="7"/><ellipse cx="55" cy="52" rx="30" ry="34" fill="#87CEEB" opacity="0.25"/><ellipse cx="42" cy="40" rx="10" ry="12" fill="white" opacity="0.35"/></g>}
+            {hatItem?.svgType === 'viking' && <g><ellipse cx="55" cy="36" rx="32" ry="14" fill={hatItem.color}/><path d="M23,36 Q23,12 55,12 Q87,12 87,36" fill={hatItem.color}/><ellipse cx="16" cy="22" rx="7" ry="18" fill="#F5F5DC"/><ellipse cx="94" cy="22" rx="7" ry="18" fill="#F5F5DC"/></g>}
+            {hatItem?.svgType === 'cat_ears' && <g><polygon points="30,38 23,2 48,25" fill={hatItem.color}/><polygon points="80,38 87,2 62,25" fill={hatItem.color}/><polygon points="32,32 27,10 44,24" fill="#FFB6C1"/><polygon points="78,32 83,10 66,24" fill="#FFB6C1"/></g>}
+            {hatItem?.svgType === 'bunny_ears' && <g><ellipse cx="33" cy="2" rx="10" ry="28" fill={hatItem.color}/><ellipse cx="77" cy="2" rx="10" ry="28" fill={hatItem.color}/><ellipse cx="33" cy="2" rx="5" ry="20" fill="#FFB6C1"/><ellipse cx="77" cy="2" rx="5" ry="20" fill="#FFB6C1"/></g>}
+            {hatItem?.svgType === 'dino' && <polygon points="33,32 28,2 40,20 47,-2 54,18 61,-2 68,20 82,2 77,32" fill={hatItem.color}/>}
+            {hatItem?.svgType === 'flower' && <g><ellipse cx="55" cy="30" rx="30" ry="6" fill="#22C55E"/><circle cx="33" cy="28" r="7" fill="#EC4899"/><circle cx="46" cy="24" r="6" fill="#FACC15"/><circle cx="64" cy="24" r="6" fill="#A855F7"/><circle cx="77" cy="28" r="7" fill="#3B82F6"/><circle cx="55" cy="22" r="7" fill="#EF4444"/></g>}
+            {hatItem?.svgType === 'halo' && <g className="animate-sparkle"><ellipse cx="55" cy="6" rx="22" ry="7" fill="none" stroke={hatItem.color} strokeWidth="5" filter="url(#glow)"/></g>}
+            {hatItem?.svgType === 'horns' && <g><path d="M30,34 Q23,12 35,0 Q40,15 36,32" fill={hatItem.color}/><path d="M80,34 Q87,12 75,0 Q70,15 74,32" fill={hatItem.color}/></g>}
+            {hatItem?.svgType === 'rainbow_crown' && <g className="animate-rainbow"><path d="M23,40 L23,18 L35,28 L45,8 L55,24 L65,8 L75,28 L87,18 L87,40 Z" fill="url(#rainbowGrad)" filter="url(#glow)"/></g>}
+            
+            {/* Hand accessories */}
+            {accessoryItem?.svgType === 'wand' && <g><rect x="88" y="68" width="5" height="32" rx="2" fill="#92400E" transform="rotate(25 90 84)"/><polygon points="92,62 88,72 96,72" fill={accessoryItem.color} className="animate-sparkle"/></g>}
+            {accessoryItem?.svgType === 'sword' && <g><rect x="92" y="58" width="5" height="38" fill={accessoryItem.color} transform="rotate(30 94 77)"/><rect x="84" y="90" width="18" height="6" rx="2" fill="#92400E" transform="rotate(30 93 93)"/></g>}
+            {accessoryItem?.svgType === 'shield' && <g><path d="M-8,68 L-8,98 Q8,120 8,98 L8,68 Q0,62 -8,68" fill={accessoryItem.color} stroke="#4B5563" strokeWidth="3"/><circle cx="0" cy="85" r="6" fill="#FACC15"/></g>}
+            {accessoryItem?.svgType === 'bow' && <g><path d="M98,48 Q115,75 98,102" fill="none" stroke={accessoryItem.color} strokeWidth="4"/><line x1="98" y1="48" x2="98" y2="102" stroke="#92400E" strokeWidth="1.5"/></g>}
+            
+            {/* Pets */}
+            {petItem?.svgType === 'pet_cat' && <g><ellipse cx="98" cy="112" rx="14" ry="11" fill={petItem.color}/><circle cx="98" cy="100" r="10" fill={petItem.color}/><polygon points="89,94 86,82 94,91" fill={petItem.color}/><polygon points="107,94 110,82 102,91" fill={petItem.color}/><circle cx="94" cy="99" r="2.5" fill="#1F2937"/><circle cx="102" cy="99" r="2.5" fill="#1F2937"/><ellipse cx="98" cy="104" rx="2" ry="1.2" fill="#EC4899"/></g>}
+            {petItem?.svgType === 'pet_dog' && <g><ellipse cx="98" cy="110" rx="16" ry="13" fill={petItem.color}/><circle cx="98" cy="96" r="12" fill={petItem.color}/><ellipse cx="87" cy="88" rx="6" ry="10" fill={petItem.color}/><ellipse cx="109" cy="88" rx="6" ry="10" fill={petItem.color}/><circle cx="93" cy="95" r="2.5" fill="#1F2937"/><circle cx="103" cy="95" r="2.5" fill="#1F2937"/><ellipse cx="98" cy="101" rx="4" ry="2.5" fill="#1F2937"/><ellipse cx="98" cy="107" rx="5" ry="2.5" fill="#DC2626"/></g>}
+            {petItem?.svgType === 'pet_dragon' && <g className="animate-float"><ellipse cx="98" cy="108" rx="12" ry="10" fill={petItem.color}/><circle cx="98" cy="96" r="10" fill={petItem.color}/><polygon points="89,90 85,76 95,88" fill={petItem.color}/><polygon points="107,90 111,76 101,88" fill={petItem.color}/><ellipse cx="112" cy="102" rx="10" ry="6" fill={petItem.color} opacity="0.8"/><ellipse cx="84" cy="102" rx="10" ry="6" fill={petItem.color} opacity="0.8"/><circle cx="94" cy="94" r="2.5" fill="#FACC15"/><circle cx="102" cy="94" r="2.5" fill="#FACC15"/><circle cx="94" cy="94" r="1.2" fill="#1F2937"/><circle cx="102" cy="94" r="1.2" fill="#1F2937"/><path d="M95,102 L98,106 L101,102" fill="#F97316"/></g>}
         </svg>
     );
 }
 
-function SparkCounter({ amount }) { return <div className="spark-counter"><span>⚡</span><span>{amount}</span></div>; }
-
-function LevelProgress({ xp, level }) {
-    const progress = xp % 100;
-    return (
-        <div className="flex items-center gap-3">
-            <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">Lvl {level}</span>
-            <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500" style={{width: progress + '%'}}/>
-            </div>
-        </div>
-    );
-}
-
-function StreakFlame({ streak }) {
-    if (streak <= 0) return null;
-    return <div className="flex items-center gap-1 bg-orange-100 px-3 py-1 rounded-full"><span>🔥</span><span className="text-orange-700 font-bold text-sm">{streak} day streak!</span></div>;
-}
-
-function QuestCard({ quest, onComplete }) {
-    const cat = CATEGORY_CONFIG[quest.category], diff = DIFFICULTY_CONFIG[quest.difficulty];
-    return (
-        <div className={`card p-6 quest-${quest.category} border-l-4 animate-bounce-in`}>
-            <div className="flex items-center gap-2 mb-3">
-                <span className="text-2xl">{cat.emoji}</span>
-                <span className="text-xs font-bold uppercase text-slate-600">{cat.label}</span>
-                <span className="ml-auto text-xs font-bold px-2 py-1 rounded-full bg-white/50">{diff.label}</span>
-            </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-4">{quest.text}</h3>
-            <div className="flex items-center justify-between">
-                <div className="flex gap-3"><span className="text-sm font-bold text-yellow-600">⚡ {quest.rewards.sparks}</span><span className="text-sm font-bold text-purple-600">✨ {quest.rewards.xp} XP</span></div>
-                <button onClick={() => onComplete(quest)} className="btn-success">Complete! ✓</button>
-            </div>
-        </div>
-    );
-}
-
-function CompletionModal({ rewards, onClose }) {
-    const confetti = Array.from({length:30}, (_,i) => ({ id:i, left:Math.random()*100, delay:Math.random()*0.5, color:['#FFD700','#FF6B6B','#4ECDC4','#45B7D1'][i%4] }));
+            onPurchase(box.price, rewardData);
+            setPhase('reveal');
+        }, 2000);
+    };
+    
+    const confetti = Array.from({ length: 30 }, (_, i) => ({ id: i, left: Math.random() * 100, delay: Math.random() * 0.3, color: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1'][i % 4] }));
+    
     return (
         <div className="modal-overlay">
-            {confetti.map(p => <div key={p.id} className="confetti" style={{left:p.left+'%',backgroundColor:p.color,animationDelay:p.delay+'s',borderRadius:Math.random()>0.5?'50%':'2px'}}/>)}
-            <div className="card p-8 text-center max-w-sm w-full animate-bounce-in">
-                <div className="text-6xl mb-4">🎉</div>
-                <h2 className="font-display text-2xl font-bold text-slate-800 mb-2">Awesome Job!</h2>
-                <div className="bg-gradient-to-r from-yellow-100 to-purple-100 rounded-2xl p-4 mb-4">
-                    <div className="flex justify-center gap-6">
-                        <div><div className="text-3xl font-bold text-yellow-600">+{rewards.sparksEarned}</div><div className="text-sm text-slate-500">Sparks</div></div>
-                        <div><div className="text-3xl font-bold text-purple-600">+{rewards.xpEarned}</div><div className="text-sm text-slate-500">XP</div></div>
+            {phase === 'reveal' && confetti.map(p => <div key={p.id} className="confetti" style={{ left: p.left + '%', backgroundColor: p.color, animationDelay: p.delay + 's', borderRadius: '50%' }}/>)}
+            
+            <div className="card card-elevated p-6 text-center max-w-sm w-full animate-bounce-in">
+                {phase === 'confirm' && (
+                    <>
+                        <div className={`text-6xl mb-4 ${box.id === 'box_cosmic' ? 'animate-rainbow' : ''}`}>{box.emoji}</div>
+                        <h2 className="font-display text-xl font-bold text-slate-800 mb-2">{box.name}</h2>
+                        <p className="text-slate-500 text-sm mb-4">Contains Sparks or items up to {RARITY_CONFIG[box.maxRarity].label} rarity!</p>
+                        <div className="bg-slate-100 rounded-xl p-3 mb-4">
+                            <div className="text-xs text-slate-500 mb-1">Possible rewards:</div>
+                            <div className="text-sm"><span className="text-yellow-600 font-bold">⚡ {box.minSparks}-{box.maxSparks}</span> or <span className="text-purple-600 font-bold">Rare Items</span></div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button onClick={onClose} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">Cancel</button>
+                            <button onClick={handlePurchase} disabled={!canAfford} className={`flex-1 py-3 rounded-xl font-bold ${canAfford ? 'btn-spark' : 'bg-slate-200 text-slate-400'}`}>
+                                ⚡ {box.price}
+                            </button>
+                        </div>
+                        {!canAfford && <p className="text-red-500 text-sm mt-2">Not enough Sparks!</p>}
+                    </>
+                )}
+                
+                {phase === 'opening' && (
+                    <div className="py-8">
+                        <div className="text-6xl mb-4 animate-shake">{box.emoji}</div>
+                        <div className="font-display text-xl font-bold text-slate-800">Opening...</div>
+                        <div className="mt-4 flex justify-center gap-1">
+                            {[0, 1, 2].map(i => <div key={i} className="w-3 h-3 bg-yellow-400 rounded-full animate-bounce" style={{ animationDelay: i * 0.15 + 's' }}/>)}
+                        </div>
                     </div>
-                </div>
-                {rewards.streakBonus && <div className="bg-orange-100 rounded-xl p-2 mb-4"><span className="text-orange-700 font-bold text-sm">🔥 Streak Bonus!</span></div>}
-                <button onClick={onClose} className="btn-primary w-full text-lg">Awesome! 🚀</button>
+                )}
+                
+                {phase === 'reveal' && reward && (
+                    <>
+                        <div className="text-5xl mb-3">🎉</div>
+                        <h2 className="font-display text-xl font-bold text-slate-800 mb-4">You got:</h2>
+                        {reward.type === 'sparks' ? (
+                            <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-6 mb-4">
+                                <div className="text-5xl font-bold text-yellow-600 animate-item-pop">+{reward.amount}</div>
+                                <div className="text-slate-600 font-bold mt-1">Sparks!</div>
+                            </div>
+                        ) : (
+                            <div className={`rounded-2xl p-6 mb-4 ${RARITY_CONFIG[reward.item.rarity].glow}`} style={{ background: 'linear-gradient(135deg, #f3e8ff, #fce7f3)' }}>
+                                <div className="w-20 h-20 mx-auto mb-3 bg-white rounded-xl flex items-center justify-center animate-item-pop shadow-lg">
+                                    {reward.item.emoji ? <span className="text-4xl">{reward.item.emoji}</span> : <BlockyAvatar config={{ [reward.item.slot]: reward.item.id }} size="md" />}
+                                </div>
+                                <div className="font-bold text-slate-800">{reward.item.name}</div>
+                                <span className={`text-sm font-bold uppercase text-${RARITY_CONFIG[reward.item.rarity].color}-500`}>{RARITY_CONFIG[reward.item.rarity].label}</span>
+                            </div>
+                        )}
+                        <button onClick={onClose} className="btn-primary w-full">Awesome!</button>
+                    </>
+                )}
             </div>
         </div>
     );
 }
 
-function HomeScreen({ kid, onCompleteQuest, onCompleteChore }) {
+// ============================================================================
+// AVATAR EDITOR MODAL
+// ============================================================================
+
+function AvatarEditorModal({ kid, onSave, onClose }) {
+    const [avatar, setAvatar] = useState({ ...DEFAULT_AVATAR, ...kid.avatar });
+    
+    const updateAvatar = (key, value) => setAvatar(prev => ({ ...prev, [key]: value }));
+    
+    return (
+        <div className="modal-overlay">
+            <div className="card p-5 w-full max-w-md max-h-[90vh] overflow-y-auto animate-bounce-in">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-display text-xl font-bold text-slate-800">Edit Avatar</h2>
+                    <button onClick={onClose} className="text-slate-400 text-2xl leading-none">&times;</button>
+                </div>
+                
+                <div className="flex justify-center mb-5">
+                    <div className="bg-gradient-to-br from-sky-100 to-purple-100 rounded-2xl p-4">
+                        <BlockyAvatar config={avatar} size="xl" />
+                    </div>
+                </div>
+                
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-sm font-bold text-slate-600 mb-2 block">Skin Tone</label>
+                        <div className="flex flex-wrap gap-2">
+                            {SKIN_TONES.map(t => (
+                                <button key={t} onClick={() => updateAvatar('skinTone', t)} 
+                                    className={`w-9 h-9 rounded-full border-3 transition-all ${avatar.skinTone === t ? 'border-sky-500 ring-2 ring-sky-200 scale-110' : 'border-slate-200'}`} 
+                                    style={{ backgroundColor: t }}/>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label className="text-sm font-bold text-slate-600 mb-2 block">Hair Style</label>
+                        <div className="flex flex-wrap gap-2">
+                            {HAIR_STYLES.map(s => (
+                                <button key={s} onClick={() => updateAvatar('hairStyle', s)} 
+                                    className={`px-3 py-1.5 rounded-full text-sm font-bold capitalize transition-all ${avatar.hairStyle === s ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                                    {s}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label className="text-sm font-bold text-slate-600 mb-2 block">Hair Color</label>
+                        <div className="flex flex-wrap gap-2">
+                            {HAIR_COLORS.map(c => (
+                                <button key={c} onClick={() => updateAvatar('hairColor', c)} 
+                                    className={`w-9 h-9 rounded-full border-3 transition-all ${avatar.hairColor === c ? 'border-sky-500 ring-2 ring-sky-200 scale-110' : 'border-slate-200'}`} 
+                                    style={{ backgroundColor: c }}/>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label className="text-sm font-bold text-slate-600 mb-2 block">Eye Color</label>
+                        <div className="flex flex-wrap gap-2">
+                            {EYE_COLORS.map(c => (
+                                <button key={c} onClick={() => updateAvatar('eyeColor', c)} 
+                                    className={`w-9 h-9 rounded-full border-3 transition-all ${avatar.eyeColor === c ? 'border-sky-500 ring-2 ring-sky-200 scale-110' : 'border-slate-200'}`} 
+                                    style={{ backgroundColor: c }}/>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label className="text-sm font-bold text-slate-600 mb-2 block">Default Outfit Color</label>
+                        <div className="flex flex-wrap gap-2">
+                            {OUTFIT_COLORS.map(c => (
+                                <button key={c} onClick={() => updateAvatar('outfitColor', c)} 
+                                    className={`w-9 h-9 rounded-full border-3 transition-all ${avatar.outfitColor === c ? 'border-sky-500 ring-2 ring-sky-200 scale-110' : 'border-slate-200'}`} 
+                                    style={{ backgroundColor: c }}/>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="flex gap-3 mt-6">
+                    <button onClick={onClose} className="flex-1 py-3 bg-slate-100 rounded-xl font-bold text-slate-600">Cancel</button>
+                    <button onClick={() => { onSave(avatar); onClose(); }} className="flex-1 btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
+// ============================================================================
+// FAMILY QUEST VIEW (Side-by-side multi-child)
+// ============================================================================
+
+function FamilyQuestView({ kids, familyQuests, onCompleteQuest, onBack, onSpinAgain }) {
+    const completedCount = Object.values(familyQuests).filter(q => q.completed).length;
+    const allCompleted = completedCount === kids.length;
+    
+    return (
+        <div className="space-y-4">
+            {/* Progress Header */}
+            <div className="card p-4">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-slate-700">👨‍👩‍👧‍👦 Family Quest Progress</span>
+                    <span className="font-bold text-sky-600">{completedCount}/{kids.length}</span>
+                </div>
+                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 transition-all duration-500" 
+                        style={{ width: (kids.length > 0 ? (completedCount / kids.length * 100) : 0) + '%' }}/>
+                </div>
+                {allCompleted && (
+                    <div className="text-center mt-3">
+                        <span className="text-2xl">🎉</span>
+                        <span className="text-green-600 font-bold ml-2">Everyone finished their quest!</span>
+                    </div>
+                )}
+            </div>
+            
+            {/* Quest Cards Grid */}
+            <div className="family-grid">
+                {kids.map((kid, index) => {
+                    const questData = familyQuests[kid.id];
+                    if (!questData) return null;
+                    const { quest, completed, rewards } = questData;
+                    const cat = CATEGORY_CONFIG[quest.category];
+                    const diff = DIFFICULTY_CONFIG[quest.difficulty];
+                    const age = calculateAge(kid.dob);
+                    
+                    return (
+                        <div key={kid.id} 
+                            className={`card p-4 quest-${quest.category} border-l-4 animate-bounce-in relative ${completed ? 'opacity-70' : ''}`}
+                            style={{ animationDelay: (index * 0.1) + 's' }}>
+                            
+                            {/* Player Info Header */}
+                            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200/50">
+                                <div className="bg-white/80 rounded-xl p-1">
+                                    <BlockyAvatar config={kid.avatar} size="sm" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-slate-800 truncate">{kid.name}</h4>
+                                    <span className="text-xs text-slate-500">Age {age} • Lvl {Math.floor((kid.xp || 0) / 100) + 1}</span>
+                                </div>
+                                <SparkCounter amount={kid.sparks || 0} size="sm" />
+                            </div>
+                            
+                            {/* Quest Content */}
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="text-xl">{cat.emoji}</span>
+                                <span className="text-xs font-bold uppercase text-slate-600">{cat.label}</span>
+                                <span className="ml-auto text-xs font-bold px-2 py-1 rounded-full bg-white/60">{diff.label}</span>
+                            </div>
+                            <h3 className="text-base font-bold text-slate-800 mb-3 leading-snug">{quest.text}</h3>
+                            
+                            {/* Rewards & Action */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-yellow-600">⚡ {quest.rewards.sparks}</span>
+                                    <span className="text-sm font-bold text-purple-600">✨ {quest.rewards.xp}</span>
+                                </div>
+                                {completed ? (
+                                    <div className="flex items-center gap-2 bg-green-100 px-3 py-1.5 rounded-xl">
+                                        <span className="text-green-600">✓</span>
+                                        <span className="text-green-700 font-bold text-sm">+{rewards.sparksEarned} ⚡</span>
+                                    </div>
+                                ) : (
+                                    <button onClick={() => onCompleteQuest(quest, kid.id)} className="btn-success text-sm px-3 py-1.5">Done! ✓</button>
+                                )}
+                            </div>
+                            
+                            {completed && <div className="absolute inset-0 flex items-center justify-center pointer-events-none"><span className="text-6xl opacity-20">✓</span></div>}
+                        </div>
+                    );
+                })}
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+                <button onClick={onBack} className="flex-1 py-3 bg-white rounded-xl font-bold text-slate-600 shadow">← Back</button>
+                {allCompleted && <button onClick={onSpinAgain} className="flex-1 btn-family">Spin Again! 🎲</button>}
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
+// HOME SCREEN
+// ============================================================================
+
+function HomeScreen({ kids, selectedKid, onCompleteQuest, onCompleteChore, onClaimLuckyBlock }) {
     const [quest, setQuest] = useState(null);
     const [spinning, setSpinning] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [lastRewards, setLastRewards] = useState(null);
     const [mode, setMode] = useState('adventure');
-    const level = Math.floor((kid.xp || 0) / 100) + 1;
-    const today = getTodayString();
-    const chores = (kid.chores || []).map(c => ({...c, isCompleted: c.recurrence === 'daily' ? c.lastCompleted === today : !!c.lastCompleted}));
+    const [familyMode, setFamilyMode] = useState(false);
+    const [familyQuests, setFamilyQuests] = useState({});
+    const [familySpinning, setFamilySpinning] = useState(false);
     
-    const spin = () => { if (spinning) return; setSpinning(true); setQuest(null); setTimeout(() => { setQuest(generateQuest(calculateAge(kid.dob))); setSpinning(false); }, 1500); };
-    const handleQuest = async (q) => { const r = await onCompleteQuest(q); if (r) { setLastRewards(r); setShowModal(true); } };
-    const handleChore = async (id) => { const r = await onCompleteChore(id); if (r) { setLastRewards(r); setShowModal(true); } };
-    const closeModal = () => { setShowModal(false); setQuest(null); };
+    const level = Math.floor((selectedKid.xp || 0) / 100) + 1;
+    const today = getTodayString();
+    const chores = (selectedKid.chores || []).map(c => ({
+        ...c,
+        isCompleted: c.recurrence === 'daily' ? c.lastCompleted === today : !!c.lastCompleted
+    }));
+    const hasMultipleKids = kids.length > 1;
+    
+    const spin = () => {
+        if (spinning) return;
+        setFamilyMode(false);
+        setSpinning(true);
+        setQuest(null);
+        setTimeout(() => {
+            setQuest(generateQuest(calculateAge(selectedKid.dob)));
+            setSpinning(false);
+        }, 1500);
+    };
+    
+    const spinAll = () => {
+        if (familySpinning) return;
+        setFamilyMode(true);
+        setFamilySpinning(true);
+        setQuest(null);
+        
+        setTimeout(() => {
+            const newFamilyQuests = {};
+            kids.forEach(kid => {
+                const playerAge = calculateAge(kid.dob);
+                const q = generateQuest(playerAge);
+                newFamilyQuests[kid.id] = { quest: q, completed: false, rewards: null };
+            });
+            setFamilyQuests(newFamilyQuests);
+            setFamilySpinning(false);
+        }, 1500);
+    };
+    
+    const handleQuest = async (q, kidId = null) => {
+        const r = await onCompleteQuest(q, kidId);
+        if (r) {
+            if (familyMode && kidId) {
+                setFamilyQuests(prev => ({ ...prev, [kidId]: { ...prev[kidId], completed: true, rewards: r } }));
+            } else {
+                setLastRewards(r);
+                setShowModal(true);
+            }
+        }
+    };
+    
+    const handleChore = async (id) => {
+        const r = await onCompleteChore(id);
+        if (r) { setLastRewards(r); setShowModal(true); }
+    };
+    
+    const closeModal = () => { setShowModal(false); setQuest(null); setLastRewards(null); };
+    const clearFamilyMode = () => { setFamilyMode(false); setFamilyQuests({}); };
     
     return (
         <div className="p-4 pb-24">
+            {/* Player Header Card */}
             <div className="card p-4 mb-4 flex items-center gap-4">
-                <div className="bg-sky-50 rounded-xl p-2"><BlockyAvatar config={kid.avatar} size="md"/></div>
-                <div className="flex-1"><h2 className="font-display text-xl font-bold text-slate-800">{kid.name}</h2><LevelProgress xp={kid.xp||0} level={level}/></div>
-                <SparkCounter amount={kid.sparks||0}/>
-            </div>
-            {(kid.streak||0) > 0 && <div className="flex justify-center mb-4"><StreakFlame streak={kid.streak}/></div>}
-            <div className="flex bg-white p-1 rounded-xl mb-4 shadow">
-                <button onClick={() => setMode('adventure')} className={`flex-1 py-3 rounded-xl font-bold text-sm ${mode==='adventure'?'bg-sky-500 text-white':'text-slate-400'}`}>🎲 Adventure</button>
-                <button onClick={() => setMode('chores')} className={`flex-1 py-3 rounded-xl font-bold text-sm ${mode==='chores'?'bg-sky-500 text-white':'text-slate-400'}`}>📋 Chores</button>
-            </div>
-            {mode === 'adventure' && (
-                <div className="card p-6 text-center">
-                    <h3 className="font-display text-lg font-bold text-slate-700 mb-4">🎯 Random Quest</h3>
-                    {!quest && !spinning && <div><div className="text-6xl mb-4 animate-float">🎰</div><p className="text-slate-500 mb-4">Ready for adventure?</p><button onClick={spin} className="btn-spark">Spin for Quest! 🎲</button></div>}
-                    {spinning && <div><div className="text-6xl mb-4 animate-spin-wheel">🎡</div><p className="text-slate-500">Finding quest...</p></div>}
-                    {quest && !spinning && <div><QuestCard quest={quest} onComplete={handleQuest}/><button onClick={() => setQuest(null)} className="mt-4 text-sm text-slate-400">Skip →</button></div>}
+                <div className="bg-gradient-to-br from-sky-50 to-purple-50 rounded-xl p-2">
+                    <BlockyAvatar config={selectedKid.avatar} size="md" />
                 </div>
+                <div className="flex-1 min-w-0">
+                    <h2 className="font-display text-xl font-bold text-slate-800 truncate">{selectedKid.name}</h2>
+                    <LevelProgress xp={selectedKid.xp || 0} level={level} />
+                </div>
+                <SparkCounter amount={selectedKid.sparks || 0} />
+            </div>
+            
+            {/* Streak */}
+            {(selectedKid.streak || 0) > 0 && <div className="flex justify-center mb-4"><StreakFlame streak={selectedKid.streak} /></div>}
+            
+            {/* Lucky Block */}
+            <div className="mb-4">
+                <LuckyBlock kid={selectedKid} onClaim={onClaimLuckyBlock} />
+            </div>
+            
+            {/* Mode Tabs */}
+            <div className="flex bg-white p-1 rounded-xl mb-4 shadow">
+                <button onClick={() => setMode('adventure')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${mode === 'adventure' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400'}`}>🎲 Adventure</button>
+                <button onClick={() => setMode('chores')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${mode === 'chores' ? 'bg-sky-500 text-white shadow-md' : 'text-slate-400'}`}>📋 Chores</button>
+            </div>
+            
+            {mode === 'adventure' && (
+                <>
+                    {familyMode && Object.keys(familyQuests).length > 0 ? (
+                        <FamilyQuestView 
+                            kids={kids} 
+                            familyQuests={familyQuests} 
+                            onCompleteQuest={handleQuest}
+                            onBack={clearFamilyMode}
+                            onSpinAgain={spinAll}
+                        />
+                    ) : (
+                        <div className="card p-6 text-center">
+                            <h3 className="font-display text-lg font-bold text-slate-700 mb-4">🎯 Random Quest</h3>
+                            
+                            {!quest && !spinning && !familySpinning && (
+                                <div>
+                                    <div className="text-6xl mb-4 animate-float">🎰</div>
+                                    <p className="text-slate-500 mb-4">Ready for an adventure?</p>
+                                    <button onClick={spin} className="btn-spark w-full mb-3">Spin for {selectedKid.name}! 🎲</button>
+                                    {hasMultipleKids && (
+                                        <button onClick={spinAll} className="btn-family w-full">👨‍👩‍👧‍👦 Spin for Everyone!</button>
+                                    )}
+                                </div>
+                            )}
+                            
+                            {(spinning || familySpinning) && (
+                                <div>
+                                    <div className="text-6xl mb-4 animate-spin-wheel">🎡</div>
+                                    <p className="text-slate-500">{familySpinning ? 'Finding quests for everyone...' : 'Finding your quest...'}</p>
+                                </div>
+                            )}
+                            
+                            {quest && !spinning && !familyMode && (
+                                <div>
+                                    <QuestCard quest={quest} onComplete={handleQuest} />
+                                    <button onClick={() => setQuest(null)} className="mt-4 text-sm text-slate-400 hover:text-slate-600">Skip this quest →</button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </>
             )}
+            
             {mode === 'chores' && (
                 <div className="space-y-3">
-                    {chores.length === 0 ? <div className="card p-8 text-center"><div className="text-5xl mb-3">📋</div><p className="text-slate-500">No chores yet! Ask a parent to add some.</p></div> : 
-                    chores.map(c => (
-                        <div key={c.id} className={`card p-4 flex items-center gap-4 ${c.isCompleted?'chore-item completed':''}`}>
-                            <button onClick={() => !c.isCompleted && handleChore(c.id)} disabled={c.isCompleted} className={`chore-checkbox ${c.isCompleted?'checked':''}`}>{c.isCompleted && '✓'}</button>
-                            <span className="text-2xl">{c.emoji}</span>
-                            <div className="flex-1"><h4 className={`font-bold ${c.isCompleted?'text-slate-400 line-through':'text-slate-800'}`}>{c.name}</h4><div className="flex gap-2 mt-1"><span className="text-sm text-yellow-600 font-bold">⚡ {c.sparks}</span><span className="text-sm text-purple-600 font-bold">✨ {c.xp}</span></div></div>
-                            {c.isCompleted && <span className="text-green-500 font-bold text-sm">Done!</span>}
+                    {chores.length === 0 ? (
+                        <div className="card p-8 text-center">
+                            <div className="text-5xl mb-3">📋</div>
+                            <p className="text-slate-500">No chores assigned yet!</p>
+                            <p className="text-slate-400 text-sm mt-1">Ask a parent to add some in the Parent Hub.</p>
+                        </div>
+                    ) : chores.map(c => (
+                        <div key={c.id} className={`card p-4 flex items-center gap-4 transition-all ${c.isCompleted ? 'chore-item completed' : ''}`}>
+                            <button onClick={() => !c.isCompleted && handleChore(c.id)} disabled={c.isCompleted}
+                                className={`chore-checkbox ${c.isCompleted ? 'checked' : ''}`}>
+                                {c.isCompleted && '✓'}
+                            </button>
+                            <span className="text-2xl">{c.emoji || '✅'}</span>
+                            <div className="flex-1 min-w-0">
+                                <h4 className={`font-bold truncate ${c.isCompleted ? 'text-slate-400 line-through' : 'text-slate-800'}`}>{c.name}</h4>
+                                <div className="flex gap-2 mt-1">
+                                    <span className="text-sm text-yellow-600 font-bold">⚡ {c.sparks}</span>
+                                    <span className="text-sm text-purple-600 font-bold">✨ {c.xp}</span>
+                                </div>
+                            </div>
+                            {c.isCompleted && <span className="text-green-500 font-bold text-sm whitespace-nowrap">Done!</span>}
                         </div>
                     ))}
                 </div>
             )}
-            {showModal && lastRewards && <CompletionModal rewards={lastRewards} onClose={closeModal}/>}
+            
+            {showModal && lastRewards && <CompletionModal rewards={lastRewards} onClose={closeModal} />}
         </div>
     );
 }
 
-function ShopScreen({ kid, rewards, onBuyItem, onRedeemReward }) {
-    const [cat, setCat] = useState('all');
+
+// ============================================================================
+// SHOP SCREEN
+// ============================================================================
+
+function ShopScreen({ kid, rewards, onBuyItem, onRedeemReward, onOpenMysteryBox }) {
+    const [category, setCategory] = useState('all');
     const [notif, setNotif] = useState(null);
-    const items = cat === 'all' ? SHOP_ITEMS : cat === 'real' ? [] : SHOP_ITEMS.filter(i => i.type === cat);
-    const handleBuy = async (item) => { const r = await onBuyItem(item.id); setNotif(r); setTimeout(() => setNotif(null), 2000); };
-    const handleRedeem = async (reward) => { const r = await onRedeemReward(reward.id); setNotif(r); setTimeout(() => setNotif(null), 3000); };
+    const [selectedBox, setSelectedBox] = useState(null);
+    
+    const categories = [
+        { id: 'all', label: 'All', emoji: '🛒' },
+        { id: 'hat', label: 'Hats', emoji: '🎩' },
+        { id: 'glasses', label: 'Glasses', emoji: '👓' },
+        { id: 'accessory', label: 'Accessories', emoji: '✨' },
+        { id: 'outfit', label: 'Outfits', emoji: '👕' },
+        { id: 'background', label: 'Backgrounds', emoji: '🌅' },
+        { id: 'sticker', label: 'Stickers', emoji: '⭐' },
+        { id: 'mystery', label: 'Mystery', emoji: '🎁' },
+        { id: 'rewards', label: 'Rewards', emoji: '🏆' }
+    ];
+    
+    const filteredItems = useMemo(() => {
+        if (category === 'all') return SHOP_ITEMS;
+        if (category === 'mystery' || category === 'rewards') return [];
+        return SHOP_ITEMS.filter(item => item.type === category || item.slot === category);
+    }, [category]);
+    
+    const handleBuy = async (item) => {
+        const r = await onBuyItem(item.id);
+        setNotif(r);
+        setTimeout(() => setNotif(null), 2500);
+    };
+    
+    const handleRedeem = async (reward) => {
+        const r = await onRedeemReward(reward.id);
+        setNotif(r);
+        setTimeout(() => setNotif(null), 3000);
+    };
+    
+    const handleBoxPurchase = async (price, rewardData) => {
+        await onOpenMysteryBox(price, rewardData);
+    };
+    
     return (
         <div className="p-4 pb-24">
-            <div className="flex items-center justify-between mb-4"><h2 className="font-display text-2xl font-bold text-slate-800">🏪 Shop</h2><SparkCounter amount={kid.sparks||0}/></div>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display text-2xl font-bold text-slate-800">🏪 Shop</h2>
+                <SparkCounter amount={kid.sparks || 0} />
+            </div>
+            
+            {/* Category Tabs */}
             <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">
-                {[{id:'all',label:'All',emoji:'🛒'},{id:'avatar_part',label:'Avatar',emoji:'👤'},{id:'sticker',label:'Stickers',emoji:'⭐'},{id:'real',label:'Rewards',emoji:'🎁'}].map(c => (
-                    <button key={c.id} onClick={() => setCat(c.id)} className={`flex items-center gap-1 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap ${cat===c.id?'bg-sky-500 text-white shadow-lg':'bg-white text-slate-500 shadow'}`}><span>{c.emoji}</span><span>{c.label}</span></button>
+                {categories.map(c => (
+                    <button key={c.id} onClick={() => setCategory(c.id)}
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all ${category === c.id ? 'bg-sky-500 text-white shadow-lg' : 'bg-white text-slate-500 shadow'}`}>
+                        <span>{c.emoji}</span><span>{c.label}</span>
+                    </button>
                 ))}
             </div>
-            {cat === 'real' && (
+            
+            {/* Mystery Boxes */}
+            {category === 'mystery' && (
                 <div className="space-y-3">
-                    {rewards.length > 0 ? rewards.map(r => {
-                        const can = (kid.sparks||0) >= r.cost;
-                        return <div key={r.id} className={`card p-4 ${!can?'opacity-60':''}`}><div className="flex items-center gap-4"><span className="text-4xl">{r.emoji}</span><div className="flex-1"><h3 className="font-bold text-slate-800">{r.name}</h3></div><button onClick={() => handleRedeem(r)} disabled={!can} className={`px-4 py-2 rounded-lg font-bold ${can?'bg-green-500 text-white':'bg-slate-200 text-slate-400'}`}>⚡ {r.cost}</button></div></div>;
-                    }) : <div className="card p-8 text-center"><div className="text-4xl mb-2">🎁</div><p className="text-slate-500">No rewards yet!</p></div>}
-                </div>
-            )}
-            {cat !== 'real' && (
-                <div className="grid grid-cols-2 gap-3">
-                    {items.map(item => {
-                        const owned = (kid.inventory||[]).includes(item.id), can = (kid.sparks||0) >= item.price;
-                        const rarity = RARITY_CONFIG[item.rarity];
-                        return <div key={item.id} className={`card p-4 text-center ${rarity.glow} ${!can&&!owned?'opacity-60':''}`}><div className="text-4xl mb-2">{item.emoji}</div><h3 className="font-bold text-slate-800 text-sm">{item.name}</h3><span className="text-xs font-bold text-slate-500 uppercase">{rarity.label}</span>{owned ? <div className="mt-2 py-2 bg-green-100 rounded-lg text-green-700 font-bold text-sm">✓ Owned</div> : <button onClick={() => handleBuy(item)} disabled={!can} className={`mt-2 w-full py-2 rounded-lg font-bold text-sm ${can?'bg-sky-500 text-white':'bg-slate-200 text-slate-400'}`}>⚡ {item.price}</button>}</div>;
+                    <p className="text-slate-500 text-sm mb-2">Open boxes to get Sparks or rare items!</p>
+                    {MYSTERY_BOXES.map(box => {
+                        const canAfford = (kid.sparks || 0) >= box.price;
+                        return (
+                            <div key={box.id} onClick={() => canAfford && setSelectedBox(box)}
+                                className={`card p-4 mystery-box ${!canAfford ? 'opacity-60' : ''}`}>
+                                <div className="flex items-center gap-4">
+                                    <div className={`text-5xl ${box.id === 'box_cosmic' ? 'animate-rainbow' : ''}`}>{box.emoji}</div>
+                                    <div className="flex-1">
+                                        <h3 className="font-bold text-slate-800">{box.name}</h3>
+                                        <p className="text-xs text-slate-500">Up to {RARITY_CONFIG[box.maxRarity].label} items!</p>
+                                        <p className="text-xs text-slate-400">⚡ {box.minSparks}-{box.maxSparks} Sparks or items</p>
+                                    </div>
+                                    <div className={`px-4 py-2 rounded-xl font-bold ${canAfford ? 'bg-gradient-to-r ' + box.gradient + ' text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                        ⚡ {box.price}
+                                    </div>
+                                </div>
+                            </div>
+                        );
                     })}
                 </div>
             )}
-            {notif && <div className={`fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50 ${notif.success?'bg-green-500':'bg-red-500'} text-white`}>{notif.message}</div>}
+            
+            {/* Real Rewards */}
+            {category === 'rewards' && (
+                <div className="space-y-3">
+                    <p className="text-slate-500 text-sm mb-2">Redeem your Sparks for real rewards!</p>
+                    {rewards.length > 0 ? rewards.map(r => {
+                        const canAfford = (kid.sparks || 0) >= r.cost;
+                        return (
+                            <div key={r.id} className={`card p-4 ${!canAfford ? 'opacity-60' : ''}`}>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-4xl">{r.emoji || '🎁'}</span>
+                                    <div className="flex-1">
+                                        <h3 className="font-bold text-slate-800">{r.name}</h3>
+                                        {r.description && <p className="text-xs text-slate-500">{r.description}</p>}
+                                    </div>
+                                    <button onClick={() => handleRedeem(r)} disabled={!canAfford}
+                                        className={`px-4 py-2 rounded-xl font-bold ${canAfford ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                        ⚡ {r.cost}
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    }) : (
+                        <div className="card p-8 text-center">
+                            <div className="text-5xl mb-3">🎁</div>
+                            <p className="text-slate-500">No rewards set up yet!</p>
+                            <p className="text-slate-400 text-sm mt-1">Ask a parent to add some in the Parent Hub.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+            
+            {/* Regular Items Grid */}
+            {category !== 'mystery' && category !== 'rewards' && (
+                <div className="grid grid-cols-2 gap-3">
+                    {filteredItems.map(item => {
+                        const owned = (kid.inventory || []).includes(item.id);
+                        const canAfford = (kid.sparks || 0) >= item.price;
+                        const rarity = RARITY_CONFIG[item.rarity];
+                        
+                        return (
+                            <div key={item.id} className={`card p-4 text-center transition-all ${rarity.glow} ${!canAfford && !owned ? 'opacity-60' : ''}`}>
+                                <div className="w-16 h-16 mx-auto mb-2 bg-slate-50 rounded-xl flex items-center justify-center">
+                                    {item.emoji ? (
+                                        <span className="text-3xl">{item.emoji}</span>
+                                    ) : (
+                                        <BlockyAvatar config={{ [item.slot]: item.id }} size="sm" showEffects={false} />
+                                    )}
+                                </div>
+                                <h3 className="font-bold text-slate-800 text-sm truncate">{item.name}</h3>
+                                <span className={`text-xs font-bold uppercase text-${rarity.color}-500`}>{rarity.label}</span>
+                                
+                                {owned ? (
+                                    <div className="mt-2 py-2 bg-green-100 rounded-lg text-green-700 font-bold text-sm">✓ Owned</div>
+                                ) : (
+                                    <button onClick={() => handleBuy(item)} disabled={!canAfford}
+                                        className={`mt-2 w-full py-2 rounded-lg font-bold text-sm transition-all ${canAfford ? 'bg-sky-500 text-white hover:bg-sky-600' : 'bg-slate-200 text-slate-400'}`}>
+                                        ⚡ {item.price}
+                                    </button>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+            
+            {/* Notification */}
+            {notif && (
+                <div className={`fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full font-bold shadow-lg animate-bounce-in z-50 ${notif.success ? 'bg-green-500' : 'bg-red-500'} text-white`}>
+                    {notif.message}
+                </div>
+            )}
+            
+            {/* Mystery Box Modal */}
+            {selectedBox && (
+                <MysteryBoxModal 
+                    box={selectedBox} 
+                    kid={kid} 
+                    onPurchase={handleBoxPurchase}
+                    onClose={() => setSelectedBox(null)}
+                />
+            )}
         </div>
     );
 }
 
-function ProfileScreen({ kid, onEquipItem }) {
-    const level = Math.floor((kid.xp||0) / 100) + 1;
-    const owned = SHOP_ITEMS.filter(i => (kid.inventory||[]).includes(i.id));
-    const avatarItems = owned.filter(i => i.type === 'avatar_part');
+
+// ============================================================================
+// PROFILE SCREEN
+// ============================================================================
+
+function ProfileScreen({ kid, onEquipItem, onUpdateAvatar }) {
+    const [showInv, setShowInv] = useState(true);
+    const [showAvatarEditor, setShowAvatarEditor] = useState(false);
+    
+    const level = Math.floor((kid.xp || 0) / 100) + 1;
+    const ownedItems = SHOP_ITEMS.filter(i => (kid.inventory || []).includes(i.id));
+    const wearableItems = ownedItems.filter(i => i.slot && i.type !== 'sticker');
+    
+    const itemsBySlot = useMemo(() => {
+        const slots = {};
+        wearableItems.forEach(item => {
+            if (!slots[item.slot]) slots[item.slot] = [];
+            slots[item.slot].push(item);
+        });
+        return slots;
+    }, [wearableItems]);
+    
+    const slotLabels = {
+        hat: '🎩 Hats',
+        glasses: '👓 Glasses',
+        accessory: '✨ Accessories',
+        pet: '🐾 Pets',
+        outfit: '👕 Outfits',
+        background: '🌅 Backgrounds',
+        aura: '🔮 Auras'
+    };
+    
     return (
         <div className="p-4 pb-24">
+            {/* Profile Card */}
             <div className="card p-6 mb-4">
                 <div className="flex items-center gap-4">
-                    <div className="bg-sky-50 rounded-2xl p-3"><BlockyAvatar config={kid.avatar} size="lg"/></div>
-                    <div className="flex-1"><h2 className="font-display text-2xl font-bold text-slate-800">{kid.name}</h2><p className="text-sm text-slate-500 mb-1">Age {calculateAge(kid.dob)}</p><div className="flex gap-2 mt-2"><span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">Lvl {level}</span><SparkCounter amount={kid.sparks||0}/></div><div className="mt-3"><LevelProgress xp={kid.xp||0} level={level}/></div></div>
+                    <div className="bg-gradient-to-br from-sky-100 to-purple-100 rounded-2xl p-3 relative">
+                        <BlockyAvatar config={kid.avatar} size="lg" />
+                        <button onClick={() => setShowAvatarEditor(true)}
+                            className="absolute -bottom-2 -right-2 w-8 h-8 bg-sky-500 text-white rounded-full shadow-lg flex items-center justify-center text-sm font-bold hover:bg-sky-600 transition-colors">
+                            ✏️
+                        </button>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h2 className="font-display text-2xl font-bold text-slate-800 truncate">{kid.name}</h2>
+                        <p className="text-sm text-slate-500 mb-1">Age {calculateAge(kid.dob)}</p>
+                        <div className="flex gap-2 mt-2 flex-wrap">
+                            <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">Lvl {level}</span>
+                            <SparkCounter amount={kid.sparks || 0} size="sm" />
+                        </div>
+                        <div className="mt-3"><LevelProgress xp={kid.xp || 0} level={level} /></div>
+                    </div>
                 </div>
-                {(kid.streak||0) > 0 && <div className="mt-4 flex justify-center"><StreakFlame streak={kid.streak}/></div>}
+                {(kid.streak || 0) > 0 && <div className="mt-4 flex justify-center"><StreakFlame streak={kid.streak} /></div>}
             </div>
+            
+            {/* Stats Grid */}
             <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="card p-4 text-center"><div className="text-2xl font-bold text-sky-600">{(kid.completedQuests||[]).length}</div><div className="text-xs text-slate-500">Quests</div></div>
-                <div className="card p-4 text-center"><div className="text-2xl font-bold text-green-600">{(kid.choreHistory||[]).length}</div><div className="text-xs text-slate-500">Chores</div></div>
-                <div className="card p-4 text-center"><div className="text-2xl font-bold text-purple-600">{owned.length}</div><div className="text-xs text-slate-500">Items</div></div>
+                <div className="card p-4 text-center">
+                    <div className="text-2xl font-bold text-sky-600">{(kid.completedQuests || []).length}</div>
+                    <div className="text-xs text-slate-500">Quests</div>
+                </div>
+                <div className="card p-4 text-center">
+                    <div className="text-2xl font-bold text-green-600">{(kid.choreHistory || []).length}</div>
+                    <div className="text-xs text-slate-500">Chores</div>
+                </div>
+                <div className="card p-4 text-center">
+                    <div className="text-2xl font-bold text-purple-600">{ownedItems.length}</div>
+                    <div className="text-xs text-slate-500">Items</div>
+                </div>
             </div>
-            <div className="card p-4"><h3 className="font-display font-bold text-slate-800 mb-3">🎒 My Items</h3>
-                {avatarItems.length > 0 ? <div className="grid grid-cols-2 gap-3">{avatarItems.map(item => {const eq = kid.avatar?.[item.slot] === item.id; return <button key={item.id} onClick={() => onEquipItem(item)} className={`card p-4 text-center ${eq?'ring-2 ring-green-400 bg-green-50':''}`}><div className="text-3xl mb-2">{item.emoji}</div><div className="font-bold text-sm text-slate-800">{item.name}</div><div className={`text-xs mt-1 ${eq?'text-green-600 font-bold':'text-slate-400'}`}>{eq?'✓ Equipped':'Tap to equip'}</div></button>;})}</div> : <div className="text-center py-6"><div className="text-4xl mb-2">🛒</div><p className="text-slate-500 text-sm">No items yet!</p></div>}
+            
+            {/* Tabs */}
+            <div className="flex bg-white rounded-xl p-1 shadow mb-4">
+                <button onClick={() => setShowInv(true)} className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-all ${showInv ? 'bg-sky-100 text-sky-700' : 'text-slate-400'}`}>🎒 Wardrobe</button>
+                <button onClick={() => setShowInv(false)} className={`flex-1 py-2.5 rounded-lg font-bold text-sm transition-all ${!showInv ? 'bg-sky-100 text-sky-700' : 'text-slate-400'}`}>📜 History</button>
             </div>
+            
+            {showInv ? (
+                wearableItems.length > 0 ? (
+                    <div className="space-y-4">
+                        {Object.entries(itemsBySlot).map(([slot, items]) => (
+                            <div key={slot} className="card p-4">
+                                <h3 className="font-bold text-slate-700 mb-3">{slotLabels[slot] || slot}</h3>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {items.map(item => {
+                                        const equipped = kid.avatar?.[item.slot] === item.id;
+                                        const rarity = RARITY_CONFIG[item.rarity];
+                                        return (
+                                            <button key={item.id} onClick={() => onEquipItem(item)}
+                                                className={`p-3 rounded-xl text-center transition-all ${equipped ? 'ring-2 ring-green-400 bg-green-50' : 'bg-slate-50 hover:bg-slate-100'} ${rarity.glow}`}>
+                                                <div className="w-12 h-12 mx-auto mb-1 flex items-center justify-center">
+                                                    <BlockyAvatar config={{ [item.slot]: item.id }} size="sm" showEffects={false} />
+                                                </div>
+                                                <div className="text-xs font-bold text-slate-700 truncate">{item.name}</div>
+                                                <div className={`text-xs ${equipped ? 'text-green-600 font-bold' : 'text-slate-400'}`}>
+                                                    {equipped ? '✓ On' : 'Tap'}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="card p-8 text-center">
+                        <div className="text-5xl mb-3">🛒</div>
+                        <p className="text-slate-500">No wearable items yet!</p>
+                        <p className="text-slate-400 text-sm mt-1">Visit the shop to get some cool gear.</p>
+                    </div>
+                )
+            ) : (
+                <div className="space-y-2">
+                    {(kid.completedQuests || []).slice(0, 15).map((q, i) => (
+                        <div key={i} className="card p-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl">{CATEGORY_CONFIG[q.category]?.emoji || '✨'}</span>
+                                <span className="text-sm text-slate-600">Quest completed</span>
+                            </div>
+                            <span className="text-xs text-slate-400">{new Date(q.timestamp).toLocaleDateString()}</span>
+                        </div>
+                    ))}
+                    {(kid.choreHistory || []).slice(0, 15).map((h, i) => (
+                        <div key={'c' + i} className="card p-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl">✅</span>
+                                <span className="text-sm text-slate-600 truncate">{h.choreName}</span>
+                            </div>
+                            <span className="text-xs text-slate-400">{new Date(h.timestamp).toLocaleDateString()}</span>
+                        </div>
+                    ))}
+                    {(!kid.completedQuests || kid.completedQuests.length === 0) && (!kid.choreHistory || kid.choreHistory.length === 0) && (
+                        <div className="card p-8 text-center">
+                            <div className="text-5xl mb-3">📜</div>
+                            <p className="text-slate-500">No history yet!</p>
+                            <p className="text-slate-400 text-sm mt-1">Complete quests and chores to see them here.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+            
+            {showAvatarEditor && (
+                <AvatarEditorModal kid={kid} onSave={onUpdateAvatar} onClose={() => setShowAvatarEditor(false)} />
+            )}
         </div>
     );
 }
+
+
+// ============================================================================
+// MAIN APP COMPONENT
+// ============================================================================
 
 function PlayApp() {
     const [loading, setLoading] = useState(true);
@@ -308,108 +1407,259 @@ function PlayApp() {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        const unsub = auth.onAuthStateChanged(u => { if (u) { setUser(u); loadData(u.uid); } else { window.location.href = 'login.html'; } });
+        const unsub = auth.onAuthStateChanged(u => {
+            if (u) { setUser(u); loadData(u.uid); }
+            else { window.location.href = 'login.html'; }
+        });
         return () => unsub();
     }, []);
 
     const loadData = async (uid) => {
         try {
             const doc = await db.collection('parents').doc(uid).get();
-            if (doc.exists) { const d = doc.data(); setKids(d.kids || []); setRewards(d.rewards || []); if (d.kids?.length > 0) setSelectedKid(d.kids[0]); }
-        } catch (e) { console.error(e); }
+            if (doc.exists) {
+                const d = doc.data();
+                setKids(d.kids || []);
+                setRewards(d.rewards || []);
+                if (d.kids?.length > 0) setSelectedKid(d.kids[0]);
+            }
+        } catch (e) { console.error('Load error:', e); }
         setLoading(false);
     };
 
-    const saveData = async (updates) => { if (user) await db.collection('parents').doc(user.uid).update(updates); };
+    const saveData = async (updates) => {
+        if (user) {
+            try { await db.collection('parents').doc(user.uid).update(updates); }
+            catch (e) { console.error('Save error:', e); }
+        }
+    };
+
     const updateKid = async (kidId, updates) => {
-        const newKids = kids.map(k => k.id === kidId ? {...k, ...updates} : k);
+        const newKids = kids.map(k => k.id === kidId ? { ...k, ...updates } : k);
         setKids(newKids);
-        if (selectedKid?.id === kidId) setSelectedKid({...selectedKid, ...updates});
+        if (selectedKid?.id === kidId) setSelectedKid({ ...selectedKid, ...updates });
         await saveData({ kids: newKids });
     };
 
-    const completeQuest = async (quest) => {
-        if (!selectedKid) return null;
-        const today = getTodayString(), yesterday = new Date(Date.now() - 86400000).toDateString();
-        let streak = selectedKid.streak || 0;
-        if (selectedKid.lastPlayedDate === yesterday) streak++; else if (selectedKid.lastPlayedDate !== today) streak = 1;
+    const completeQuest = async (quest, kidId = null) => {
+        const targetKid = kidId ? kids.find(k => k.id === kidId) : selectedKid;
+        if (!targetKid) return null;
+        
+        const today = getTodayString();
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        let streak = targetKid.streak || 0;
+        if (targetKid.lastPlayedDate === yesterday) streak++;
+        else if (targetKid.lastPlayedDate !== today) streak = 1;
+        
         const bonus = Math.min(streak * 0.1, 0.5);
-        const sparksEarned = Math.round(quest.rewards.sparks * (1 + bonus)), xpEarned = Math.round(quest.rewards.xp * (1 + bonus));
-        await updateKid(selectedKid.id, { sparks: (selectedKid.sparks||0) + sparksEarned, xp: (selectedKid.xp||0) + xpEarned, streak, lastPlayedDate: today, completedQuests: [{questId:quest.id,timestamp:Date.now()}, ...(selectedKid.completedQuests||[]).slice(0,99)] });
+        const sparksEarned = Math.round(quest.rewards.sparks * (1 + bonus));
+        const xpEarned = Math.round(quest.rewards.xp * (1 + bonus));
+        
+        await updateKid(targetKid.id, {
+            sparks: (targetKid.sparks || 0) + sparksEarned,
+            xp: (targetKid.xp || 0) + xpEarned,
+            streak,
+            lastPlayedDate: today,
+            completedQuests: [{ questId: quest.id, category: quest.category, timestamp: Date.now() }, ...(targetKid.completedQuests || []).slice(0, 99)]
+        });
+        
         return { sparksEarned, xpEarned, streakBonus: bonus > 0 };
     };
 
     const completeChore = async (choreId) => {
         if (!selectedKid) return null;
-        const chore = (selectedKid.chores||[]).find(c => c.id === choreId);
+        const chore = (selectedKid.chores || []).find(c => c.id === choreId);
         if (!chore) return null;
+        
         const today = getTodayString();
         if (chore.recurrence === 'daily' && chore.lastCompleted === today) return null;
+        
         const yesterday = new Date(Date.now() - 86400000).toDateString();
         let streak = selectedKid.streak || 0;
-        if (selectedKid.lastPlayedDate === yesterday) streak++; else if (selectedKid.lastPlayedDate !== today) streak = 1;
+        if (selectedKid.lastPlayedDate === yesterday) streak++;
+        else if (selectedKid.lastPlayedDate !== today) streak = 1;
+        
         const bonus = Math.min(streak * 0.1, 0.5);
-        const sparksEarned = Math.round(chore.sparks * (1 + bonus)), xpEarned = Math.round(chore.xp * (1 + bonus));
-        let newChores = (selectedKid.chores||[]).map(c => c.id === choreId ? {...c, lastCompleted: today} : c);
+        const sparksEarned = Math.round(chore.sparks * (1 + bonus));
+        const xpEarned = Math.round(chore.xp * (1 + bonus));
+        
+        let newChores = (selectedKid.chores || []).map(c => c.id === choreId ? { ...c, lastCompleted: today } : c);
         if (chore.recurrence === 'once') newChores = newChores.filter(c => c.id !== choreId);
-        await updateKid(selectedKid.id, { sparks: (selectedKid.sparks||0) + sparksEarned, xp: (selectedKid.xp||0) + xpEarned, streak, lastPlayedDate: today, chores: newChores, choreHistory: [{choreId,choreName:chore.name,timestamp:Date.now(),sparks:sparksEarned,xp:xpEarned}, ...(selectedKid.choreHistory||[]).slice(0,99)] });
+        
+        await updateKid(selectedKid.id, {
+            sparks: (selectedKid.sparks || 0) + sparksEarned,
+            xp: (selectedKid.xp || 0) + xpEarned,
+            streak,
+            lastPlayedDate: today,
+            chores: newChores,
+            choreHistory: [{ choreId, choreName: chore.name, timestamp: Date.now(), sparks: sparksEarned, xp: xpEarned }, ...(selectedKid.choreHistory || []).slice(0, 99)]
+        });
+        
         return { sparksEarned, xpEarned, streakBonus: bonus > 0 };
     };
 
+    const claimLuckyBlock = async (rewardData) => {
+        if (!selectedKid) return;
+        const updates = { lastLuckyBlockClaim: new Date().toISOString() };
+        if (rewardData.type === 'sparks') {
+            updates.sparks = (selectedKid.sparks || 0) + rewardData.amount;
+        } else if (rewardData.type === 'item' && rewardData.item) {
+            updates.inventory = [...(selectedKid.inventory || []), rewardData.item.id];
+        }
+        await updateKid(selectedKid.id, updates);
+    };
+
     const buyItem = async (itemId) => {
-        if (!selectedKid) return {success:false,message:'No player'};
+        if (!selectedKid) return { success: false, message: 'No player selected' };
         const item = SHOP_ITEMS.find(i => i.id === itemId);
-        if (!item) return {success:false,message:'Not found'};
-        if ((selectedKid.sparks||0) < item.price) return {success:false,message:'Not enough Sparks!'};
-        if ((selectedKid.inventory||[]).includes(itemId)) return {success:false,message:'Already owned!'};
-        await updateKid(selectedKid.id, { sparks: selectedKid.sparks - item.price, inventory: [...(selectedKid.inventory||[]), itemId] });
-        return {success:true,message:'Got ' + item.name + '!'};
+        if (!item) return { success: false, message: 'Item not found' };
+        if ((selectedKid.sparks || 0) < item.price) return { success: false, message: 'Not enough Sparks!' };
+        if ((selectedKid.inventory || []).includes(itemId)) return { success: false, message: 'Already owned!' };
+        
+        await updateKid(selectedKid.id, {
+            sparks: selectedKid.sparks - item.price,
+            inventory: [...(selectedKid.inventory || []), itemId]
+        });
+        return { success: true, message: `Got ${item.name}!` };
+    };
+
+    const openMysteryBox = async (price, rewardData) => {
+        if (!selectedKid) return;
+        const updates = { sparks: (selectedKid.sparks || 0) - price };
+        if (rewardData.type === 'sparks') {
+            updates.sparks += rewardData.amount;
+        } else if (rewardData.type === 'item' && rewardData.item) {
+            updates.inventory = [...(selectedKid.inventory || []), rewardData.item.id];
+        }
+        await updateKid(selectedKid.id, updates);
     };
 
     const redeemReward = async (rewardId) => {
-        if (!selectedKid) return {success:false,message:'No player'};
+        if (!selectedKid) return { success: false, message: 'No player selected' };
         const reward = rewards.find(r => r.id === rewardId);
-        if (!reward) return {success:false,message:'Not found'};
-        if ((selectedKid.sparks||0) < reward.cost) return {success:false,message:'Not enough Sparks!'};
+        if (!reward) return { success: false, message: 'Reward not found' };
+        if ((selectedKid.sparks || 0) < reward.cost) return { success: false, message: 'Not enough Sparks!' };
+        
         await updateKid(selectedKid.id, { sparks: selectedKid.sparks - reward.cost });
-        return {success:true,message:'🎉 Redeemed "' + reward.name + '"!'};
+        return { success: true, message: `🎉 Redeemed "${reward.name}"!` };
     };
 
     const equipItem = async (item) => {
-        if (!selectedKid || item.type !== 'avatar_part') return;
-        const eq = selectedKid.avatar?.[item.slot] === item.id;
-        await updateKid(selectedKid.id, { avatar: {...selectedKid.avatar, [item.slot]: eq ? null : item.id} });
+        if (!selectedKid || !item.slot) return;
+        const currentlyEquipped = selectedKid.avatar?.[item.slot] === item.id;
+        await updateKid(selectedKid.id, {
+            avatar: { ...selectedKid.avatar, [item.slot]: currentlyEquipped ? null : item.id }
+        });
     };
 
-    if (loading) return <div className="loading-screen"><div className="loading-spinner mb-4"></div><p className="font-display text-lg text-slate-600">Loading...</p></div>;
-    if (kids.length === 0) return <div className="min-h-screen flex items-center justify-center p-4"><div className="card p-8 text-center max-w-sm"><div className="text-6xl mb-4">👶</div><h2 className="font-display text-xl font-bold text-slate-800 mb-2">No Players Yet!</h2><p className="text-slate-500 mb-6">A parent needs to add children first.</p><a href="parent-hub.html" className="btn-primary inline-flex">Go to Parent Hub →</a></div></div>;
+    const updateAvatar = async (newAvatarBase) => {
+        if (!selectedKid) return;
+        await updateKid(selectedKid.id, {
+            avatar: { ...selectedKid.avatar, ...newAvatarBase }
+        });
+    };
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="loading-screen">
+                <div className="loading-spinner mb-4"></div>
+                <p className="font-display text-lg text-slate-600">Loading Spark Quest...</p>
+            </div>
+        );
+    }
+
+    // No kids state
+    if (kids.length === 0) {
+        return (
+            <div className="min-h-screen flex items-center justify-center p-4">
+                <div className="card p-8 text-center max-w-sm">
+                    <div className="text-6xl mb-4">👶</div>
+                    <h2 className="font-display text-xl font-bold text-slate-800 mb-2">No Players Yet!</h2>
+                    <p className="text-slate-500 mb-6">A parent needs to add children first in the Parent Hub.</p>
+                    <a href="parent-hub.html" className="btn-primary inline-flex items-center gap-2">
+                        Go to Parent Hub →
+                    </a>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen max-w-lg mx-auto">
+            {/* Kid Selector (if multiple kids) */}
             {kids.length > 1 && (
-                <div className="sticky top-0 bg-white/90 backdrop-blur-sm z-40 p-3 border-b border-slate-100">
+                <div className="sticky top-0 bg-white/95 backdrop-blur-sm z-40 p-3 border-b border-slate-100 shadow-sm">
                     <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                        {kids.map(k => <button key={k.id} onClick={() => setSelectedKid(k)} className={`flex items-center gap-2 px-3 py-2 rounded-2xl font-bold text-sm whitespace-nowrap border-2 ${selectedKid?.id===k.id?'bg-sky-500 text-white border-sky-600':'bg-white text-slate-600 border-slate-200'}`}><BlockyAvatar config={k.avatar} size="xs"/><span>{k.name}</span></button>)}
+                        {kids.map(k => (
+                            <button key={k.id} onClick={() => setSelectedKid(k)}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-2xl font-bold text-sm whitespace-nowrap border-2 transition-all ${selectedKid?.id === k.id ? 'bg-sky-500 text-white border-sky-600 shadow-lg' : 'bg-white text-slate-600 border-slate-200'}`}>
+                                <BlockyAvatar config={k.avatar} size="xs" showEffects={false} />
+                                <span>{k.name}</span>
+                            </button>
+                        ))}
                     </div>
                 </div>
             )}
-            {selectedKid && <>
-                {view === 'home' && <HomeScreen kid={selectedKid} onCompleteQuest={completeQuest} onCompleteChore={completeChore}/>}
-                {view === 'shop' && <ShopScreen kid={selectedKid} rewards={rewards} onBuyItem={buyItem} onRedeemReward={redeemReward}/>}
-                {view === 'profile' && <ProfileScreen kid={selectedKid} onEquipItem={equipItem}/>}
-            </>}
-            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50">
+            
+            {/* Main Content */}
+            {selectedKid && (
+                <>
+                    {view === 'home' && (
+                        <HomeScreen 
+                            kids={kids}
+                            selectedKid={selectedKid} 
+                            onCompleteQuest={completeQuest} 
+                            onCompleteChore={completeChore}
+                            onClaimLuckyBlock={claimLuckyBlock}
+                        />
+                    )}
+                    {view === 'shop' && (
+                        <ShopScreen 
+                            kid={selectedKid} 
+                            rewards={rewards} 
+                            onBuyItem={buyItem} 
+                            onRedeemReward={redeemReward}
+                            onOpenMysteryBox={openMysteryBox}
+                        />
+                    )}
+                    {view === 'profile' && (
+                        <ProfileScreen 
+                            kid={selectedKid} 
+                            onEquipItem={equipItem}
+                            onUpdateAvatar={updateAvatar}
+                        />
+                    )}
+                </>
+            )}
+            
+            {/* Bottom Navigation */}
+            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 safe-area-inset-bottom">
                 <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
-                    <button onClick={() => setView('home')} className={`nav-item ${view==='home'?'active':''}`}><span className="text-2xl">🎯</span><span className="text-xs font-bold mt-1">Quests</span></button>
-                    <button onClick={() => setView('shop')} className={`nav-item ${view==='shop'?'active':''}`}><span className="text-2xl">🏪</span><span className="text-xs font-bold mt-1">Shop</span></button>
-                    <button onClick={() => setView('profile')} className={`nav-item ${view==='profile'?'active':''}`}><span className="text-2xl">👤</span><span className="text-xs font-bold mt-1">Profile</span></button>
+                    <button onClick={() => setView('home')} className={`nav-item ${view === 'home' ? 'active' : ''}`}>
+                        <span className="text-2xl">🎯</span>
+                        <span className="text-xs font-bold mt-1">Quests</span>
+                    </button>
+                    <button onClick={() => setView('shop')} className={`nav-item ${view === 'shop' ? 'active' : ''}`}>
+                        <span className="text-2xl">🏪</span>
+                        <span className="text-xs font-bold mt-1">Shop</span>
+                    </button>
+                    <button onClick={() => setView('profile')} className={`nav-item ${view === 'profile' ? 'active' : ''}`}>
+                        <span className="text-2xl">👤</span>
+                        <span className="text-xs font-bold mt-1">Profile</span>
+                    </button>
                 </div>
             </nav>
-            <a href="parent-hub.html" className="fixed top-4 right-4 bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full text-sm font-bold shadow z-40">👨‍👩‍👧 Parent</a>
+            
+            {/* Parent Hub Link */}
+            <a href="parent-hub.html" className="fixed top-4 right-4 bg-purple-100 text-purple-700 px-3 py-1.5 rounded-full text-sm font-bold shadow-md z-40 hover:bg-purple-200 transition-colors">
+                👨‍👩‍👧 Parent
+            </a>
         </div>
     );
 }
 
+// Render the app
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(<PlayApp />);
     </script>
