@@ -622,9 +622,6 @@
                 
                 console.log('Login successful:', user.uid);
                 
-                // Mark as returning user for smart routing
-                localStorage.setItem('spark_quest_returning_user', 'true');
-                
                 // Redirect to parent hub
                 showSuccess('Welcome back! Redirecting...');
                 setTimeout(() => {
@@ -673,9 +670,6 @@
                 await setPersistence();
                 const result = await auth.signInWithPopup(provider);
                 console.log('Google sign in successful:', result.user.uid);
-                
-                // Mark as returning user for smart routing
-                localStorage.setItem('spark_quest_returning_user', 'true');
                 
                 showSuccess('Welcome back! Redirecting...');
                 setTimeout(() => {

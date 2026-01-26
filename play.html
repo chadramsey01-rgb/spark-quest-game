@@ -1935,38 +1935,12 @@ function PlayApp() {
                 console.log('Data loaded, kids count:', data.kids?.length || 0);
                 setKids(data.kids || []);
                 setRewards(data.rewards || []);
-                
-                // Check URL for pre-selected kids from Parent Hub
-                const urlParams = new URLSearchParams(window.location.search);
-                const kidsParam = urlParams.get('kids');
-                
-                if (kidsParam && data.kids?.length > 0) {
-                    // Kids were selected in Parent Hub - use those and skip selection screen
-                    const selectedIds = kidsParam.split(',');
-                    const selectedKids = data.kids.filter(k => selectedIds.includes(k.id));
-                    
-                    if (selectedKids.length > 0) {
-                        console.log('Using pre-selected kids from URL:', selectedKids.map(k => k.name));
-                        setActiveKids(selectedKids);
-                        setSelectedKid(selectedKids[0]);
-                        setView('home');
-                    } else {
-                        // URL had invalid kid IDs, fall back to selection
-                        if (data.kids?.length === 1) {
-                            setActiveKids(data.kids);
-                            setSelectedKid(data.kids[0]);
-                            setView('home');
-                        } else {
-                            setView('selection');
-                        }
-                    }
-                } else if (data.kids?.length === 1) {
-                    // Only one kid, auto-select
+                // If only one kid, auto-select and go to home
+                if (data.kids?.length === 1) {
                     setActiveKids(data.kids);
                     setSelectedKid(data.kids[0]);
                     setView('home');
                 } else if (data.kids?.length > 1) {
-                    // Multiple kids but no URL params - show selection
                     setView('selection');
                 }
             } else {
@@ -2161,20 +2135,20 @@ function PlayApp() {
         );
     }
 
-    // Handle starting to play with selected kids (fallback for selection screen)
+    // Handle starting to play with selected kids
     const handleStartPlaying = (playingKids) => {
         setActiveKids(playingKids);
         setSelectedKid(playingKids[0]);
         setView('home');
     };
 
-    // Go back to parent hub to change player selection
-    const handleBackToParentHub = () => {
-        window.location.href = 'parent-hub.html';
+    // Go back to selection screen
+    const handleBackToSelection = () => {
+        setView('selection');
+        setActiveKids([]);
     };
 
-    // Kid selection screen - only shown if accessed directly without URL params
-    // (Normally, selection happens in Parent Hub)
+    // Kid selection screen (only for multiple kids)
     if (view === 'selection' && kids.length > 1) {
         return (
             <KidSelectionScreen 
@@ -2198,7 +2172,7 @@ function PlayApp() {
                     onCompleteQuest={completeQuest} 
                     onCompleteChore={completeChore}
                     onClaimLuckyBlock={claimLuckyBlock}
-                    onBackToSelection={kids.length > 1 ? handleBackToParentHub : null}
+                    onBackToSelection={kids.length > 1 ? handleBackToSelection : null}
                 />
             )}
             {view === 'shop' && selectedKid && (
