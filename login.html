@@ -659,7 +659,7 @@
         });
 
         // =====================================================
-        // GOOGLE SIGN IN
+        // GOOGLE SIGN IN - Using Redirect Method
         // =====================================================
         googleSignInBtn.addEventListener('click', async () => {
             hideAllAlerts();
@@ -668,28 +668,28 @@
             
             try {
                 await setPersistence();
-                const result = await auth.signInWithPopup(provider);
-                console.log('Google sign in successful:', result.user.uid);
+                // Use redirect instead of popup
+                await auth.signInWithRedirect(provider);
                 
+            } catch (error) {
+                console.error('Google sign in error:', error);
+                showError('Google sign in failed. Please try again.');
+            }
+        });
+
+        // Handle redirect result when page loads
+        auth.getRedirectResult().then((result) => {
+            if (result.user) {
+                console.log('Google sign in successful:', result.user.uid);
                 showSuccess('Welcome back! Redirecting...');
                 setTimeout(() => {
                     window.location.href = 'parent-hub.html';
                 }, 1000);
-                
-            } catch (error) {
-                console.error('Google sign in error:', error);
-                
-                let friendlyMessage = 'Google sign in failed. Please try again.';
-                
-                if (error.code === 'auth/popup-closed-by-user') {
-                    friendlyMessage = 'Sign in cancelled. Please try again.';
-                } else if (error.code === 'auth/popup-blocked') {
-                    friendlyMessage = 'Popup blocked. Please allow popups for this site.';
-                } else if (error.code === 'auth/account-exists-with-different-credential') {
-                    friendlyMessage = 'An account already exists with this email using a different sign-in method.';
-                }
-                
-                showError(friendlyMessage);
+            }
+        }).catch((error) => {
+            console.error('Redirect result error:', error);
+            if (error.code && error.code !== 'auth/popup-closed-by-user') {
+                showError('Google sign in failed: ' + error.message);
             }
         });
 
