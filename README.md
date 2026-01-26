@@ -4,41 +4,45 @@ A gamified quest application that motivates children (ages 4-13) through RPG-sty
 
 ## 🎮 Features
 
-- **Quest Spinner** - Generate age-appropriate quests across 4 categories
-- **Chore Tracking** - Parents can assign custom tasks with XP rewards
-- **Avatar System** - Customize characters with unlockable gear
-- **Shop** - Spend Sparks on hats, shirts, glasses & more
-- **Real Rewards** - Parents can add redeemable prizes
-- **Multi-Player** - Support for multiple children per family
-- **Level Progression** - XP-based leveling with milestone rewards
+- **Quest Spinner** - Generate age-appropriate quests across 4 categories (Blaze, Flow, Terra, Breeze)
+- **Chore Tracking** - Parents can assign custom tasks with XP and Spark rewards
+- **Avatar System** - Customize characters with unlockable hats, glasses, accessories & outfits
+- **Shop** - Spend Sparks on cosmetics, mystery boxes, and real rewards
+- **Real Rewards** - Parents can add redeemable prizes (screen time, treats, etc.)
+- **Multi-Player** - Support for multiple children per family with side-by-side gameplay
+- **Level Progression** - XP-based leveling with streak bonuses
+- **Family Mode** - Spin quests for all kids at once
 
 ## 📁 Project Structure
 
 ```
 spark-quest/
-├── index.html              # Main HTML shell
-├── styles/
-│   └── main.css            # All styles
-├── js/
-│   ├── main.js             # Entry point
-│   ├── config/
-│   │   ├── firebase.js     # Firebase configuration
-│   │   └── constants.js    # Game data & settings
-│   ├── context/
-│   │   └── GameContext.js  # State management
-│   ├── components/
-│   │   ├── App.js          # Main app component
-│   │   ├── ErrorBoundary.js
-│   │   ├── ui/             # Reusable UI components
-│   │   └── screens/        # Page components
-│   └── utils/
-│       └── questGenerator.js
-└── README.md
+├── index.html              # Smart router (landing/login/hub redirect)
+├── login.html              # User authentication
+├── register.html           # New user registration
+├── reset-password.html     # Password recovery
+├── parent-hub.html         # Parent dashboard & kid management
+├── play.html               # Main game interface for kids
+├── admin-dashboard.html    # Admin analytics (restricted access)
+└── README.md               # This file
 ```
+
+## 🔄 User Flow
+
+```
+New Visitor → Landing Page → Register → Verify Email → Login → Parent Hub → Play
+Returning User → Login Page → Parent Hub → Play
+Logged In User → Parent Hub → Play
+```
+
+The root URL (`index.html`) automatically routes users based on their authentication state:
+- **Logged in** → Redirects to Parent Hub
+- **Returning user** (logged out) → Redirects to Login
+- **New visitor** → Shows Landing Page
 
 ## 🚀 Deployment
 
-### Option 1: GitHub + Vercel (Recommended)
+### GitHub + Vercel (Recommended)
 
 1. **Push to GitHub:**
 ```bash
@@ -56,49 +60,71 @@ git push -u origin main
    - Import your repository
    - Deploy!
 
-### Option 2: Local Development
+### Local Development
 
-Simply open `index.html` in a browser. No build step required!
+Serve files via a local server (required for Firebase):
+```bash
+npx serve .
+# or
+python -m http.server 8000
+```
 
-> ⚠️ Note: Firebase features require serving from a web server (not `file://`). Use a local server:
-> ```bash
-> npx serve .
-> # or
-> python -m http.server 8000
-> ```
+> ⚠️ Note: Opening files directly via `file://` won't work due to Firebase authentication requirements.
 
 ## 🔧 Configuration
 
 ### Firebase Setup
 
-The app uses Firebase for authentication and data storage. To use your own Firebase project:
+The app uses Firebase for authentication and data storage:
 
 1. Create a project at [console.firebase.google.com](https://console.firebase.google.com)
-2. Enable Email/Password authentication
+2. Enable Email/Password and Google authentication
 3. Create a Firestore database
-4. Update `js/config/firebase.js` with your config
+4. Update the Firebase config in each HTML file (search for `firebaseConfig`)
+
+### API Key Security
+
+**Important:** Restrict your Firebase API key to your domains:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Select your project → APIs & Services → Credentials
+3. Click your Browser key
+4. Under "Application restrictions", select "HTTP referrers"
+5. Add your domains:
+   - `sparkquestgame.com/*`
+   - `*.sparkquestgame.com/*`
+   - `localhost:*/*` (for development)
 
 ### Firestore Security Rules
 
-Add these rules to your Firestore:
+These rules are configured in your Firebase project:
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Parents can only access their own data
-    match /parents/{email} {
-      allow read, write: if request.auth != null && request.auth.token.email == email;
+    
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == "YOUR_ADMIN_EMAIL";
+    }
+    
+    match /parents/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isAdmin();
       
       match /kids/{kidId} {
-        allow read, write: if request.auth != null && request.auth.token.email == email;
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if isAdmin();
       }
     }
     
-    // Activities are write-only for logged-in users
     match /activities/{activityId} {
       allow write: if request.auth != null;
-      allow read: if request.auth != null && request.auth.token.email == "YOUR_ADMIN_EMAIL";
+      allow read: if isAdmin();
+    }
+    
+    match /platformStats/{docId} {
+      allow read, write: if isAdmin();
     }
   }
 }
@@ -108,7 +134,7 @@ service cloud.firestore {
 
 ### Adding New Quest Templates
 
-Edit `js/utils/questGenerator.js` and add templates to the `QUEST_TEMPLATES` object:
+In `play.html`, find the `QUEST_TEMPLATES` object and add new templates:
 
 ```javascript
 blaze: {
@@ -121,18 +147,26 @@ blaze: {
 
 ### Adding Shop Items
 
-Edit `js/config/constants.js` and add items to `SHOP_ITEMS`:
+In `play.html`, find the `SHOP_ITEMS` array and add new items:
 
 ```javascript
 {
   id: 'unique_id',
   name: 'Display Name',
-  type: 'hat' | 'shirt' | 'glasses',
+  type: 'hat' | 'glasses' | 'accessory' | 'outfit' | 'background' | 'sticker',
+  slot: 'hat' | 'glasses' | 'accessory', // for avatar parts
   price: 100,
-  color: '#hexcolor',
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'mythic',
-  minLevel: 1
+  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic',
+  emoji: '🎩' // or use avatar preview
 }
+```
+
+### Adding Chore Templates
+
+In `play.html`, find `CHORE_TEMPLATES`:
+
+```javascript
+{ name: 'Chore name', sparks: 10, xp: 20, emoji: '✅' }
 ```
 
 ## 📱 Browser Support
@@ -142,10 +176,17 @@ Edit `js/config/constants.js` and add items to `SHOP_ITEMS`:
 - Firefox 75+
 - Edge 80+
 
+## 🔒 Security Notes
+
+- Firebase API keys are designed to be public (client-side)
+- Real security comes from Firestore Security Rules
+- Admin dashboard requires password + Google authentication
+- User data is isolated by Firebase UID
+
 ## 📄 License
 
 MIT License - feel free to use and modify!
 
 ---
 
-Made with ⚡ for awesome kids everywhere
+Made with ⚡ for awesome families everywhere

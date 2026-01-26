@@ -797,6 +797,9 @@
                 
                 console.log('User created:', userCredential.user.uid);
                 
+                // Mark as returning user for smart routing
+                localStorage.setItem('spark_quest_returning_user', 'true');
+                
                 // Show success state
                 showSuccess();
                 
@@ -843,6 +846,9 @@
             try {
                 const result = await auth.signInWithPopup(provider);
                 console.log('Google sign in successful:', result.user.uid);
+                
+                // Mark as returning user for smart routing
+                localStorage.setItem('spark_quest_returning_user', 'true');
                 
                 // Skip email verification for Google users
                 document.getElementById('verificationNote').textContent = 'Your account is ready to go!';
