@@ -1193,6 +1193,110 @@ function FamilyQuestView({ kids, familyQuests, onCompleteQuest, onBack, onSpinAg
 }
 
 // ============================================================================
+// KID SELECTION SCREEN
+// ============================================================================
+
+function KidSelectionScreen({ kids, onStartPlaying, onBack }) {
+    const [selectedKids, setSelectedKids] = useState(kids.map(k => k.id)); // All selected by default
+    
+    const toggleKid = (kidId) => {
+        setSelectedKids(prev => 
+            prev.includes(kidId) 
+                ? prev.filter(id => id !== kidId)
+                : [...prev, kidId]
+        );
+    };
+    
+    const selectAll = () => setSelectedKids(kids.map(k => k.id));
+    const selectNone = () => setSelectedKids([]);
+    
+    const handleStart = () => {
+        if (selectedKids.length === 0) return;
+        const playingKids = kids.filter(k => selectedKids.includes(k.id));
+        onStartPlaying(playingKids);
+    };
+    
+    return (
+        <div className="min-h-screen p-4 flex flex-col">
+            {/* Header */}
+            <div className="text-center mb-6">
+                <div className="text-5xl mb-3">👨‍👩‍👧‍👦</div>
+                <h1 className="font-display text-2xl font-bold text-slate-800 mb-2">Who's Playing?</h1>
+                <p className="text-slate-500">Select the children who want to play today</p>
+            </div>
+            
+            {/* Quick Select */}
+            <div className="flex justify-center gap-2 mb-4">
+                <button onClick={selectAll} className="px-4 py-2 bg-white rounded-full text-sm font-bold text-slate-600 shadow hover:bg-slate-50">
+                    Select All
+                </button>
+                <button onClick={selectNone} className="px-4 py-2 bg-white rounded-full text-sm font-bold text-slate-600 shadow hover:bg-slate-50">
+                    Clear All
+                </button>
+            </div>
+            
+            {/* Kid Selection Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6 flex-1">
+                {kids.map(kid => {
+                    const isSelected = selectedKids.includes(kid.id);
+                    const age = calculateAge(kid.dob);
+                    const level = Math.floor((kid.xp || 0) / 100) + 1;
+                    
+                    return (
+                        <button
+                            key={kid.id}
+                            onClick={() => toggleKid(kid.id)}
+                            className={`card p-4 text-center transition-all ${
+                                isSelected 
+                                    ? 'ring-4 ring-green-400 bg-green-50 shadow-lg transform scale-105' 
+                                    : 'opacity-60 hover:opacity-80'
+                            }`}
+                        >
+                            <div className="relative inline-block mb-2">
+                                <BlockyAvatar config={kid.avatar} size="lg" />
+                                {isSelected && (
+                                    <div className="absolute -top-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-lg shadow-lg">
+                                        ✓
+                                    </div>
+                                )}
+                            </div>
+                            <h3 className="font-bold text-slate-800 text-lg">{kid.name}</h3>
+                            <div className="text-sm text-slate-500">Age {age} • Level {level}</div>
+                            <div className="mt-2">
+                                <SparkCounter amount={kid.sparks || 0} size="sm" />
+                            </div>
+                        </button>
+                    );
+                })}
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+                <button onClick={onBack} className="flex-1 py-4 bg-white rounded-xl font-bold text-slate-600 shadow">
+                    ← Parent Hub
+                </button>
+                <button 
+                    onClick={handleStart} 
+                    disabled={selectedKids.length === 0}
+                    className={`flex-1 py-4 rounded-xl font-bold text-lg shadow-lg transition-all ${
+                        selectedKids.length > 0 
+                            ? 'btn-primary' 
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    }`}
+                >
+                    {selectedKids.length === 0 
+                        ? 'Select Players' 
+                        : selectedKids.length === 1 
+                            ? 'Start Playing! 🎮' 
+                            : `Start with ${selectedKids.length} Players! 🎮`
+                    }
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// ============================================================================
 // HOME SCREEN
 // ============================================================================
 
@@ -1468,11 +1572,11 @@ function ShopScreen({ kid, rewards, onBuyItem, onRedeemReward, onOpenMysteryBox 
                 <SparkCounter amount={kid.sparks || 0} />
             </div>
             
-            {/* Category Tabs */}
-            <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide pb-2">
+            {/* Category Tabs - FIXED: Now wraps instead of horizontal scroll */}
+            <div className="flex flex-wrap gap-2 mb-4">
                 {categories.map(c => (
                     <button key={c.id} onClick={() => setCategory(c.id)}
-                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all ${category === c.id ? 'bg-sky-500 text-white shadow-lg' : 'bg-white text-slate-500 shadow'}`}>
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-full font-bold text-sm transition-all ${category === c.id ? 'bg-sky-500 text-white shadow-lg scale-105' : 'bg-white text-slate-600 shadow hover:shadow-md'}`}>
                         <span>{c.emoji}</span><span>{c.label}</span>
                     </button>
                 ))}
@@ -1544,17 +1648,27 @@ function ShopScreen({ kid, rewards, onBuyItem, onRedeemReward, onOpenMysteryBox 
                         const rarity = RARITY_CONFIG[item.rarity];
                         
                         return (
-                            <div key={item.id} className={`card p-4 text-center transition-all ${rarity.glow} ${!canAfford && !owned ? 'opacity-60' : ''}`}>
-                                <div className="w-16 h-16 mx-auto mb-2 bg-slate-50 rounded-xl flex items-center justify-center">
+                            <div key={item.id} className={`card p-3 text-center transition-all ${rarity.glow} ${!canAfford && !owned ? 'opacity-60' : ''}`}>
+                                {/* Item Preview */}
+                                <div className="w-14 h-14 mx-auto mb-2 bg-slate-50 rounded-xl flex items-center justify-center">
                                     {item.emoji ? (
-                                        <span className="text-3xl">{item.emoji}</span>
+                                        <span className="text-2xl">{item.emoji}</span>
                                     ) : (
-                                        <BlockyAvatar config={{ [item.slot]: item.id }} size="sm" showEffects={false} />
+                                        <BlockyAvatar config={{ [item.slot]: item.id }} size="xs" showEffects={false} />
                                     )}
                                 </div>
-                                <h3 className="font-bold text-slate-800 text-sm truncate">{item.name}</h3>
-                                <span className={`text-xs font-bold uppercase text-${rarity.color}-500`}>{rarity.label}</span>
                                 
+                                {/* Item Name - with proper truncation */}
+                                <h3 className="font-bold text-slate-800 text-sm leading-tight truncate px-1" title={item.name}>
+                                    {item.name}
+                                </h3>
+                                
+                                {/* Rarity Badge - FIXED: Always visible with proper styling */}
+                                <div className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-bold bg-${rarity.color}-100 text-${rarity.color}-600`}>
+                                    {rarity.label}
+                                </div>
+                                
+                                {/* Action Button */}
                                 {owned ? (
                                     <div className="mt-2 py-2 bg-green-100 rounded-lg text-green-700 font-bold text-sm">✓ Owned</div>
                                 ) : (
@@ -1566,6 +1680,14 @@ function ShopScreen({ kid, rewards, onBuyItem, onRedeemReward, onOpenMysteryBox 
                             </div>
                         );
                     })}
+                    
+                    {/* Empty State */}
+                    {filteredItems.length === 0 && (
+                        <div className="col-span-2 card p-8 text-center">
+                            <div className="text-4xl mb-2">🔍</div>
+                            <p className="text-slate-500">No items in this category</p>
+                        </div>
+                    )}
                 </div>
             )}
             
@@ -1785,15 +1907,8 @@ function PlayApp() {
     const [rewards, setRewards] = useState([]);
     const [activeKids, setActiveKids] = useState([]); // Kids currently playing
     const [selectedKid, setSelectedKid] = useState(null); // For shop/profile views
-    const [view, setView] = useState('home');
+    const [view, setView] = useState('selection'); // Start with selection screen
     const [user, setUser] = useState(null);
-
-    // Parse selected kids from URL
-    const getSelectedKidsFromUrl = () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const kidsParam = urlParams.get('kids');
-        return kidsParam ? kidsParam.split(',') : [];
-    };
 
     useEffect(() => {
         console.log('Setting up auth listener...');
@@ -1820,28 +1935,14 @@ function PlayApp() {
                 console.log('Data loaded, kids count:', data.kids?.length || 0);
                 setKids(data.kids || []);
                 setRewards(data.rewards || []);
-                
-                // Get selected kids from URL, or use all kids if none specified
-                const selectedIds = getSelectedKidsFromUrl();
-                const allKids = data.kids || [];
-                
-                let kidsToPlay;
-                if (selectedIds.length > 0) {
-                    // Filter to only selected kids, maintaining order from URL
-                    kidsToPlay = selectedIds
-                        .map(id => allKids.find(k => k.id === id))
-                        .filter(Boolean);
-                } else {
-                    // No URL param - use all kids
-                    kidsToPlay = allKids;
+                // If only one kid, auto-select and go to home
+                if (data.kids?.length === 1) {
+                    setActiveKids(data.kids);
+                    setSelectedKid(data.kids[0]);
+                    setView('home');
+                } else if (data.kids?.length > 1) {
+                    setView('selection');
                 }
-                
-                console.log('Kids to play:', kidsToPlay.length);
-                setActiveKids(kidsToPlay);
-                if (kidsToPlay.length > 0) {
-                    setSelectedKid(kidsToPlay[0]);
-                }
-                setView('home');
             } else {
                 console.log('No document found for userId:', userId);
             }
@@ -2034,33 +2135,44 @@ function PlayApp() {
         );
     }
 
-    // No active kids (none selected in parent hub)
-    if (activeKids.length === 0) {
+    // Handle starting to play with selected kids
+    const handleStartPlaying = (playingKids) => {
+        setActiveKids(playingKids);
+        setSelectedKid(playingKids[0]);
+        setView('home');
+    };
+
+    // Go back to selection screen
+    const handleBackToSelection = () => {
+        setView('selection');
+        setActiveKids([]);
+    };
+
+    // Kid selection screen (only for multiple kids)
+    if (view === 'selection' && kids.length > 1) {
         return (
-            <div className="min-h-screen flex items-center justify-center p-4">
-                <div className="card p-8 text-center max-w-sm">
-                    <div className="text-6xl mb-4">🎮</div>
-                    <h2 className="font-display text-xl font-bold text-slate-800 mb-2">No Players Selected</h2>
-                    <p className="text-slate-500 mb-6">Go back to the Parent Hub and select which kids are playing today.</p>
-                    <a href="parent-hub.html" className="btn-primary inline-flex items-center gap-2">
-                        ← Back to Parent Hub
-                    </a>
-                </div>
-            </div>
+            <KidSelectionScreen 
+                kids={kids}
+                onStartPlaying={handleStartPlaying}
+                onBack={() => window.location.href = 'parent-hub.html'}
+            />
         );
     }
 
+    // Get the current active kids for display (use activeKids if set, otherwise all kids for single kid)
+    const currentActiveKids = activeKids.length > 0 ? activeKids : kids;
+
     return (
-        <div className="min-h-screen" style={{ maxWidth: activeKids.length > 1 ? '100%' : '32rem', margin: '0 auto' }}>
+        <div className="min-h-screen" style={{ maxWidth: currentActiveKids.length > 1 ? '100%' : '32rem', margin: '0 auto' }}>
             {/* Main Content */}
             {view === 'home' && (
                 <HomeScreen 
                     kids={kids}
-                    activeKids={activeKids}
+                    activeKids={currentActiveKids}
                     onCompleteQuest={completeQuest} 
                     onCompleteChore={completeChore}
                     onClaimLuckyBlock={claimLuckyBlock}
-                    onBackToSelection={null}
+                    onBackToSelection={kids.length > 1 ? handleBackToSelection : null}
                 />
             )}
             {view === 'shop' && selectedKid && (
@@ -2104,10 +2216,10 @@ function PlayApp() {
             </a>
             
             {/* Kid selector for Shop/Profile views when multiple kids playing */}
-            {(view === 'shop' || view === 'profile') && activeKids.length > 1 && (
+            {(view === 'shop' || view === 'profile') && currentActiveKids.length > 1 && (
                 <div className="fixed top-4 left-4 z-40">
                     <div className="flex gap-2 bg-white/95 backdrop-blur-sm rounded-2xl p-2 shadow-lg">
-                        {activeKids.map(k => (
+                        {currentActiveKids.map(k => (
                             <button key={k.id} onClick={() => setSelectedKid(k)}
                                 className={`p-1 rounded-xl transition-all ${selectedKid?.id === k.id ? 'ring-2 ring-sky-500 bg-sky-50' : 'hover:bg-slate-50'}`}
                                 title={k.name}>
