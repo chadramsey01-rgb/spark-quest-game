@@ -6,62 +6,6 @@
     <title>Spark Quest ⚡ | Turn Chores into Adventures!</title>
     <meta name="description" content="Spark Quest transforms everyday tasks into epic adventures for kids aged 4-13. Gamified chores, quests, and rewards that make responsibility fun!">
     
-    <!-- Firebase - Load first for auth checking -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script>
-        // =====================================================
-        // SMART ROUTING - Check auth state before page loads
-        // =====================================================
-        
-        // Skip auth checking if this is an OAuth redirect (prevents popup interference)
-        const isOAuthRedirect = window.location.href.includes('__/auth/') || 
-                                window.location.href.includes('mode=') ||
-                                window.location.href.includes('oobCode=') ||
-                                document.referrer.includes('accounts.google.com');
-        
-        if (!isOAuthRedirect) {
-            const firebaseConfig = {
-                apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk",
-                authDomain: "spark-quest.firebaseapp.com",
-                projectId: "spark-quest",
-                storageBucket: "spark-quest.firebasestorage.app",
-                messagingSenderId: "113841238943",
-                appId: "1:113841238943:web:fd6b69669fb891afcd43aa",
-                measurementId: "G-9VQJ7CT98X"
-            };
-            
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            
-            const RETURNING_USER_KEY = 'spark_quest_returning_user';
-            
-            // Check auth state immediately
-            firebase.auth().onAuthStateChanged((user) => {
-                if (user) {
-                    // User is logged in
-                    const isVerified = user.emailVerified || user.providerData[0]?.providerId !== 'password';
-                    if (isVerified) {
-                        // Logged in and verified → go to Parent Hub
-                        localStorage.setItem(RETURNING_USER_KEY, 'true');
-                        window.location.href = 'parent-hub.html';
-                        return;
-                    }
-                } else {
-                    // Not logged in - check if returning user
-                    const isReturningUser = localStorage.getItem(RETURNING_USER_KEY) === 'true';
-                    if (isReturningUser) {
-                        // Has account but logged out → Login page
-                        window.location.href = 'login.html';
-                        return;
-                    }
-                }
-                // New visitor → show landing page (do nothing, let page render)
-            });
-        }
-    </script>
-    
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
