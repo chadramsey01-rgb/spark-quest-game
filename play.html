@@ -128,7 +128,7 @@ const RARITY_CONFIG = {
 
 
 // ============================================================================
-// EXPANDED SHOP ITEMS (50+ items with proper SVG identifiers)
+// SHOP ITEMS
 // ============================================================================
 
 const SHOP_ITEMS = [
@@ -1922,14 +1922,38 @@ function PlayApp() {
             if (userDoc.exists) {
                 const data = userDoc.data();
                 console.log('Data loaded, kids count:', data.kids?.length || 0);
-                setKids(data.kids || []);
+                const allKids = data.kids || [];
+                setKids(allKids);
                 setRewards(data.rewards || []);
-                // If only one kid, auto-select and go to home
-                if (data.kids?.length === 1) {
-                    setActiveKids(data.kids);
-                    setSelectedKid(data.kids[0]);
+
+                // -------------------------------------------------------------
+                // NEW: CHECK URL PARAMS FOR PRE-SELECTED PLAYERS
+                // -------------------------------------------------------------
+                const urlParams = new URLSearchParams(window.location.search);
+                const kidsParam = urlParams.get('kids');
+
+                if (kidsParam) {
+                    const kidIds = kidsParam.split(',');
+                    // Find the kids that match the IDs in the URL
+                    const preSelectedKids = allKids.filter(k => kidIds.includes(k.id));
+                    
+                    if (preSelectedKids.length > 0) {
+                        // Directly activate these kids and go to Home (Spin)
+                        setActiveKids(preSelectedKids);
+                        setSelectedKid(preSelectedKids[0]);
+                        setView('home'); 
+                        setLoading(false);
+                        return; // Stop here, don't execute default logic
+                    }
+                }
+                // -------------------------------------------------------------
+
+                // Default logic (if no URL params found)
+                if (allKids.length === 1) {
+                    setActiveKids(allKids);
+                    setSelectedKid(allKids[0]);
                     setView('home');
-                } else if (data.kids?.length > 1) {
+                } else if (allKids.length > 1) {
                     setView('selection');
                 }
             } else {
