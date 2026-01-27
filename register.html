@@ -6,12 +6,10 @@
     <title>Sign Up | Spark Quest ⚡</title>
     <meta name="description" content="Create your free Spark Quest account and start turning chores into adventures for your kids!">
     
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -26,23 +24,21 @@
         }
     </script>
     
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script>
         // =====================================================
         // FIREBASE CONFIGURATION
-        // Replace with your Firebase project config
         // =====================================================
         const firebaseConfig = {
-  apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk",
-  authDomain: "spark-quest.firebaseapp.com",
-  projectId: "spark-quest",
-  storageBucket: "spark-quest.firebasestorage.app",
-  messagingSenderId: "113841238943",
-  appId: "1:113841238943:web:fd6b69669fb891afcd43aa",
-  measurementId: "G-9VQJ7CT98X"
-};
+            apiKey: "AIzaSyAR4wofIoYwrDMC7jr_GGFYPvZoPgGgbIk",
+            authDomain: "spark-quest.firebaseapp.com",
+            projectId: "spark-quest",
+            storageBucket: "spark-quest.firebasestorage.app",
+            messagingSenderId: "113841238943",
+            appId: "1:113841238943:web:fd6b69669fb891afcd43aa",
+            measurementId: "G-9VQJ7CT98X"
+        };
 
         // Initialize Firebase
         if (!firebase.apps.length) {
@@ -391,7 +387,6 @@
 </head>
 <body class="font-body">
     <div class="auth-bg min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-        <!-- Floating Decorations -->
         <div class="floating-emoji animate-float" style="top: 10%; left: 5%;">⭐</div>
         <div class="floating-emoji animate-float-delayed" style="top: 20%; right: 10%;">🏆</div>
         <div class="floating-emoji animate-float" style="bottom: 15%; left: 8%;">🎮</div>
@@ -400,7 +395,6 @@
         <div class="floating-emoji animate-float-delayed" style="top: 40%; right: 3%;">🎯</div>
         
         <div class="w-full max-w-md">
-            <!-- Logo -->
             <div class="text-center mb-8">
                 <a href="index.html" class="inline-flex items-center gap-2 group">
                     <span class="text-4xl group-hover:animate-bounce">⚡</span>
@@ -408,24 +402,19 @@
                 </a>
             </div>
             
-            <!-- Auth Card -->
             <div class="auth-card p-8 animate-bounce-in">
-                <!-- Form State: Registration -->
                 <div id="registerForm">
                     <div class="text-center mb-8">
                         <h1 class="font-display text-2xl font-bold text-slate-800 mb-2">Create Your Account</h1>
                         <p class="text-slate-500">Start your family's adventure today! 🚀</p>
                     </div>
                     
-                    <!-- Alert Messages -->
                     <div id="alertError" class="alert alert-error mb-6">
                         <span>⚠️</span>
                         <span id="errorMessage">An error occurred</span>
                     </div>
                     
-                    <!-- Registration Form -->
                     <form id="signupForm" class="space-y-5">
-                        <!-- Email -->
                         <div class="form-group">
                             <label for="email" class="form-label">Email Address</label>
                             <div class="relative">
@@ -443,7 +432,6 @@
                             <p id="emailError" class="form-error">Please enter a valid email address</p>
                         </div>
                         
-                        <!-- Password -->
                         <div class="form-group">
                             <label for="password" class="form-label">Password</label>
                             <div class="relative">
@@ -470,7 +458,6 @@
                             <p id="passwordError" class="form-error">Password must be at least 8 characters</p>
                         </div>
                         
-                        <!-- Confirm Password -->
                         <div class="form-group">
                             <label for="confirmPassword" class="form-label">Confirm Password</label>
                             <div class="relative">
@@ -489,7 +476,6 @@
                             <p id="confirmError" class="form-error">Passwords don't match</p>
                         </div>
                         
-                        <!-- Terms Checkbox -->
                         <label class="checkbox-wrapper">
                             <input type="checkbox" id="terms" name="terms" required>
                             <span class="checkbox-custom"></span>
@@ -499,7 +485,6 @@
                             </span>
                         </label>
                         
-                        <!-- Submit Button -->
                         <button type="submit" id="submitBtn" class="btn-primary">
                             <span id="submitText">Create Account</span>
                             <span id="submitSpinner" class="spinner animate-spin hidden"></span>
@@ -507,10 +492,8 @@
                         </button>
                     </form>
                     
-                    <!-- Divider -->
                     <div class="divider my-6">or continue with</div>
                     
-                    <!-- Google Sign In -->
                     <button type="button" id="googleSignIn" class="btn-google">
                         <svg width="20" height="20" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -522,7 +505,6 @@
                     </button>
                 </div>
                 
-                <!-- Success State -->
                 <div id="successState" class="success-state hidden">
                     <div class="success-icon animate-bounce-in">✓</div>
                     <h2 class="font-display text-2xl font-bold text-slate-800 mb-2">Account Created!</h2>
@@ -537,13 +519,11 @@
                 </div>
             </div>
             
-            <!-- Sign In Link -->
             <p class="text-center mt-6 text-slate-600">
                 Already have an account? 
                 <a href="login.html" class="text-blue-600 font-bold hover:underline">Sign In</a>
             </p>
             
-            <!-- Back to Home -->
             <p class="text-center mt-4">
                 <a href="index.html" class="text-slate-400 hover:text-slate-600 text-sm">← Back to Home</a>
             </p>
@@ -551,10 +531,6 @@
     </div>
 
     <script>
-        // =====================================================
-        // FIREBASE - Using shared config from js/firebase-config.js
-        // =====================================================
-
         // =====================================================
         // DOM ELEMENTS
         // =====================================================
@@ -833,11 +809,10 @@
         });
 
         // =====================================================
-        // GOOGLE SIGN IN
+        // GOOGLE SIGN IN - FIXED: Using Popup Method
         // =====================================================
         googleSignInBtn.addEventListener('click', async () => {
             hideError();
-            
             const provider = new firebase.auth.GoogleAuthProvider();
             
             try {
@@ -850,16 +825,10 @@
                 
             } catch (error) {
                 console.error('Google sign in error:', error);
-                
-                let friendlyMessage = 'Google sign in failed. Please try again.';
-                
-                if (error.code === 'auth/popup-closed-by-user') {
-                    friendlyMessage = 'Sign in cancelled. Please try again.';
-                } else if (error.code === 'auth/popup-blocked') {
-                    friendlyMessage = 'Popup blocked. Please allow popups for this site.';
+                // Ignore if user closed popup
+                if (error.code !== 'auth/popup-closed-by-user') {
+                    showError('Google sign in failed: ' + error.message);
                 }
-                
-                showError(friendlyMessage);
             }
         });
 
