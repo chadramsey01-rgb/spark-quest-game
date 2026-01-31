@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Parent Hub | Spark Quest ⚡</title>
+    <title>Parent Hub | Spark Quest âš¡</title>
     <meta name="description" content="Manage your children's quests, chores, and rewards in Spark Quest">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,8 +24,8 @@
         }
     </script>
     
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -377,44 +377,44 @@ const DEFAULT_AVATAR = {
 };
 
 const CHORE_TEMPLATES = [
-    { name: 'Make your bed', sparks: 5, xp: 10, emoji: '🛏️', category: 'bedroom' },
-    { name: 'Brush teeth (morning)', sparks: 3, xp: 5, emoji: '🪥', category: 'hygiene' },
-    { name: 'Brush teeth (night)', sparks: 3, xp: 5, emoji: '🪥', category: 'hygiene' },
-    { name: 'Clean your room', sparks: 15, xp: 30, emoji: '🧹', category: 'bedroom' },
-    { name: 'Put away toys', sparks: 8, xp: 15, emoji: '🧸', category: 'bedroom' },
-    { name: 'Set the table', sparks: 5, xp: 10, emoji: '🍽️', category: 'kitchen' },
-    { name: 'Clear the table', sparks: 5, xp: 10, emoji: '🍽️', category: 'kitchen' },
-    { name: 'Load dishwasher', sparks: 10, xp: 20, emoji: '🫧', category: 'kitchen' },
-    { name: 'Unload dishwasher', sparks: 10, xp: 20, emoji: '🫧', category: 'kitchen' },
-    { name: 'Feed pet', sparks: 5, xp: 10, emoji: '🐕', category: 'pets' },
-    { name: 'Walk the dog', sparks: 15, xp: 30, emoji: '🐕‍🦺', category: 'pets' },
-    { name: 'Take out trash', sparks: 8, xp: 15, emoji: '🗑️', category: 'household' },
-    { name: 'Fold laundry', sparks: 12, xp: 25, emoji: '👕', category: 'laundry' },
-    { name: 'Put away laundry', sparks: 10, xp: 20, emoji: '👔', category: 'laundry' },
-    { name: 'Do homework', sparks: 20, xp: 40, emoji: '📚', category: 'school' },
-    { name: 'Read for 20 minutes', sparks: 10, xp: 20, emoji: '📖', category: 'school' },
-    { name: 'Practice instrument', sparks: 15, xp: 30, emoji: '🎹', category: 'activities' },
-    { name: 'Water plants', sparks: 5, xp: 10, emoji: '🌱', category: 'household' },
-    { name: 'Help with groceries', sparks: 10, xp: 20, emoji: '🛒', category: 'household' },
-    { name: 'Vacuum room', sparks: 12, xp: 25, emoji: '🧹', category: 'cleaning' }
+    { name: 'Make your bed', sparks: 5, xp: 10, emoji: 'ðŸ›ï¸', category: 'bedroom' },
+    { name: 'Brush teeth (morning)', sparks: 3, xp: 5, emoji: 'ðŸª¥', category: 'hygiene' },
+    { name: 'Brush teeth (night)', sparks: 3, xp: 5, emoji: 'ðŸª¥', category: 'hygiene' },
+    { name: 'Clean your room', sparks: 15, xp: 30, emoji: 'ðŸ§¹', category: 'bedroom' },
+    { name: 'Put away toys', sparks: 8, xp: 15, emoji: 'ðŸ§¸', category: 'bedroom' },
+    { name: 'Set the table', sparks: 5, xp: 10, emoji: 'ðŸ½ï¸', category: 'kitchen' },
+    { name: 'Clear the table', sparks: 5, xp: 10, emoji: 'ðŸ½ï¸', category: 'kitchen' },
+    { name: 'Load dishwasher', sparks: 10, xp: 20, emoji: 'ðŸ«§', category: 'kitchen' },
+    { name: 'Unload dishwasher', sparks: 10, xp: 20, emoji: 'ðŸ«§', category: 'kitchen' },
+    { name: 'Feed pet', sparks: 5, xp: 10, emoji: 'ðŸ•', category: 'pets' },
+    { name: 'Walk the dog', sparks: 15, xp: 30, emoji: 'ðŸ•â€ðŸ¦º', category: 'pets' },
+    { name: 'Take out trash', sparks: 8, xp: 15, emoji: 'ðŸ—‘ï¸', category: 'household' },
+    { name: 'Fold laundry', sparks: 12, xp: 25, emoji: 'ðŸ‘•', category: 'laundry' },
+    { name: 'Put away laundry', sparks: 10, xp: 20, emoji: 'ðŸ‘”', category: 'laundry' },
+    { name: 'Do homework', sparks: 20, xp: 40, emoji: 'ðŸ“š', category: 'school' },
+    { name: 'Read for 20 minutes', sparks: 10, xp: 20, emoji: 'ðŸ“–', category: 'school' },
+    { name: 'Practice instrument', sparks: 15, xp: 30, emoji: 'ðŸŽ¹', category: 'activities' },
+    { name: 'Water plants', sparks: 5, xp: 10, emoji: 'ðŸŒ±', category: 'household' },
+    { name: 'Help with groceries', sparks: 10, xp: 20, emoji: 'ðŸ›’', category: 'household' },
+    { name: 'Vacuum room', sparks: 12, xp: 25, emoji: 'ðŸ§¹', category: 'cleaning' }
 ];
 
 const RECURRENCE_OPTIONS = [
-    { id: 'daily', label: 'Daily', emoji: '📅', description: 'Resets every day' },
-    { id: 'weekly', label: 'Weekly', emoji: '📆', description: 'Resets every week' },
-    { id: 'once', label: 'One-time', emoji: '1️⃣', description: 'Complete once' }
+    { id: 'daily', label: 'Daily', emoji: 'ðŸ“…', description: 'Resets every day' },
+    { id: 'weekly', label: 'Weekly', emoji: 'ðŸ“†', description: 'Resets every week' },
+    { id: 'once', label: 'One-time', emoji: '1ï¸âƒ£', description: 'Complete once' }
 ];
 
 const REWARD_TEMPLATES = [
-    { name: '30 min extra screen time', cost: 50, emoji: '📱' },
-    { name: '1 hour extra screen time', cost: 100, emoji: '🎮' },
-    { name: 'Pick dinner tonight', cost: 75, emoji: '🍕' },
-    { name: 'Stay up 30 min late', cost: 80, emoji: '🌙' },
-    { name: 'Movie night pick', cost: 100, emoji: '🎬' },
-    { name: 'Small toy/treat', cost: 200, emoji: '🎁' },
-    { name: 'Trip to park', cost: 150, emoji: '🏞️' },
-    { name: 'Sleepover with friend', cost: 300, emoji: '🏠' },
-    { name: '$5 allowance', cost: 500, emoji: '💵' }
+    { name: '30 min extra screen time', cost: 50, emoji: 'ðŸ“±' },
+    { name: '1 hour extra screen time', cost: 100, emoji: 'ðŸŽ®' },
+    { name: 'Pick dinner tonight', cost: 75, emoji: 'ðŸ•' },
+    { name: 'Stay up 30 min late', cost: 80, emoji: 'ðŸŒ™' },
+    { name: 'Movie night pick', cost: 100, emoji: 'ðŸŽ¬' },
+    { name: 'Small toy/treat', cost: 200, emoji: 'ðŸŽ' },
+    { name: 'Trip to park', cost: 150, emoji: 'ðŸžï¸' },
+    { name: 'Sleepover with friend', cost: 300, emoji: 'ðŸ ' },
+    { name: '$5 allowance', cost: 500, emoji: 'ðŸ’µ' }
 ];
 
 // =====================================================
@@ -501,7 +501,7 @@ function Modal({ isOpen, onClose, title, children }) {
                 <div className="flex items-center justify-between p-5 border-b border-slate-100">
                     <h2 className="font-display text-xl font-bold text-slate-800">{title}</h2>
                     <button onClick={onClose} className="text-2xl text-slate-400 hover:text-slate-600 w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100">
-                        ×
+                        Ã—
                     </button>
                 </div>
                 <div className="p-5">
@@ -679,7 +679,7 @@ function ChoreModal({ isOpen, onClose, chore, kidId, onSave }) {
     const [name, setName] = useState('');
     const [sparks, setSparks] = useState(10);
     const [xp, setXp] = useState(20);
-    const [emoji, setEmoji] = useState('✅');
+    const [emoji, setEmoji] = useState('âœ…');
     const [recurrence, setRecurrence] = useState('daily');
     const [saving, setSaving] = useState(false);
     
@@ -688,13 +688,13 @@ function ChoreModal({ isOpen, onClose, chore, kidId, onSave }) {
             setName(chore.name || '');
             setSparks(chore.sparks || 10);
             setXp(chore.xp || 20);
-            setEmoji(chore.emoji || '✅');
+            setEmoji(chore.emoji || 'âœ…');
             setRecurrence(chore.recurrence || 'daily');
         } else {
             setName('');
             setSparks(10);
             setXp(20);
-            setEmoji('✅');
+            setEmoji('âœ…');
             setRecurrence('daily');
         }
     }, [chore, isOpen]);
@@ -766,7 +766,7 @@ function ChoreModal({ isOpen, onClose, chore, kidId, onSave }) {
                 {/* Rewards */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="form-label">⚡ Sparks Reward</label>
+                        <label className="form-label">âš¡ Sparks Reward</label>
                         <input
                             type="number"
                             value={sparks}
@@ -777,7 +777,7 @@ function ChoreModal({ isOpen, onClose, chore, kidId, onSave }) {
                         />
                     </div>
                     <div>
-                        <label className="form-label">✨ XP Reward</label>
+                        <label className="form-label">âœ¨ XP Reward</label>
                         <input
                             type="number"
                             value={xp}
@@ -832,7 +832,7 @@ function ChoreModal({ isOpen, onClose, chore, kidId, onSave }) {
 function RewardModal({ isOpen, onClose, reward, onSave }) {
     const [name, setName] = useState('');
     const [cost, setCost] = useState(100);
-    const [emoji, setEmoji] = useState('🎁');
+    const [emoji, setEmoji] = useState('ðŸŽ');
     const [description, setDescription] = useState('');
     const [saving, setSaving] = useState(false);
     
@@ -840,12 +840,12 @@ function RewardModal({ isOpen, onClose, reward, onSave }) {
         if (reward) {
             setName(reward.name || '');
             setCost(reward.cost || 100);
-            setEmoji(reward.emoji || '🎁');
+            setEmoji(reward.emoji || 'ðŸŽ');
             setDescription(reward.description || '');
         } else {
             setName('');
             setCost(100);
-            setEmoji('🎁');
+            setEmoji('ðŸŽ');
             setDescription('');
         }
     }, [reward, isOpen]);
@@ -914,7 +914,7 @@ function RewardModal({ isOpen, onClose, reward, onSave }) {
                 
                 {/* Cost */}
                 <div>
-                    <label className="form-label">⚡ Spark Cost</label>
+                    <label className="form-label">âš¡ Spark Cost</label>
                     <input
                         type="number"
                         value={cost}
@@ -969,7 +969,7 @@ function ConfirmModal({ isOpen, onClose, title, message, onConfirm, confirmText 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
             <div className="text-center">
-                <div className="text-5xl mb-4">⚠️</div>
+                <div className="text-5xl mb-4">âš ï¸</div>
                 <p className="text-slate-600 mb-6">{message}</p>
                 <div className="flex gap-3">
                     <button onClick={onClose} className="btn btn-secondary flex-1">Cancel</button>
@@ -1024,7 +1024,7 @@ function KidsList({ kids, selectedKid, onSelectKid, onAddKid, onEditKid, onDelet
             
             {kids.length === 0 ? (
                 <div className="empty-state card">
-                    <div className="text-5xl mb-3">👶</div>
+                    <div className="text-5xl mb-3">ðŸ‘¶</div>
                     <h4 className="font-display font-bold text-slate-700 mb-2">No children added yet</h4>
                     <p className="text-sm mb-4">Add your first child to get started with Spark Quest!</p>
                     <button onClick={handleAddKid} className="btn btn-primary">
@@ -1053,7 +1053,7 @@ function KidsList({ kids, selectedKid, onSelectKid, onAddKid, onEditKid, onDelet
                                         <p className="text-sm text-slate-500">Age {age}</p>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className="spark-badge text-xs py-0.5 px-2">
-                                                <span>⚡</span>
+                                                <span>âš¡</span>
                                                 <span>{kid.sparks || 0}</span>
                                             </span>
                                             <span className="text-xs font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
@@ -1067,13 +1067,13 @@ function KidsList({ kids, selectedKid, onSelectKid, onAddKid, onEditKid, onDelet
                                         onClick={(e) => handleEditKid(kid, e)}
                                         className="flex-1 text-sm font-bold text-slate-500 hover:text-purple-600 py-1"
                                     >
-                                        ✏️ Edit
+                                        âœï¸ Edit
                                     </button>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setDeleteKid(kid); }}
                                         className="flex-1 text-sm font-bold text-slate-500 hover:text-red-600 py-1"
                                     >
-                                        🗑️ Remove
+                                        ðŸ—‘ï¸ Remove
                                     </button>
                                 </div>
                             </div>
@@ -1132,7 +1132,7 @@ function ChoresList({ kid, onAddChore, onEditChore, onDeleteChore }) {
     if (!kid) {
         return (
             <div className="empty-state card">
-                <div className="text-5xl mb-3">👈</div>
+                <div className="text-5xl mb-3">ðŸ‘ˆ</div>
                 <h4 className="font-display font-bold text-slate-700 mb-2">Select a child first</h4>
                 <p className="text-sm">Choose a child from the list to manage their chores</p>
             </div>
@@ -1156,7 +1156,7 @@ function ChoresList({ kid, onAddChore, onEditChore, onDeleteChore }) {
             
             {chores.length === 0 ? (
                 <div className="empty-state card">
-                    <div className="text-5xl mb-3">📋</div>
+                    <div className="text-5xl mb-3">ðŸ“‹</div>
                     <h4 className="font-display font-bold text-slate-700 mb-2">No chores yet</h4>
                     <p className="text-sm mb-4">Add chores for {kid.name} to complete and earn Sparks!</p>
                     <button onClick={handleAddChore} className="btn btn-success">
@@ -1171,9 +1171,9 @@ function ChoresList({ kid, onAddChore, onEditChore, onDeleteChore }) {
                             <div className="flex-1 min-w-0">
                                 <h4 className="font-bold text-slate-800">{chore.name}</h4>
                                 <div className="flex items-center gap-3 mt-1">
-                                    <span className="text-sm text-amber-600 font-bold">⚡ {chore.sparks}</span>
-                                    <span className="text-sm text-purple-600 font-bold">✨ {chore.xp} XP</span>
-                                    <span className="text-xs text-slate-400 capitalize">• {chore.recurrence}</span>
+                                    <span className="text-sm text-amber-600 font-bold">âš¡ {chore.sparks}</span>
+                                    <span className="text-sm text-purple-600 font-bold">âœ¨ {chore.xp} XP</span>
+                                    <span className="text-xs text-slate-400 capitalize">â€¢ {chore.recurrence}</span>
                                 </div>
                             </div>
                             <div className="flex gap-1">
@@ -1181,13 +1181,13 @@ function ChoresList({ kid, onAddChore, onEditChore, onDeleteChore }) {
                                     onClick={() => handleEditChore(chore)}
                                     className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
                                 >
-                                    ✏️
+                                    âœï¸
                                 </button>
                                 <button
                                     onClick={() => setDeleteChore(chore)}
                                     className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                                 >
-                                    🗑️
+                                    ðŸ—‘ï¸
                                 </button>
                             </div>
                         </div>
@@ -1254,7 +1254,7 @@ function RewardsList({ rewards, onAddReward, onEditReward, onDeleteReward }) {
             
             {rewards.length === 0 ? (
                 <div className="empty-state card">
-                    <div className="text-5xl mb-3">🎁</div>
+                    <div className="text-5xl mb-3">ðŸŽ</div>
                     <h4 className="font-display font-bold text-slate-700 mb-2">No rewards yet</h4>
                     <p className="text-sm mb-4">Add real-world rewards that kids can redeem with their Sparks!</p>
                     <button onClick={handleAddReward} className="btn btn-primary">
@@ -1273,7 +1273,7 @@ function RewardsList({ rewards, onAddReward, onEditReward, onDeleteReward }) {
                                         <p className="text-sm text-slate-500 mt-0.5">{reward.description}</p>
                                     )}
                                     <div className="spark-badge mt-2">
-                                        <span>⚡</span>
+                                        <span>âš¡</span>
                                         <span>{reward.cost}</span>
                                     </div>
                                 </div>
@@ -1283,13 +1283,13 @@ function RewardsList({ rewards, onAddReward, onEditReward, onDeleteReward }) {
                                     onClick={() => handleEditReward(reward)}
                                     className="flex-1 text-sm font-bold text-slate-500 hover:text-purple-600 py-1"
                                 >
-                                    ✏️ Edit
+                                    âœï¸ Edit
                                 </button>
                                 <button
                                     onClick={() => setDeleteReward(reward)}
                                     className="flex-1 text-sm font-bold text-slate-500 hover:text-red-600 py-1"
                                 >
-                                    🗑️ Delete
+                                    ðŸ—‘ï¸ Delete
                                 </button>
                             </div>
                         </div>
@@ -1328,22 +1328,22 @@ function DashboardOverview({ kids, rewards, playingKids, togglePlayingKid }) {
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="stat-card card-blue">
-                    <div className="text-3xl mb-1">👶</div>
+                    <div className="text-3xl mb-1">ðŸ‘¶</div>
                     <div className="text-2xl font-bold text-slate-800">{kids.length}</div>
                     <div className="text-sm text-slate-500">Children</div>
                 </div>
                 <div className="stat-card card-green">
-                    <div className="text-3xl mb-1">📋</div>
+                    <div className="text-3xl mb-1">ðŸ“‹</div>
                     <div className="text-2xl font-bold text-slate-800">{totalChores}</div>
                     <div className="text-sm text-slate-500">Total Chores</div>
                 </div>
                 <div className="stat-card card-amber">
-                    <div className="text-3xl mb-1">⚡</div>
+                    <div className="text-3xl mb-1">âš¡</div>
                     <div className="text-2xl font-bold text-slate-800">{totalSparks}</div>
                     <div className="text-sm text-slate-500">Total Sparks</div>
                 </div>
                 <div className="stat-card card-purple">
-                    <div className="text-3xl mb-1">🎁</div>
+                    <div className="text-3xl mb-1">ðŸŽ</div>
                     <div className="text-2xl font-bold text-slate-800">{rewards.length}</div>
                     <div className="text-sm text-slate-500">Rewards</div>
                 </div>
@@ -1385,7 +1385,7 @@ function DashboardOverview({ kids, rewards, playingKids, togglePlayingKid }) {
                                             ? 'bg-green-500 border-green-500 text-white' 
                                             : 'border-slate-300'
                                     }`}>
-                                        {isPlaying && <span className="text-sm">✓</span>}
+                                        {isPlaying && <span className="text-sm">âœ“</span>}
                                     </div>
                                     
                                     <BlockyAvatar config={kid.avatar} size="sm" />
@@ -1396,7 +1396,7 @@ function DashboardOverview({ kids, rewards, playingKids, togglePlayingKid }) {
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="spark-badge text-xs py-0.5 px-2">
-                                                ⚡ {kid.sparks || 0}
+                                                âš¡ {kid.sparks || 0}
                                             </span>
                                             <span className="text-xs font-bold text-purple-600">Level {level}</span>
                                             <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
@@ -1418,7 +1418,7 @@ function DashboardOverview({ kids, rewards, playingKids, togglePlayingKid }) {
             {/* Quick Start */}
             {kids.length === 0 && (
                 <div className="card p-6 text-center bg-gradient-to-br from-purple-50 to-blue-50">
-                    <div className="text-6xl mb-4">🚀</div>
+                    <div className="text-6xl mb-4">ðŸš€</div>
                     <h3 className="font-display text-xl font-bold text-slate-800 mb-2">Welcome to Spark Quest!</h3>
                     <p className="text-slate-600 mb-4">
                         Get started by adding your first child. Then you can assign chores, 
@@ -1670,10 +1670,10 @@ function ParentHub() {
     }
     
     const tabs = [
-        { id: 'dashboard', label: 'Dashboard', emoji: '📊' },
-        { id: 'kids', label: 'Children', emoji: '👶' },
-        { id: 'chores', label: 'Chores', emoji: '📋' },
-        { id: 'rewards', label: 'Rewards', emoji: '🎁' }
+        { id: 'dashboard', label: 'Dashboard', emoji: 'ðŸ“Š' },
+        { id: 'kids', label: 'Children', emoji: 'ðŸ‘¶' },
+        { id: 'chores', label: 'Chores', emoji: 'ðŸ“‹' },
+        { id: 'rewards', label: 'Rewards', emoji: 'ðŸŽ' }
     ];
     
     return (
@@ -1684,7 +1684,7 @@ function ParentHub() {
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-3">
                             <a href="index.html" className="flex items-center gap-2">
-                                <span className="text-2xl">⚡</span>
+                                <span className="text-2xl">âš¡</span>
                                 <span className="font-display text-xl font-bold text-slate-800 hidden sm:inline">Spark Quest</span>
                             </a>
                             <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-full">
@@ -1821,11 +1821,11 @@ function ParentHub() {
                         href={getPlayUrl()}
                         className="hidden lg:flex fixed bottom-6 right-6 btn btn-success text-lg py-4 px-6 shadow-xl hover:shadow-2xl animate-pulse-glow"
                     >
-                        🎮 Let Kids Play {playingKids.length > 1 ? `(${playingKids.length})` : ''}
+                        ðŸŽ® Let Kids Play {playingKids.length > 1 ? `(${playingKids.length})` : ''}
                     </a>
                 ) : (
                     <div className="hidden lg:flex fixed bottom-6 right-6 bg-slate-300 text-slate-500 text-lg py-4 px-6 rounded-2xl font-bold shadow-xl cursor-not-allowed">
-                        🎮 Select Kids First
+                        ðŸŽ® Select Kids First
                     </div>
                 )
             )}
